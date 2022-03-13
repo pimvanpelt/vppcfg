@@ -17,6 +17,33 @@ from validator.bondethernet import bondethernet
 from validator.interface import interface
 from validator.bridgedomain import bridgedomain
 
+from yamale.validators import DefaultValidators, Validator
+import ipaddress
+
+class IPInterfaceWithPrefixLength(Validator):
+    """ Custom IPAddress validator - takes IP/prefixlen as input:
+        192.0.2.1/29 or 2001:db8::1/64 are correct. The PrefixLength
+        is required, and must be a number (0-32 for IPv4 and 0-128 for
+        IPv6).
+    """
+    tag = 'ip_interface'
+
+    def _is_valid(self, value):
+        try:
+            network = ipaddress.ip_interface(value)
+        except:
+            return False
+        if not '/' in value:
+            return False
+        e = value.split('/')
+        if not len(e) == 2:
+            return False
+        if not e[1].isnumeric():
+            return False
+        return True
+
+
+
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
@@ -35,7 +62,9 @@ class Validator(object):
         if self.args.schema:
             try:
                 self.logger.info("Validating against schema %s" % self.args.schema)
-                schema = yamale.make_schema(self.args.schema)
+                validators = DefaultValidators.copy()
+                validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
+                schema = yamale.make_schema(self.args.schema, validators=validators)
                 data = yamale.make_data(content=str(yaml))
                 yamale.validate(schema, data)
                 self.logger.debug("Schema correctly validated by yamale")
