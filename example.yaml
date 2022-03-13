@@ -51,3 +51,10 @@ interfaces:
           dot1ad: 1000
           dot1q: 1000
           inner-dot1q: 1000
+
+loopbacks:
+  loop0:
+    description: "Core: example.ipng.ch"
+    mtu: 9216
+    lcp: "loop0"
+    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
