@@ -94,7 +94,10 @@ def main():
                     logging.error("Unexpected message: %s" % (m))
                     this_failed = True
             if this_failed:
-                logging.error("Unittest %s failed" % (fn))
+                if 'test' in unittest and 'description' in unittest['test']:
+                    logging.error("Unittest %s failed: %s" % (fn, unittest['test']['description']))
+                else:
+                    logging.error("Unittest %s failed" % (fn))
                 errors = errors + 1
             else:
                 logging.info("Unittest %s passed" % (fn))
