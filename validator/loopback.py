@@ -20,7 +20,10 @@ def loopback(args, yaml):
     logger = logging.getLogger('vppcfg.validator')
     logger.addHandler(NullHandler())
 
+    if not 'loopbacks' in yaml:
+        return result, msgs
+
     logger.debug("Validating loopbacks...")
     for ifname, iface in yaml['loopbacks'].items():
-        logger.debug("loopbacks %s" % iface)
+        logger.debug("loopback %s" % iface)
     return result, msgs
