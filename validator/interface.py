@@ -251,6 +251,7 @@ def get_mtu(yaml, ifname):
     return 1500 if no MTU was set on the sub-int or the parent."""
     iface = get_by_name(yaml, ifname)
     parent_iface = get_parent_by_name(yaml, ifname)
+
     try:
         return iface['mtu']
         return parent_iface['mtu']
@@ -274,7 +275,7 @@ def validate_interfaces(yaml):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
 
-        iface_mtu = get_mtu(yaml, iface)
+        iface_mtu = get_mtu(yaml, ifname)
         iface_lcp = has_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
 
