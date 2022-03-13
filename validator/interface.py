@@ -124,6 +124,8 @@ def valid_encapsulation(yaml, sub_ifname):
         return False
     if 'inner-dot1q' in encap and not ('dot1ad' in encap or 'dot1q' in encap):
         return False
+    if 'exact-match' in encap and encap['exact-match'] == False and is_l3(yaml, sub_ifname):
+        return False
 
     return True
 
