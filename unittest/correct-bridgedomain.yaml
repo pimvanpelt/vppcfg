@@ -34,11 +34,6 @@ interfaces:
   GigabitEthernet4/0/1:
     mtu: 9000
 
-  GigabitEthernet4/0/2:
-    mtu: 9000
-  GigabitEthernet4/0/3:
-    mtu: 9000
-
   BondEthernet0:
     mtu: 3000
     sub-interfaces:
@@ -61,8 +56,3 @@ bridgedomains:
     mtu: 9000
     interfaces: [ GigabitEthernet4/0/0, GigabitEthernet4/0/1 ]
     lcp: "bvi11"
-  bd13:
-    description: "Bridge Domain 13, address but no LCP"
-    mtu: 9000
-    interfaces: [ GigabitEthernet4/0/2, GigabitEthernet4/0/3 ]
-    addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]

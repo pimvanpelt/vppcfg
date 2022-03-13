@@ -1,0 +1,19 @@
+test:
+  description: "A bridgedomain with a BVI address must have an LCP"
+  errors:
+    expected:
+     - "bridgedomain .* has an address but no LCP"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+bridgedomains:
+  bd13:
+    description: "Bridge Domain 13, address but no LCP"
+    mtu: 3000
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/0 ]
+    addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]

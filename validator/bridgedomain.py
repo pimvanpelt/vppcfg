@@ -32,6 +32,10 @@ def validate_bridgedomains(yaml):
         if 'mtu' in iface:
             bd_mtu = iface['mtu']
 
+        if 'addresses' in iface and not 'lcp' in iface:
+            msgs.append("bridgedomain %s has an address but no LCP" % ifname)
+            result = False
+
         if 'interfaces' in iface:
             for member in iface['interfaces']:
                 member_iface = interface.get_by_name(yaml, member)
