@@ -1,0 +1,70 @@
+test:
+  description: "Test that is meant to pass"
+  errors:
+    count: 0
+---
+bondethernets:
+  BondEthernet0:
+    description: "Infra: xsw0.lab.ipng.ch LACP"
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Infra: nikhef-core-1.nl.switch.coloclue.net e1/34"
+    lcp: e0-0
+    addresses: [ 94.142.244.85/24, 2A02:898::146:1/64 ]
+    sub-interfaces:
+      100:
+        description: "Cust: hvn0.nlams0.ipng.ch"
+        addresses: [ 94.142.241.185/29, 2a02:898:146::1/64 ]
+      101:
+        description: "Infra: L2 for FrysIX AS112"
+
+  GigabitEthernet1/0/1:
+    description: "Broken - has same LCP as above"
+    lcp: e0-1
+
+  GigabitEthernet2/0/0:
+    description: "Infra: LAG to xsw0"
+
+  GigabitEthernet2/0/1:
+    description: "Infra: LAG to xsw1"
+
+  GigabitEthernet3/0/0:
+    description: "Infra: Bridge Doamin 10"
+
+  BondEthernet0:
+    description: "Bond, James Bond!"
+    mac: 00:01:02:03:04:05
+    lcp: "bond0"
+    sub-interfaces:
+      200:
+        encapsulation:
+          dot1q: 1000
+      201:
+        encapsulation:
+          dot1ad: 1000
+      202:
+        encapsulation:
+          dot1q: 1000
+          inner-dot1q: 1234
+        addresses: [ 192.0.2.1/24 ]
+      203:
+        encapsulation:
+          dot1ad: 1000
+          inner-dot1q: 1000
+
+loopbacks:
+  loop0:
+    description: "Core: example.ipng.ch"
+    mtu: 9216
+    lcp: "loop0"
+    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 1500
+    lcp: "bvi10"
+    addresses: [ 192.0.2.9/29, 2001:db8:2::1/64 ]
+    interfaces: [ BondEthernet0.203, GigabitEthernet3/0/0 ]

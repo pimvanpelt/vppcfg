@@ -1,0 +1,10 @@
+test:
+  description: "Interface description field mistyped"
+  errors:
+    expected: 
+     - "descr.*Unexpected element"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    descr: "some description"
