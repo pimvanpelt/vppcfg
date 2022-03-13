@@ -108,6 +108,51 @@ def has_lcp(yaml, ifname):
     return False
 
 
+def unique_encapsulation(yaml, sub_ifname):
+    """ Ensures that for the sub_ifname specified, there exist no other sub-ints on the
+    parent with the same encapsulation. """
+    iface = get_by_name(yaml, sub_ifname)
+    parent_iface = get_parent_by_name(yaml, sub_ifname)
+    if not iface or not parent_iface:
+        return False
+    parent_ifname, subid = sub_ifname.split('.')
+
+    dot1q = 0
+    dot1ad = 0
+    inner_dot1q = 0
+    if not 'encapsulation' in iface:
+        dot1q = int(subid)
+    else:
+        if 'dot1q' in iface['encapsulation']:
+            dot1q = iface['encapsulation']['dot1q']
+        elif 'dot1ad' in iface['encapsulation']:
+            dot1ad = iface['encapsulation']['dot1ad']
+        if 'inner-dot1q' in iface['encapsulation']:
+            inner_dot1q = iface['encapsulation']['inner-dot1q']
+
+    ncount = 0
+    for subid, sibling_iface in parent_iface['sub-interfaces'].items():
+        sibling_dot1q = 0
+        sibling_dot1ad = 0
+        sibling_inner_dot1q = 0
+        sibling_ifname = "%s.%d" % (parent_ifname, subid)
+        if not 'encapsulation' in sibling_iface:
+            sibling_dot1q = subid
+        else:
+            if 'dot1q' in sibling_iface['encapsulation']:
+                sibling_dot1q = sibling_iface['encapsulation']['dot1q']
+            elif 'dot1ad' in sibling_iface['encapsulation']:
+                sibling_dot1ad = sibling_iface['encapsulation']['dot1ad']
+            if 'inner-dot1q' in sibling_iface['encapsulation']:
+                sibling_inner_dot1q = sibling_iface['encapsulation']['inner-dot1q']
+        if (dot1q,dot1ad,inner_dot1q) == (sibling_dot1q, sibling_dot1ad, sibling_inner_dot1q) and sub_ifname != sibling_ifname:
+            ## print("%s overlaps with %s: [%d,%d,%d]" % (sub_ifname, sibling_ifname, dot1q, dot1ad, inner_dot1q))
+            ncount = ncount + 1
+
+    if (ncount == 0):
+        return True
+    return False
+
 def valid_encapsulation(yaml, sub_ifname):
     try:
         ifname, subid = sub_ifname.split('.')
@@ -221,16 +266,21 @@ def validate_interfaces(args, yaml):
 
         if has_sub(yaml, ifname):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
-                sub_ifname = "%s.%d" % (ifname, sub_id)
                 logger.debug("sub-interface %s" % sub_iface)
+                sub_ifname = "%s.%d" % (ifname, sub_id)
+                if not sub_iface:
+                    msgs.append("sub-interface %s has no config" % (sub_ifname))
+                    result = False
+                    continue
+
                 sub_lcp = get_lcp(yaml, sub_ifname)
                 if sub_lcp and len(sub_lcp)>15:
                     msgs.append("sub-interface %s has LCP with too long name '%s'" % (sub_ifname, sub_lcp))
                     result = False
-                if 'mtu' in sub_iface:
-                    if sub_iface['mtu'] > iface_mtu:
-                        msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))
-                        result = False
+                sub_mtu = get_mtu(yaml, sub_ifname)
+                if sub_mtu > iface_mtu:
+                    msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))
+                    result = False
                 if has_lcp(yaml, sub_ifname):
                     if not iface_lcp:
                         msgs.append("sub-interface %s has LCP but %s does not have LCP" % (sub_ifname, ifname))
@@ -242,6 +292,9 @@ def validate_interfaces(args, yaml):
                         result = False
                 if not valid_encapsulation(yaml, sub_ifname):
                     msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))
+                    result = False
+                elif not unique_encapsulation(yaml, sub_ifname):
+                    msgs.append("sub-interface %s doesn't have unique encapsulation" % (sub_ifname))
                     result = False
 
     return result, msgs
