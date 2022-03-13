@@ -1,0 +1,22 @@
+test:
+  description: "Members of a BondEthernet can't have a sub-interface"
+  errors:
+    expected:
+     - "bondethernet .* member .* has sub-interface"
+    count: 1
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+    sub-interfaces:
+      100:
+        description: "A sub-int on a BondEthernet member is not OK"
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    mtu: 3000

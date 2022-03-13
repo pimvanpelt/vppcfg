@@ -1,0 +1,22 @@
+test:
+  description: "Members of a BondEthernet can't have addresses"
+  errors:
+    expected:
+     - "bondethernet .* member .* has address"
+     - "bondethernet .* member .* has an LCP"
+    count: 2
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+    lcp: "e1-0-0"
+    addresses: [ 192.0.2.1/29 ]
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    mtu: 3000

@@ -1,0 +1,36 @@
+test:
+  description: "An example of well formed bondethernet"
+  errors:
+    count: 0
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+  BondEthernet1:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  GigabitEthernet2/0/0:
+    mtu: 3000
+  GigabitEthernet2/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    mtu: 3000
+    sub-interfaces:
+      100:
+        mtu: 2000
+
+  BondEthernet1:
+    mtu: 3000
+    lcp: "be0"
+    addresses: [ 192.0.2.1/29, 2001:db8::1/64 ]
+    sub-interfaces:
+      100:
+        mtu: 2000
+        addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]

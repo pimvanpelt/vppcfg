@@ -1,0 +1,19 @@
+test:
+  description: "Members of a BondEthernet must exist"
+  errors:
+    expected:
+     - "bondethernet .* member .* doesn't exist"
+    count: 2
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    mtu: 3000

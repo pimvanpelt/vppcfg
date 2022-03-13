@@ -1,0 +1,20 @@
+test:
+  description: "Members of a BondEthernet can't have an LCP"
+  errors:
+    expected:
+     - "bondethernet .* member .* has an LCP"
+    count: 1
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+    lcp: "e1-0-0"
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    mtu: 3000
