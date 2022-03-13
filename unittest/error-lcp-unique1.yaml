@@ -1,0 +1,18 @@
+test:
+  description: "Two interfaces or subinterfaces can't have the same LCP"
+  errors:
+    expected:
+     - "interface .* does not have a unique LCP name"
+     - "sub-interface .* does not have a unique LCP name"
+    count: 3
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: "e1"
+    sub-interfaces:
+      100:
+        lcp: "e1"
+
+  GigabitEthernet1/0/1:
+    lcp: "e1"
+

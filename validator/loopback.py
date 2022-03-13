@@ -1,4 +1,5 @@
 import logging
+import validator.lcp as lcp
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -28,6 +29,9 @@ def validate_loopbacks(yaml):
         logger.debug("loopback %s" % iface)
         if 'addresses' in iface and not 'lcp' in iface:
             msgs.append("loopback %s has an address but no LCP" % ifname)
+            result = False
+        if 'lcp' in iface and not lcp.is_unique(yaml, iface['lcp']):
+            msgs.append("loopback %s does not have a unique LCP name %s" % (ifname, iface['lcp']))
             result = False
 
     return result, msgs

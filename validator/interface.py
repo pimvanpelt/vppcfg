@@ -1,5 +1,6 @@
 import logging
 import validator.bondethernet as bondethernet
+import validator.lcp as lcp
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -17,6 +18,7 @@ def get_parent_by_name(yaml, ifname):
     except:
         pass
     return None
+
 
 def get_by_name(yaml, ifname):
     """ Returns the interface or sub-interface by a given name, or None if it does not exist """
@@ -82,25 +84,6 @@ def is_bond_member(yaml, ifname):
             continue
         if ifname in iface['interfaces']:
             return True
-    return False
-
-def unique_lcp(yaml, ifname):
-    """ Returns true if this interface has a unique LCP name """
-    if not 'interfaces' in yaml:
-        return True
-    iface = get_by_name(yaml, ifname)
-    lcp = get_lcp(yaml, ifname)
-    if not lcp:
-        return True
-
-    ncount = 0
-    for sibling_ifname, sibling_iface in yaml['interfaces'].items():
-        sibling_lcp = get_lcp(yaml, sibling_ifname)
-        if sibling_lcp == lcp and sibling_ifname != ifname:
-            ## print("%s overlaps with %s: %s" % (ifname, sibling_ifname, lcp))
-            ncount = ncount + 1
-    if ncount == 0:
-        return True
     return False
 
 def has_lcp(yaml, ifname):
@@ -282,9 +265,9 @@ def validate_interfaces(yaml):
         if iface_address and not iface_lcp:
             msgs.append("interface %s has an address but no LCP" % ifname)
             result = False
-        if iface_lcp and not unique_lcp(yaml, ifname):
-            lcp = get_lcp(yaml, ifname)
-            msgs.append("interface %s does not have a unique LCP name %s" % (ifname, lcp))
+        iface_lcp = get_lcp(yaml, ifname)
+        if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
+            msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
             result = False
 
         if has_sub(yaml, ifname):
@@ -299,6 +282,9 @@ def validate_interfaces(yaml):
                 sub_lcp = get_lcp(yaml, sub_ifname)
                 if sub_lcp and len(sub_lcp)>15:
                     msgs.append("sub-interface %s has LCP with too long name '%s'" % (sub_ifname, sub_lcp))
+                    result = False
+                if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
+                    msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
                     result = False
                 sub_mtu = get_mtu(yaml, sub_ifname)
                 if sub_mtu > iface_mtu:

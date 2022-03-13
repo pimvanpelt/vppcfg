@@ -55,4 +55,4 @@ bridgedomains:
     description: "Bridge Domain 12, LCP but no address"
     mtu: 9000
     interfaces: [ GigabitEthernet4/0/0, GigabitEthernet4/0/1 ]
-    lcp: "bvi11"
+    lcp: "bvi12"
