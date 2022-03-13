@@ -39,18 +39,6 @@ interfaces:
         encapsulation:
           dot1ad: 1000
           inner-dot1q: 1000
-      300:
-        encapsulation:
-          dot1ad: 1000
-          dot1q: 1000
-      301:
-        encapsulation:
-          inner-dot1q: 1000
-      302:
-        encapsulation:
-          dot1ad: 1000
-          dot1q: 1000
-          inner-dot1q: 1000
 
 loopbacks:
   loop0:
