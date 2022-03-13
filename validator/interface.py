@@ -141,6 +141,48 @@ def is_l3(yaml, ifname):
         return True
     return False
 
+def get_lcp(yaml, ifname):
+    """ Returns the LCP of the interface. If the interface is a sub-interface with L3
+    enabled, synthesize it based on its parent, using smart QinQ syntax.
+    Return None if no LCP can be found. """
+
+    iface = get_by_name(yaml, ifname)
+    parent_iface = get_parent_by_name(yaml, ifname)
+    if 'lcp' in iface:
+        return iface['lcp']
+    if not is_l3(yaml, ifname):
+        return None
+    if not 'lcp' in parent_iface:
+        return None
+    if not 'encapsulation' in iface:
+        if not '.' in ifname:
+            ## Not a sub-int and no encap? Should not happen
+            return None
+        ifname, subid = ifname.split('.')
+        subid = int(subid)
+        return "%s.%d" % (parent_iface['lcp'], subid)
+
+    dot1q = 0
+    dot1ad = 0
+    inner_dot1q = 0
+    if 'dot1q' in iface['encapsulation']:
+        dot1q = iface['encapsulation']['dot1q']
+    elif 'dot1ad' in iface['encapsulation']:
+        dot1ad = iface['encapsulation']['dot1ad']
+    if 'inner-dot1q' in iface['encapsulation']:
+        inner_dot1q = iface['encapsulation']['inner-dot1q']
+    if inner_dot1q and dot1ad:
+        lcp = "%s.%d.%d" % (parent_iface['lcp'], dot1ad, inner_dot1q)
+    elif inner_dot1q and dot1q:
+        lcp = "%s.%d.%d" % (parent_iface['lcp'], dot1q, inner_dot1q)
+    elif dot1ad:
+        lcp = "%s.%d" % (parent_iface['lcp'], dot1ad)
+    elif dot1q:
+        lcp = "%s.%d" % (parent_iface['lcp'], dot1q)
+    else:
+        return None
+    return lcp
+
 def get_mtu(yaml, ifname):
     """ Returns MTU of the interface. If it's not set, return the parent's MTU, and
     return 1500 if no MTU was set on the sub-int or the parent."""
@@ -169,10 +211,7 @@ def validate_interfaces(args, yaml):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
 
-        if 'mtu' in iface:
-            iface_mtu = iface['mtu']
-        else:
-            iface_mtu = 1500
+        iface_mtu = get_mtu(yaml, iface)
         iface_lcp = has_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
 
@@ -184,6 +223,10 @@ def validate_interfaces(args, yaml):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
                 sub_ifname = "%s.%d" % (ifname, sub_id)
                 logger.debug("sub-interface %s" % sub_iface)
+                sub_lcp = get_lcp(yaml, sub_ifname)
+                if sub_lcp and len(sub_lcp)>15:
+                    msgs.append("sub-interface %s has LCP with too long name '%s'" % (sub_ifname, sub_lcp))
+                    result = False
                 if 'mtu' in sub_iface:
                     if sub_iface['mtu'] > iface_mtu:
                         msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))

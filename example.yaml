@@ -27,6 +27,7 @@ interfaces:
   BondEthernet0:
     description: "Bond, James Bond!"
     mac: 00:01:02:03:04:05
+    lcp: "bond0"
     sub-interfaces:
       200:
         encapsulation:
@@ -37,7 +38,8 @@ interfaces:
       202:
         encapsulation:
           dot1q: 1000
-          inner-dot1q: 1000
+          inner-dot1q: 1234
+        addresses: [ 192.0.2.1/24 ]
       203:
         encapsulation:
           dot1ad: 1000
