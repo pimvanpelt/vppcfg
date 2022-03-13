@@ -16,7 +16,7 @@ def get_by_name(yaml, ifname):
     return None
 
 
-def validate_bondethernets(args, yaml):
+def validate_bondethernets(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')

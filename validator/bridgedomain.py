@@ -16,7 +16,7 @@ def get_by_name(yaml, ifname):
     return None
 
 
-def validate_bridgedomains(args, yaml):
+def validate_bridgedomains(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')

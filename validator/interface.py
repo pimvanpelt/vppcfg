@@ -259,7 +259,7 @@ def get_mtu(yaml, ifname):
     return 1500
 
 
-def validate_interfaces(args, yaml):
+def validate_interfaces(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')

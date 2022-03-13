@@ -34,7 +34,7 @@ def main():
         logging.error("Couldn't read config from %s" % args.config)
         sys.exit(-1)
 
-    v = Validator(args)
+    v = Validator(schema=args.schema)
     rv, msgs = v.validate(cfg)
     if not rv:
         for m in msgs:

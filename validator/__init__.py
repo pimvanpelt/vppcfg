@@ -50,21 +50,21 @@ class NullHandler(logging.Handler):
 
 
 class Validator(object):
-    def __init__(self, args):
+    def __init__(self, schema):
         self.logger = logging.getLogger('vppcfg.validator')
         self.logger.addHandler(NullHandler())
 
-        self.args = args
+        self.schema = schema
 
     def validate(self, yaml):
         ret_rv = True
         ret_msgs = []
-        if self.args.schema:
+        if self.schema:
             try:
-                self.logger.info("Validating against schema %s" % self.args.schema)
+                self.logger.info("Validating against schema %s" % self.schema)
                 validators = DefaultValidators.copy()
                 validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
-                schema = yamale.make_schema(self.args.schema, validators=validators)
+                schema = yamale.make_schema(self.schema, validators=validators)
                 data = yamale.make_data(content=str(yaml))
                 yamale.validate(schema, data)
                 self.logger.debug("Schema correctly validated by yamale")
@@ -79,25 +79,25 @@ class Validator(object):
 
         self.logger.debug("Validating Semantics...")
 
-        rv, msgs = validate_bondethernets(self.args, yaml)
+        rv, msgs = validate_bondethernets(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = validate_interfaces(self.args, yaml)
+        rv, msgs = validate_interfaces(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = validate_loopbacks(self.args, yaml)
+        rv, msgs = validate_loopbacks(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = validate_bridgedomains(self.args, yaml)
+        rv, msgs = validate_bridgedomains(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
