@@ -15,6 +15,10 @@ interfaces:
       101:
         description: "Infra: L2 for FrysIX AS112"
 
+  GigabitEthernet1/0/1:
+    description: "Broken - has same LCP as above"
+    lcp: e0-1
+
   GigabitEthernet2/0/0:
     description: "Infra: LAG to xsw0"
 

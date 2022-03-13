@@ -84,6 +84,24 @@ def is_bond_member(yaml, ifname):
             return True
     return False
 
+def unique_lcp(yaml, ifname):
+    """ Returns true if this interface has a unique LCP name """
+    if not 'interfaces' in yaml:
+        return True
+    iface = get_by_name(yaml, ifname)
+    lcp = get_lcp(yaml, ifname)
+    if not lcp:
+        return True
+
+    ncount = 0
+    for sibling_ifname, sibling_iface in yaml['interfaces'].items():
+        sibling_lcp = get_lcp(yaml, sibling_ifname)
+        if sibling_lcp == lcp and sibling_ifname != ifname:
+            ## print("%s overlaps with %s: %s" % (ifname, sibling_ifname, lcp))
+            ncount = ncount + 1
+    if ncount == 0:
+        return True
+    return False
 
 def has_lcp(yaml, ifname):
     """ Returns True if this interface or sub-interface has an LCP"""
@@ -262,6 +280,10 @@ def validate_interfaces(args, yaml):
 
         if iface_address and not iface_lcp:
             msgs.append("interface %s has adddress(es) but no LCP" % ifname)
+            result = False
+        if iface_lcp and not unique_lcp(yaml, ifname):
+            lcp = get_lcp(yaml, ifname)
+            msgs.append("interface %s does not have a unique LCP name %s" % (ifname, lcp))
             result = False
 
         if has_sub(yaml, ifname):
