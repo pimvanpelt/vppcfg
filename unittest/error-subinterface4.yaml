@@ -1,0 +1,17 @@
+test:
+  description: "The length of the generated child LCP name is too long"
+  errors:
+    expected:
+     - "sub-interface .* has LCP with too long name"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: "e01234"
+    sub-interfaces:
+      100:
+        description: "QinQ subinterface"
+        addresses: [ 192.0.2.1/24 ]
+        encapsulation:
+          dot1q: 1234
+          inner-dot1q: 2345
+

@@ -1,0 +1,17 @@
+test:
+  description: "Sub-interface with addresses must have an LCP. Gi1/0/0 does this wrong, while Gi2/0/0 does it correctly"
+  errors:
+    expected:
+     - "sub-interface .* has address.* but .* does not have LCP"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        addresses: [ 192.0.2.1/24 ]
+  GigabitEthernet2/0/0:
+    lcp: "xe2-0-0"
+    sub-interfaces:
+      100:
+        addresses: [ 192.0.2.1/24 ]
+

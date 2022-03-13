@@ -1,0 +1,17 @@
+test:
+  description: "Two subinterfaces can't have the same encapsulation"
+  errors:
+    expected:
+     - "100 .* unique encapsulation"
+     - "101 .* unique encapsulation"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        description: "VLAN 100"
+      101:
+        description: "Another VLAN 100"
+        encapsulation:
+          dot1q: 100
+

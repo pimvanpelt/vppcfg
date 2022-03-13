@@ -1,0 +1,13 @@
+test:
+  description: "The length of the LCP name is too long"
+  errors:
+    expected:
+     - "Length .* is greater than 8"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: "e01234567"
+    sub-interfaces:
+      100:
+        description: "VLAN 100"
+

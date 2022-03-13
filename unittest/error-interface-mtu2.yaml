@@ -1,0 +1,12 @@
+test:
+  description: "MTU of sub-interfaces cannot be higher than their parent"
+  errors:
+    expected: 
+     - "sub-interface .* has MTU 9001 higher than parent MTU 9000"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 9000
+    sub-interfaces:
+      100:
+        mtu: 9001

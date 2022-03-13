@@ -1,0 +1,10 @@
+test:
+  description: "A completely empty sub-interface is not allowed"
+  errors:
+    expected:
+     - "sub-interface .* has no config"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100: {}

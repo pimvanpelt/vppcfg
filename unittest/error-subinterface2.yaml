@@ -1,0 +1,13 @@
+test:
+  description: "A subinterface cannot have an LCP if the parent doesn't have one"
+  errors:
+    expected:
+     - "sub-interface .* has LCP but .* does not have LCP"
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        description: "VLAN 100"
+        lcp: "foo.100"
+

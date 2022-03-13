@@ -1,0 +1,20 @@
+test:
+  description: "A bunch of sub-interfaces with incorrect encapsulation"
+  errors:
+    expected:
+     - "has invalid encapsulation"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        encapsulation:
+          ## Cannot have both dot1q and dot1ad
+          dot1q: 100
+          dot1ad: 100
+      101:
+        encapsulation:
+          ## Missing dot1q or dot1ad
+          inner-dot1q: 100
+
