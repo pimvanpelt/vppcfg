@@ -120,7 +120,6 @@ def interface(args, yaml):
         if ifname.startswith("BondEthernet") and not bondethernet.exists(yaml, ifname):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
-            continue
 
         iface_lcp = has_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)

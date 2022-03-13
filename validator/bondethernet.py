@@ -30,7 +30,6 @@ def bondethernet(args, yaml):
             if not interface.exists(yaml, member):
                 msgs.append("bondethernet %s member %s doesn't exist" % (ifname, member))
                 result = False
-                continue
 
             if interface.has_sub(yaml, member):
                 msgs.append("bondethernet %s member %s has sub-interface(s)" % (ifname, member))
