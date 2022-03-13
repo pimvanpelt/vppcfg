@@ -36,7 +36,7 @@ def validate_bridgedomains(yaml):
             for member in iface['interfaces']:
                 member_iface = interface.get_by_name(yaml, member)
                 if not member_iface:
-                    msgs.append("bondethernet %s member %s doesn't exist" % (ifname, member))
+                    msgs.append("bridgedomain %s member %s doesn't exist" % (ifname, member))
                     result = False
                     continue
 
