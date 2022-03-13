@@ -4,7 +4,7 @@ test:
     expected:
      - "yamale: .* is not a "
      - "yamale: .*: Unexpected element"
-    count: 11
+    count: 12
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -17,6 +17,13 @@ interfaces:
         description: [ "a", "list" ]
         encapsulation:
           dot1q: "hello world"
+
+  GigabitEthernet1/0/1:
+    mtu: 1500
+    sub-interfaces:
+      "string":
+        description: "the sub-int key should be an int"
+
 garbage:
   description: "There's no 'garbage' scope"
 
