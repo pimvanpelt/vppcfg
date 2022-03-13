@@ -1,0 +1,64 @@
+test:
+  description: "IP interfaces cannot be more- or less-specific of any other interface"
+  errors:
+    expected:
+      - "interface .* IP address .* is not allowed"
+      - "sub-interface .* IP address .* is not allowed"
+      - "loopback .* IP address .* is not allowed"
+      - "bridgedomain .* IP address .* is not allowed"
+    count: 18
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: e1-0-0
+    description: "The 2nd/3rd addresses all are more/less specifics of the first"
+    addresses: [ 172.16.12.1/29, 172.16.12.2/30, 172.16.12.3/28 ]
+
+  GigabitEthernet1/0/1:
+    lcp: e1-0-1
+    addresses: [ 192.0.2.1/29, 2001:db8:1::1/64 ]
+    sub-interfaces:
+      100:
+        description: "These addresses overlap with Gi1/0/1"
+        addresses: [ 192.0.2.2/29, 2001:db8:1::2/64 ]
+      101:
+        description: "These addresses overlap with loop0"
+        addresses: [ 192.0.2.10/29, 2001:db8:2::2/64 ]
+
+  GigabitEthernet1/0/2:
+    lcp: e0-2
+    description: "These addresses overlap with bd1"
+    addresses: [ 192.0.2.18/29, 2001:db8:3::2/64 ]
+
+  GigabitEthernet1/0/3:
+    lcp: e0-3
+    description: "These addresses are more-specific to Gi1/0/4"
+    addresses: [ 10.0.0.1/24, 2001:db8:3::1/64 ]
+
+  GigabitEthernet1/0/4:
+    lcp: e0-4
+    description: "These addresses are less-specific to Gi1/0/3"
+    addresses: [ 10.0.0.2/23, 2001:db8:3::2/60 ]
+
+  GigabitEthernet1/0/5:
+    lcp: e0-5
+    description: "These addresses are more-specific to Gi1/0/3"
+    addresses: [ 10.0.0.3/25, 2001:db8:3::3/112 ]
+
+  GigabitEthernet3/0/0:
+    description: "Bridge Domain bd1, member #1"
+    mtu: 2000
+
+loopbacks:
+  loop0:
+    description: "These addresses overlap with Gi1/0/1.101"
+    lcp: "loop0"
+    addresses: [ 192.0.2.9/29, 2001:db8:2::1/64 ]
+
+bridgedomains:
+  bd1:
+    description: "These addresses overlap with Gi1/0/2"
+    mtu: 2000
+    lcp: "bvi1"
+    addresses: [ 192.0.2.17/29, 2001:db8:3::1/64 ]
+    interfaces: [ GigabitEthernet3/0/0 ]

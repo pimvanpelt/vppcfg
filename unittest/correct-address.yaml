@@ -1,0 +1,32 @@
+test:
+  description: "A bunch of IP addresses that are wellformed"
+  errors:
+    count: 0
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: e0-0
+    addresses: [ 192.0.2.1/29, 2001:db8:1::1/64 ]
+    sub-interfaces:
+      100:
+        description: "Overlapping IP addresses are fine, if in the same prefix"
+        addresses: [ 192.0.2.9/29, 192.0.2.10/29 ]
+      101:
+        description: ".. and for IPv6 also, provided the same prefix is used"
+        addresses: [ 2001:db8:2::1/64, 2001:db8:2::2/64 ]
+
+  GigabitEthernet3/0/0:
+    mtu: 2000
+
+loopbacks:
+  loop0:
+    lcp: "loop0"
+    addresses: [ 10.0.0.1/32, 2001:db8::1/128 ]
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 2000
+    lcp: "bvi10"
+    addresses: [ 10.0.0.2/32, 2001:db8::2/128 ]
+    interfaces: [ GigabitEthernet3/0/0 ]

@@ -14,6 +14,7 @@
 import logging
 import validator.bondethernet as bondethernet
 import validator.lcp as lcp
+import validator.address as address
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -283,6 +284,12 @@ def validate_interfaces(yaml):
             msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
             result = False
 
+        if 'addresses' in iface:
+            for a in iface['addresses']:
+                if not address.is_allowed(yaml, ifname, iface['addresses'], a):
+                    msgs.append("interface %s IP address %s is not allowed" % (ifname, a))
+                    result = False
+
         if has_sub(yaml, ifname):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
                 logger.debug("sub-interface %s" % sub_iface)
@@ -312,6 +319,10 @@ def validate_interfaces(yaml):
                     if not iface_lcp:
                         msgs.append("sub-interface %s has an address but %s does not have LCP" % (sub_ifname, ifname))
                         result = False
+                    for a in sub_iface['addresses']:
+                        if not address.is_allowed(yaml, sub_ifname, sub_iface['addresses'], a):
+                            msgs.append("sub-interface %s IP address %s is not allowed" % (sub_ifname, a))
+                            result = False
                 if not valid_encapsulation(yaml, sub_ifname):
                     msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))
                     result = False
