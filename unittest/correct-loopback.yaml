@@ -1,0 +1,24 @@
+test:
+  description: "A few correct examples of well formed loopbacks"
+  errors:
+    count: 0
+---
+loopbacks:
+  loop0:
+    description: "Loopback instance loop0 with both address and LCP"
+    lcp: "lo0"
+    mtu: 9216
+    addresses: [ 192.0.2.1/29 ]
+
+  loop10:
+    description: "Loopback instance loop10, with address, but no LCP"
+    mtu: 9216
+    addresses: [ 192.0.2.1/29 ]
+
+  loop20:
+    description: "Loopback instance loop20, with LCP, but no address"
+    mtu: 9216
+    lcp: "loop20"
+
+  loop1234:
+    description: "Loopback instance loop1234"
