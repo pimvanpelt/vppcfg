@@ -18,11 +18,14 @@ def main():
     parser.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for VPP""")
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only log warnings/errors), default False""")
 
     args = parser.parse_args()
     level = logging.INFO
     if args.debug:
         level = logging.DEBUG
+    if args.quiet:
+        level = logging.WARNING
     logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
 
     try:
