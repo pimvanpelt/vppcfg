@@ -5,6 +5,9 @@ reconciles a running [VPP](https://fd.io/) daemon with its configuration. It is 
 re-entrant and stateless. The tool connects to the VPP API and creates/removes all of the
 configuration in a minimally intrusive way.
 
+***NOTE*** This code is under development, and probably won't work well until this note is removed.
+If you're interested in helping, reach out to &lt;pim at ipng dot ch&gt; to discuss options.
+
 ## Building
 
 This program expects Python3 and PIP to be installed. It's known to work on OpenBSD and Debian.
