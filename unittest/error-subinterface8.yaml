@@ -1,0 +1,28 @@
+test:
+  description: "A sub-interface with exact-match=False can't have an LCP nor an address"
+  errors:
+    expected:
+     - "sub-interface GigabitEthernet1/0/0.(101|102) has invalid encapsulation"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: "e1"
+    sub-interfaces:
+      100:
+        encapsulation:
+          dot1q: 100
+          exact-match: false
+      101:
+        ## Can't have an LCP without exact-match
+        lcp: "e1.101"
+        encapsulation:
+          dot1q: 101
+          exact-match: false
+      102:
+        lcp: "e1.102"
+        ## Can't have an address without exact-match
+        addresses: [ 192.0.2.1/29 ]
+        encapsulation:
+          dot1q: 102
+          exact-match: false
