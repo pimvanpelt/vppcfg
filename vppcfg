@@ -15,16 +15,14 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-c', dest='config', type=str, help="""YAML configuration file for VPP""")
-    parser.add_argument('-s', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation""")
-    parser.add_argument('-d', dest='debug', action='store_true', help="""Enable debug, default False""")
+    parser.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for VPP""")
+    parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
 
     args = parser.parse_args()
+    level = logging.INFO
     if args.debug:
-        print("Arguments:", args)
         level = logging.DEBUG
-    else:
-        level = logging.INFO
     logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
 
     try:
