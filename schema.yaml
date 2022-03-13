@@ -1,0 +1,30 @@
+interfaces: map(include('interface'),key=str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+|BondEthernet[0-9]+'))
+bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'))
+---
+bondethernet:
+  description: str(exclude='\'"',required=False)
+  interfaces: list(str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+'))
+---
+interface:
+  description: str(exclude='\'"',required=False)
+  lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
+  mac: mac(required=False)
+  addresses: list(include('v4'),include('v6'),min=1,max=6,required=False)
+  sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
+---
+v4: str(matches='[0-9\.]+/[0-9]+')
+---
+v6: str(matches='[0-9a-f:]+/[0-9]+',ignore_case=True)
+---
+sub-interface:
+  description: str(exclude='\'"',required=False)
+  lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
+  addresses: list(ip(),required=False)
+  encapsulation: include('encapsulation',required=False)
+---
+encapsulation:
+  dot1q: int(min=1,max=4095,required=False)
+  dot1ad: int(min=1,max=4095,required=False)
+  inner-dot1q: int(min=1,max=4095,required=False)
+  exact-match: bool(required=False)
+
