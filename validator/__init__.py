@@ -33,6 +33,8 @@ class IPInterfaceWithPrefixLength(Validator):
             network = ipaddress.ip_interface(value)
         except:
             return False
+        if not isinstance(value, str):
+            return False
         if not '/' in value:
             return False
         e = value.split('/')

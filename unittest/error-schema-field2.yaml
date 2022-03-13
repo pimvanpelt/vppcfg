@@ -1,0 +1,18 @@
+test:
+  description: "A bunch of schema fields with the wrong type"
+  errors:
+    expected:
+     - "yamale: .* is not a "
+    count: 9
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: 1234
+    lcp: True
+    mac: "0001.0203.0405"
+    addresses: [ 1234, "hello world", 192.0.2.1, 2001:db8::1 ]
+    sub-interfaces:
+      100:
+        description: [ "a", "list" ]
+        encapsulation:
+          dot1q: "hello world"
