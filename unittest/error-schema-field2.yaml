@@ -3,7 +3,8 @@ test:
   errors:
     expected:
      - "yamale: .* is not a "
-    count: 9
+     - "yamale: .*: Unexpected element"
+    count: 11
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -16,3 +17,9 @@ interfaces:
         description: [ "a", "list" ]
         encapsulation:
           dot1q: "hello world"
+garbage:
+  description: "There's no 'garbage' scope"
+
+loopback:
+  loop0:
+    description: "The toplevel scope is 'loopbacks' plural"
