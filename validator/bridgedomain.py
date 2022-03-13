@@ -14,6 +14,7 @@
 import logging
 import validator.interface as interface
 import validator.lcp as lcp
+import validator.address as address
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -52,6 +53,11 @@ def validate_bridgedomains(yaml):
         if 'lcp' in iface and not lcp.is_unique(yaml, iface['lcp']):
             msgs.append("bridgedomain %s does not have a unique LCP name %s" % (ifname, iface['lcp']))
             result = False          
+        if 'addresses' in iface:
+            for a in iface['addresses']:
+                if not address.is_allowed(yaml, ifname, iface['addresses'], a):
+                    msgs.append("bridgedomain %s IP address %s is not allowed" % (ifname, a))
+                    result = False
 
         if 'interfaces' in iface:
             for member in iface['interfaces']:
