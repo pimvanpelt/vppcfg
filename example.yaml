@@ -21,6 +21,9 @@ interfaces:
   GigabitEthernet2/0/1:
     description: "Infra: LAG to xsw1"
 
+  GigabitEthernet3/0/0:
+    description: "Infra: Bridge Doamin 10"
+
   BondEthernet0:
     description: "Bond, James Bond!"
     mac: 00:01:02:03:04:05
@@ -46,3 +49,11 @@ loopbacks:
     mtu: 9216
     lcp: "loop0"
     addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 1500
+    lcp: "bvi10"
+    addresses: [ 192.0.2.9/29, 2001:db8:2::1/64 ]
+    interfaces: [ BondEthernet0.203, GigabitEthernet3/0/0 ]

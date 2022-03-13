@@ -14,7 +14,7 @@ def get_by_name(yaml, ifname):
     return None
 
 
-def loopback(args, yaml):
+def validate_loopbacks(args, yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')

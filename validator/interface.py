@@ -5,6 +5,19 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
+def get_parent_by_name(yaml, ifname):
+    """ Returns the sub-interface's parent, or None if the sub-int doesn't exist. """
+    if not '.' in ifname:
+        return None
+    ifname, subid = ifname.split('.')
+    subid = int(subid)
+    try:
+        iface = yaml['interfaces'][ifname]
+        return iface
+    except:
+        pass
+    return None
+
 def get_by_name(yaml, ifname):
     """ Returns the interface or sub-interface by a given name, or None if it does not exist """
     if '.' in ifname:
@@ -115,7 +128,31 @@ def valid_encapsulation(yaml, sub_ifname):
     return True
 
 
-def interface(args, yaml):
+def is_l3(yaml, ifname):
+    """ Returns True if the interface exists and has either an LCP or an address """
+    iface = get_by_name(yaml, ifname)
+    if not iface:
+        return False
+    if has_lcp(yaml, ifname):
+        return True
+    if has_address(yaml, ifname):
+        return True
+    return False
+
+def get_mtu(yaml, ifname):
+    """ Returns MTU of the interface. If it's not set, return the parent's MTU, and
+    return 1500 if no MTU was set on the sub-int or the parent."""
+    iface = get_by_name(yaml, ifname)
+    parent_iface = get_parent_by_name(yaml, ifname)
+    try:
+        return iface['mtu']
+        return parent_iface['mtu']
+    except:
+        pass
+    return 1500
+
+
+def validate_interfaces(args, yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')

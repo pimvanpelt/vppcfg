@@ -1,11 +1,19 @@
-interfaces: map(include('interface'),key=str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+|BondEthernet[0-9]+'))
-bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'))
-loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'))
+interfaces: map(include('interface'),key=str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+|BondEthernet[0-9]+'),required=False)
+bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'),required=False)
+loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
+bridgedomains: map(include('bridgedomain'),key=str(matches='bd[0-9]+'),required=False)
+---
+bridgedomain:
+  description: str(exclude='\'"',required=False)
+  mtu: int(min=128,max=9216,required=False)
+  lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
+  addresses: list(ip_interface(),min=1,max=6,required=False)
+  interfaces: list(str())
 ---
 loopback:
   description: str(exclude='\'"',required=False)
   lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
-  mtu: int(min=128,max=9216)
+  mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),min=1,max=6,required=False)
 ---
 bondethernet:

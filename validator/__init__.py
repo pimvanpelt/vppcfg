@@ -12,10 +12,10 @@ try:
 except ImportError:
     print("ERROR: install yamale manually: sudo pip install yamale")
     sys.exit(-2)
-from validator.loopback import loopback
-from validator.bondethernet import bondethernet
-from validator.interface import interface
-from validator.bridgedomain import bridgedomain
+from validator.loopback import validate_loopbacks
+from validator.bondethernet import validate_bondethernets
+from validator.interface import validate_interfaces
+from validator.bridgedomain import validate_bridgedomains
 
 from yamale.validators import DefaultValidators, Validator
 import ipaddress
@@ -79,25 +79,25 @@ class Validator(object):
 
         self.logger.debug("Validating Semantics...")
 
-        rv, msgs = bondethernet(self.args, yaml)
+        rv, msgs = validate_bondethernets(self.args, yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = interface(self.args, yaml)
+        rv, msgs = validate_interfaces(self.args, yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = loopback(self.args, yaml)
+        rv, msgs = validate_loopbacks(self.args, yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
             ret_rv = False
 
-        rv, msgs = bridgedomain(self.args, yaml)
+        rv, msgs = validate_bridgedomains(self.args, yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
