@@ -61,7 +61,7 @@ class Validator(object):
         ret_msgs = []
         if self.schema:
             try:
-                self.logger.info("Validating against schema %s" % self.schema)
+                self.logger.debug("Validating against schema %s" % self.schema)
                 validators = DefaultValidators.copy()
                 validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
                 schema = yamale.make_schema(self.schema, validators=validators)
