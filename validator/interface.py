@@ -5,6 +5,25 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
+def get_by_name(yaml, ifname):
+    """ Returns the interface or sub-interface by a given name, or None if it does not exist """
+    if '.' in ifname:
+        ifname, subid = ifname.split('.')
+        subid = int(subid)
+        try:
+            iface = yaml['interfaces'][ifname]['sub-interfaces'][subid]
+            return iface
+        except:
+            return None
+
+    try:
+        iface = yaml['interfaces'][ifname]
+        return iface
+    except:
+        pass
+    return None
+
+
 def has_sub(yaml, ifname):
     """ Returns True if this interface has sub-interfaces """
     if not 'interfaces' in yaml:
@@ -15,6 +34,7 @@ def has_sub(yaml, ifname):
         if 'sub-interfaces' in iface and len(iface['sub-interfaces']) > 0:
             return True
     return False
+
 
 def has_address(yaml, ifname):
     """ Returns True if this interface or sub-interface has one or more addresses"""
@@ -38,6 +58,7 @@ def has_address(yaml, ifname):
         pass
     return False
 
+
 def is_bond_member(yaml, ifname):
     """ Returns True if this interface is a member of a BondEthernet """
     if not 'bondethernets' in yaml:
@@ -49,6 +70,7 @@ def is_bond_member(yaml, ifname):
         if ifname in iface['interfaces']:
             return True
     return False
+
 
 def has_lcp(yaml, ifname):
     """ Returns True if this interface or sub-interface has an LCP"""
@@ -72,19 +94,6 @@ def has_lcp(yaml, ifname):
         pass
     return False
 
-def exists(yaml, ifname):
-    """ Returns true if ifname exists as a phy or sub-int """
-    try:
-        if ifname in yaml['interfaces']:
-            return True
-        if '.' in ifname:
-            ifname, subid = ifname.split('.')
-            subid = int(subid)
-            if subid in yaml['interfaces'][ifname]['sub-interfaces']:
-                return True
-    except:
-        pass
-    return False
 
 def valid_encapsulation(yaml, sub_ifname):
     try:
@@ -117,7 +126,7 @@ def interface(args, yaml):
 
     for ifname, iface in yaml['interfaces'].items():
         logger.debug("interface %s" % iface)
-        if ifname.startswith("BondEthernet") and not bondethernet.exists(yaml, ifname):
+        if ifname.startswith("BondEthernet") and not bondethernet.get_by_name(yaml, ifname):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
 

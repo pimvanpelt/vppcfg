@@ -4,14 +4,14 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
-def exists(yaml, ifname):
-    """ Returns true if ifname exists as a loopback """
+def get_by_name(yaml, ifname):
+    """ Return the loopback by name, if it exists. Return None otherwise. """
     try:
         if ifname in yaml['loopbacks']:
-            return True
+            return yaml['loopbacks'][ifname]
     except:
         pass
-    return False
+    return None
 
 
 def loopback(args, yaml):
