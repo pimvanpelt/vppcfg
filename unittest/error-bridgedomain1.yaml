@@ -1,0 +1,19 @@
+test:
+  description: "Interfaces put into the bridge, must exist as phy or sub-interface"
+  errors:
+    expected:
+     - "bridgedomain .* member .* doesn't exist"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "This is the wrong interface, the bridge has Gi1/0/1, not Gi1/0/0"
+  GigabitEthernet2/0/0:
+    sub-interfaces:
+      101:
+        description: "This is the wrong interface, the bridge has Gi2/0/0.100, not Gi2/0/0.101"
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    interfaces: [ GigabitEthernet1/0/1, GigabitEthernet2/0/0.100 ]

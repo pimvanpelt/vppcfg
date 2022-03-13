@@ -215,7 +215,7 @@ def get_lcp(yaml, ifname):
         return iface['lcp']
     if not is_l3(yaml, ifname):
         return None
-    if not 'lcp' in parent_iface:
+    if parent_iface and not 'lcp' in parent_iface:
         return None
     if not 'encapsulation' in iface:
         if not '.' in ifname:

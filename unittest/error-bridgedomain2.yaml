@@ -1,0 +1,20 @@
+test:
+  description: "Interfaces put into the bridge, can't be L3 (so cannot have an LCP)"
+  errors:
+    expected:
+     - "bridgedomain .* member .* has an LCP"
+    count: 3
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    lcp: "e1-0-0"
+  GigabitEthernet2/0/0:
+    lcp: "e2-0-0"
+    sub-interfaces:
+      101:
+        lcp: "v101"
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet2/0/0, GigabitEthernet2/0/0.101 ]

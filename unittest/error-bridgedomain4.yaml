@@ -1,0 +1,21 @@
+test:
+  description: "In a BridgeDomain, all members must have the same MTU as the bridge itself"
+  errors:
+    expected:
+     - "bridgedomain .* member .* has MTU (2000|3000|500), while bridge has 1500"
+    count: 3
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 2000
+  GigabitEthernet2/0/0:
+    mtu: 3000
+    sub-interfaces:
+      101:
+        mtu: 500
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 1500
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet2/0/0, GigabitEthernet2/0/0.101 ]
