@@ -121,6 +121,10 @@ def interface(args, yaml):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
 
+        if 'mtu' in iface:
+            iface_mtu = iface['mtu']
+        else:
+            iface_mtu = 1500
         iface_lcp = has_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
 
@@ -132,6 +136,10 @@ def interface(args, yaml):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
                 sub_ifname = "%s.%d" % (ifname, sub_id)
                 logger.debug("sub-interface %s" % sub_iface)
+                if 'mtu' in sub_iface:
+                    if sub_iface['mtu'] > iface_mtu:
+                        msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))
+                        result = False
                 if has_lcp(yaml, sub_ifname):
                     if not iface_lcp:
                         msgs.append("sub-interface %s has LCP but %s does not have LCP" % (sub_ifname, ifname))

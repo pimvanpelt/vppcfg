@@ -7,14 +7,16 @@ bondethernet:
 ---
 interface:
   description: str(exclude='\'"',required=False)
-  lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
   mac: mac(required=False)
+  lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
+  mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),min=1,max=6,required=False)
   sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
 ---
 sub-interface:
   description: str(exclude='\'"',required=False)
   lcp: str(max=8,matches='[a-z]+[a-z0-9-]{,7}',required=False)
+  mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),required=False)
   encapsulation: include('encapsulation',required=False)
 ---
@@ -23,4 +25,3 @@ encapsulation:
   dot1ad: int(min=1,max=4095,required=False)
   inner-dot1q: int(min=1,max=4095,required=False)
   exact-match: bool(required=False)
-
