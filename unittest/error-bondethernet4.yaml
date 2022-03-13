@@ -2,7 +2,7 @@ test:
   description: "Members of a BondEthernet can't have addresses"
   errors:
     expected:
-     - "bondethernet .* member .* has address"
+     - "bondethernet .* member .* has an address"
      - "bondethernet .* member .* has an LCP"
     count: 2
 ---

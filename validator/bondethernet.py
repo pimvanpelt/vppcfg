@@ -39,6 +39,6 @@ def validate_bondethernets(yaml):
                 msgs.append("bondethernet %s member %s has an LCP" % (ifname, member))
                 result = False
             if interface.has_address(yaml, member):
-                msgs.append("bondethernet %s member %s has address(es)" % (ifname, member))
+                msgs.append("bondethernet %s member %s has an address" % (ifname, member))
                 result = False
     return result, msgs

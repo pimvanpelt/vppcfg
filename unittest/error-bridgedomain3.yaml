@@ -2,8 +2,8 @@ test:
   description: "Interfaces put into the bridge, can't be L3 (so cannot have an address)"
   errors:
     expected:
-     - "interface .* has adddress.* but no LCP"
-     - "sub-interface .* has address.* but .* does not have LCP"
+     - "interface .* has an address but no LCP"
+     - "sub-interface .* has an address but .* does not have LCP"
      - "bridgedomain .* member .* has an address"
     count: 6
 ---

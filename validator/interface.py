@@ -280,7 +280,7 @@ def validate_interfaces(yaml):
         iface_address = has_address(yaml, ifname)
 
         if iface_address and not iface_lcp:
-            msgs.append("interface %s has adddress(es) but no LCP" % ifname)
+            msgs.append("interface %s has an address but no LCP" % ifname)
             result = False
         if iface_lcp and not unique_lcp(yaml, ifname):
             lcp = get_lcp(yaml, ifname)
@@ -311,7 +311,7 @@ def validate_interfaces(yaml):
                 if has_address(yaml, sub_ifname):
                     ## The sub_iface lcp is not required: it can be derived from the iface_lcp, which has to be set
                     if not iface_lcp:
-                        msgs.append("sub-interface %s has address(es) but %s does not have LCP" % (sub_ifname, ifname))
+                        msgs.append("sub-interface %s has an address but %s does not have LCP" % (sub_ifname, ifname))
                         result = False
                 if not valid_encapsulation(yaml, sub_ifname):
                     msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))
