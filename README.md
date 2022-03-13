@@ -1,3 +1,42 @@
+# A VPP Configuration Utility
+
+This tool reads a configuration file, checks it for syntax and semantic correctness, and then
+reconciles a running [VPP](https://fd.io/) daemon with its configuration. It is meant to be
+re-entrant and stateless. The tool connects to the VPP API and creates/removes all of the
+configuration in a minimally intrusive way.
+
+## Building
+
+This program expects Python3 and PIP to be installed. It's known to work on OpenBSD and Debian.
+
+```
+sudo pip3 install argparse
+sudo pip3 install yamale
+sudo pip3 install pyyaml
+sudo pip3 install pyinstaller
+
+## Ensure all unittests pass.
+./tests.py -t unittest/*.yaml
+
+## Build the tool
+pyinstaller vppcfg  --onefile
+```
+
+## Running
+
+```
+dist/vppcfg -h
+usage: vppcfg [-h] -c CONFIG [-s SCHEMA] [-d]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        YAML configuration file for VPP
+  -s SCHEMA, --schema SCHEMA
+                        YAML schema validation file
+  -d, --debug           Enable debug, default False
+```
+
 ## Design
 
 ### YAML Configuration
@@ -36,3 +75,32 @@ checks to perform -- runtime validators ensure that the configuration elements s
 network devices (ie. `HundredGigabitEthernet12/0/0` or plugin `lcpng` are present on the system.
 It does this by connecting to VPP and querying the runtime state to ensure that what is modeled
 in the configuration file is able to be committed.
+
+## Unit Tests
+
+It is incredibly important that changes to this codebase, particularly the validators, are well
+tested. Unit tests are provided in the `unittests/` directory with a Python test runner in
+`tests.py`. A test is a two-document YAML file, the first document describes the unit test
+and the second document is a candidate configuration file to test.
+
+The format of the unit test is as follows:
+```
+test:
+  description: str()
+  errors:
+    expected: list(str())
+    count: int()
+---
+<some YAML config contents>
+```
+
+Fields:
+*   ***description***: A string describing the behavior that is being tested against. Any failure
+    of the unittest will print this description in the error logs.
+*   ***errors.expected***: A list of regular expressions, that will be expected to be in the error
+    log of the validator. This field can be empty or omitted, in which case no errors will be
+    expected.
+*   ***errors.count***: An integer of the total amount of errors that is to be expected. Sometimes
+    an error is repeated N times, and it's good practice to precisely establish how many errors
+    should be expected. That said, this field can be empty or omitted.
+
