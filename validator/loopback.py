@@ -50,7 +50,7 @@ def validate_loopbacks(yaml):
         if 'addresses' in iface:
             for a in iface['addresses']:
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("loopback %s IP address %s is not allowed" % (ifname, a))
+                    msgs.append("loopback %s IP address %s conflicts with another" % (ifname, a))
                     result = False
 
     return result, msgs
