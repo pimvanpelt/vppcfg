@@ -54,7 +54,7 @@ loopbacks:
     description: "Core: example.ipng.ch"
     mtu: 9216
     lcp: "loop0"
-    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+    addresses: [ 192.0.2.1/32, 192.0.2.2/24, 2001:db8:1::1/128 ]
 
 bridgedomains:
   bd10:

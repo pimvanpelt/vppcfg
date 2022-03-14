@@ -287,7 +287,7 @@ def validate_interfaces(yaml):
         if 'addresses' in iface:
             for a in iface['addresses']:
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("interface %s IP address %s is not allowed" % (ifname, a))
+                    msgs.append("interface %s IP address %s conflicts with another" % (ifname, a))
                     result = False
 
         if has_sub(yaml, ifname):
@@ -321,7 +321,7 @@ def validate_interfaces(yaml):
                         result = False
                     for a in sub_iface['addresses']:
                         if not address.is_allowed(yaml, sub_ifname, sub_iface['addresses'], a):
-                            msgs.append("sub-interface %s IP address %s is not allowed" % (sub_ifname, a))
+                            msgs.append("sub-interface %s IP address %s conflicts with another" % (sub_ifname, a))
                             result = False
                 if not valid_encapsulation(yaml, sub_ifname):
                     msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))

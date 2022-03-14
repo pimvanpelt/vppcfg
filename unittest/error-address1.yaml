@@ -2,10 +2,10 @@ test:
   description: "IP interfaces cannot be more- or less-specific of any other interface"
   errors:
     expected:
-      - "interface .* IP address .* is not allowed"
-      - "sub-interface .* IP address .* is not allowed"
-      - "loopback .* IP address .* is not allowed"
-      - "bridgedomain .* IP address .* is not allowed"
+      - "interface .* IP address .* conflicts with another"
+      - "sub-interface .* IP address .* conflicts with another"
+      - "loopback .* IP address .* conflicts with another"
+      - "bridgedomain .* IP address .* conflicts with another"
     count: 18
 ---
 interfaces:

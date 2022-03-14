@@ -56,7 +56,7 @@ def validate_bridgedomains(yaml):
         if 'addresses' in iface:
             for a in iface['addresses']:
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("bridgedomain %s IP address %s is not allowed" % (ifname, a))
+                    msgs.append("bridgedomain %s IP address %s conflicts with another" % (ifname, a))
                     result = False
 
         if 'interfaces' in iface:
