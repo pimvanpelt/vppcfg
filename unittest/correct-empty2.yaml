@@ -1,0 +1,9 @@
+test:
+  description: "A completely empty config file is, ironically, correct"
+  errors:
+    count: 0
+---
+interfaces: {}
+loopbacks: {}
+bridgedomains: {}
+bondethernets: {}

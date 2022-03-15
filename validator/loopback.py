@@ -38,7 +38,6 @@ def validate_loopbacks(yaml):
     if not 'loopbacks' in yaml:
         return result, msgs
 
-    logger.debug("Validating loopbacks...")
     for ifname, iface in yaml['loopbacks'].items():
         logger.debug("loopback %s" % iface)
         if 'addresses' in iface and not 'lcp' in iface:

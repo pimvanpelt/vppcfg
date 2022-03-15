@@ -121,4 +121,6 @@ class Validator(object):
         if not rv:
             ret_rv = False
 
+        if ret_rv:
+            self.logger.debug("Semantics correctly validated")
         return ret_rv, ret_msgs

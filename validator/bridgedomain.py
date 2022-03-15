@@ -40,7 +40,6 @@ def validate_bridgedomains(yaml):
     if not 'bridgedomains' in yaml:
         return result, msgs
 
-    logger.debug("Validating bridgedomains...")
     for ifname, iface in yaml['bridgedomains'].items():
         logger.debug("bridgedomain %s" % iface)
         bd_mtu = 1500
