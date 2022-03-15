@@ -1,0 +1,24 @@
+test:
+  description: "VXLAN VNIs must be unique"
+  errors:
+    expected:
+     - "vxlan_tunnel .* VNI .* is not unique"
+    count: 2
+---
+vxlan_tunnels:
+  vxlan_tunnel0:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 100
+
+  vxlan_tunnel1:
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 100
+
+interfaces:
+  vxlan_tunnel0:
+    description: "This tunnel has the same VNI as vxlan_tunnel1"
+
+  vxlan_tunnel1:
+    description: "This tunnel has the same VNI as vxlan_tunnel0"

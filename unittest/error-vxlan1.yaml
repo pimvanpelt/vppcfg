@@ -1,0 +1,16 @@
+test:
+  description: "A VXLAN source and destination must be the same address family"
+  errors:
+    expected:
+     - "vxlan_tunnel .* local and remote are not the same address family"
+    count: 1
+---
+vxlan_tunnels:
+  vxlan_tunnel0:
+    local: 192.0.2.1
+    remote: 2001:db8::1
+    vni: 100
+
+interfaces:
+  vxlan_tunnel0:
+    description: "My little tunnel"

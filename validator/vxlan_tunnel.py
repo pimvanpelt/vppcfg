@@ -13,6 +13,7 @@
 #
 import logging
 import validator.interface as interface
+import ipaddress
 
 class NullHandler(logging.Handler):
     def emit(self, record):
@@ -54,4 +55,14 @@ def validate_vxlan_tunnels(yaml):
 
     for ifname, iface in yaml['vxlan_tunnels'].items():
         logger.debug("vxlan_tunnel %s: %s" % (ifname, iface))
+        vni = iface['vni']
+        if not vni_unique(yaml, vni):
+            msgs.append("vxlan_tunnel %s VNI %d is not unique" % (ifname, vni))
+            result = False
+        local = ipaddress.ip_address(iface['local'])
+        remote = ipaddress.ip_address(iface['remote'])
+        if local.version != remote.version:
+            msgs.append("vxlan_tunnel %s local and remote are not the same address family" % (ifname))
+            result = False
+
     return result, msgs
