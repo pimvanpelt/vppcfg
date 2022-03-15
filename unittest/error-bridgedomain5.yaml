@@ -15,5 +15,5 @@ bridgedomains:
   bd13:
     description: "Bridge Domain 13, address but no LCP"
     mtu: 3000
-    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/0 ]
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
     addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]

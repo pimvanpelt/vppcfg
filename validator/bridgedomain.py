@@ -67,6 +67,10 @@ def validate_bridgedomains(yaml):
                     result = False
                     continue
 
+                if not interface.is_bridge_interface_unique(yaml, member):
+                    msgs.append("bridgedomain %s member %s is not unique" % (ifname, member))
+                    result = False
+
                 if interface.has_lcp(yaml, member):
                     msgs.append("bridgedomain %s member %s has an LCP" % (ifname, member))
                     result = False

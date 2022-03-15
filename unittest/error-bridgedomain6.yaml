@@ -1,0 +1,32 @@
+test:
+  description: "An interface can only occur in one bridgedomain, not two or more"
+  errors:
+    expected:
+     - "bridgedomain .* member .* is not unique"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  GigabitEthernet2/0/0:
+    mtu: 3000
+    sub-interfaces:
+      1234:
+        description: "BD11 and BD12"
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10 is well formed"
+    mtu: 3000
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+  bd11:
+    description: "Bridge Domain 11 uses Gi2/0/0.1234, but so does Bridge Domain 12"
+    mtu: 1500
+    interfaces: [ GigabitEthernet2/0/0.1234 ]
+  bd12:
+    description: "Bridge Domain 12 uses Gi2/0/0.1234, but so does Bridge Domain 11"
+    mtu: 1500
+    interfaces: [ GigabitEthernet2/0/0.1234 ]

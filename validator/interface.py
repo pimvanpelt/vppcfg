@@ -100,8 +100,41 @@ def is_bond_member(yaml, ifname):
             return True
     return False
 
+
+def get_bridge_interfaces(yaml):
+    """ Returns a list of all interfaces that are bridgedomain members """
+
+    ret = []
+    if not 'bridgedomains' in yaml:
+        return ret
+
+    for ifname, iface in yaml['bridgedomains'].items():
+        if 'interfaces' in iface:
+            ret.extend(iface['interfaces'])
+
+    return ret
+
+def is_bridge_interface_unique(yaml, ifname):
+    """ Returns True if this interface is referenced in bridgedomains zero or one times """
+
+    ifs = get_bridge_interfaces(yaml)
+    n = ifs.count(ifname)
+
+    if n == 0 or n == 1:
+        return True
+    return False
+
+
+def is_bridge_interface(yaml, ifname):
+    """ Returns True if this interface is a member of a BridgeDomain """
+
+    if ifname in get_bridge_interfaces(yaml):
+        return True
+    return False
+
+
 def has_lcp(yaml, ifname):
-    """ Returns True if this interface or sub-interface has an LCP"""
+    """ Returns True if this interface or sub-interface has an LCP """
     if not 'interfaces' in yaml:
         return False
 
