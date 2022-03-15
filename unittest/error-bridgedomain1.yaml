@@ -2,7 +2,7 @@ test:
   description: "Interfaces put into the bridge, must exist as phy or sub-interface"
   errors:
     expected:
-     - "bridgedomain .* member .* doesn't exist"
+     - "bridgedomain .* member .* does not exist"
     count: 2
 ---
 interfaces:

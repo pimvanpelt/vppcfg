@@ -42,7 +42,7 @@ def validate_bondethernets(yaml):
         logger.debug("bondethernet %s: %s" % (ifname, iface))
         for member in iface['interfaces']:
             if not interface.get_by_name(yaml, member):
-                msgs.append("bondethernet %s member %s doesn't exist" % (ifname, member))
+                msgs.append("bondethernet %s member %s does not exist" % (ifname, member))
                 result = False
 
             if interface.has_sub(yaml, member):

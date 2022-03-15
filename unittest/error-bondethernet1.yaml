@@ -2,7 +2,7 @@ test:
   description: "Members of a BondEthernet must exist"
   errors:
     expected:
-     - "bondethernet .* member .* doesn't exist"
+     - "bondethernet .* member .* does not exist"
     count: 2
 ---
 bondethernets:

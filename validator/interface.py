@@ -418,7 +418,7 @@ def validate_interfaces(yaml):
 
                 sub_lcp = get_lcp(yaml, sub_ifname)
                 if sub_lcp and len(sub_lcp)>15:
-                    msgs.append("sub-interface %s has LCP with too long name '%s'" % (sub_ifname, sub_lcp))
+                    msgs.append("sub-interface %s has LCP with too long name %s" % (sub_ifname, sub_lcp))
                     result = False
                 if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
                     msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
@@ -444,7 +444,7 @@ def validate_interfaces(yaml):
                     msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))
                     result = False
                 elif not unique_encapsulation(yaml, sub_ifname):
-                    msgs.append("sub-interface %s doesn't have unique encapsulation" % (sub_ifname))
+                    msgs.append("sub-interface %s does not have unique encapsulation" % (sub_ifname))
                     result = False
                 if 'l2xc' in sub_iface:
                     if has_lcp(yaml, sub_ifname):
