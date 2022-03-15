@@ -73,7 +73,7 @@ def main():
         for fn in glob.glob(pattern):
             tests = tests + 1
             unittest, cfg = load_unittest(fn)
-            if not unittest or not cfg:
+            if not unittest:
                 errors = errors + 1
                 continue
 

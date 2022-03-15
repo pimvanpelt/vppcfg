@@ -74,6 +74,9 @@ class Validator(object):
     def validate(self, yaml):
         ret_rv = True
         ret_msgs = []
+        if not yaml:
+            return ret_rv, ret_msgs
+
         if self.schema:
             try:
                 self.logger.debug("Validating against schema %s" % self.schema)
