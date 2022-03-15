@@ -133,6 +133,65 @@ def is_bridge_interface(yaml, ifname):
     return False
 
 
+def get_l2xc_interfaces(yaml):
+    """ Returns a list of all interfaces that have an L2 CrossConnect """
+    ret = []
+    if not 'interfaces' in yaml:
+        return ret
+    for ifname, iface in yaml['interfaces'].items():
+        if 'l2xc' in iface:
+            ret.extend(ifname)
+        if 'sub-interfaces' in iface:
+            for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+                if 'l2xc' in sub_iface:
+                    ret.extend(sub_ifname)
+
+    return ret
+
+
+def is_l2xc_interface(yaml, ifname):
+    """ Returns True if this interface has an L2 CrossConnect """
+
+    if ifname in get_l2xc_interfaces(yaml):
+        return True
+    return False
+
+
+def get_l2xc_target_interfaces(yaml):
+    """ Returns a list of all interfaces that are the target of an L2 CrossConnect """
+    ret = []
+    if not 'interfaces' in yaml:
+        return ret
+    for ifname, iface in yaml['interfaces'].items():
+        if 'l2xc' in iface:
+            ret.append(iface['l2xc'])
+        if 'sub-interfaces' in iface:
+            for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+                if 'l2xc' in sub_iface:
+                    ret.append(sub_iface['l2xc'])
+
+    return ret
+
+
+def is_l2xc_target_interface(yaml, ifname):
+    """ Returns True if this interface is the target of an L2 CrossConnect """
+
+    if ifname in get_l2xc_target_interfaces(yaml):
+        return True
+    return False
+
+
+def is_l2xc_target_interface_unique(yaml, ifname):
+    """ Returns True if this interface is referenced as an l2xc target zero or one times """
+
+    ifs = get_l2xc_target_interfaces(yaml)
+    n = ifs.count(ifname)
+
+    if n == 0 or n == 1:
+        return True
+    return False
+
+
 def has_lcp(yaml, ifname):
     """ Returns True if this interface or sub-interface has an LCP """
     if not 'interfaces' in yaml:
@@ -322,6 +381,25 @@ def validate_interfaces(yaml):
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
                     msgs.append("interface %s IP address %s conflicts with another" % (ifname, a))
                     result = False
+        if 'l2xc' in iface:
+            if has_sub(yaml, ifname):
+                msgs.append("interface %s is l2xc so it cannot have sub-interfaces" % (ifname))
+                result = False
+            if iface_lcp:
+                msgs.append("interface %s is l2xc so it cannot be an LCP" % (ifname))
+                result = False
+            if iface_address:
+                msgs.append("interface %s is l2xc so it cannot have an address" % (ifname))
+                result = False
+            if not get_by_name(yaml, iface['l2xc']):
+                msgs.append("interface %s l2xc target %s does not exist" % (ifname, iface['l2xc']))
+                result = False
+            if not is_l2xc_target_interface_unique(yaml, iface['l2xc']):
+                msgs.append("interface %s l2xc target %s is not unique" % (ifname, iface['l2xc']))
+                result = False
+            if is_bridge_interface(yaml, iface['l2xc']):
+                msgs.append("interface %s l2xc target %s is in a bridgedomain" % (ifname, iface['l2xc']))
+                result = False
 
         if has_sub(yaml, ifname):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
@@ -362,5 +440,22 @@ def validate_interfaces(yaml):
                 elif not unique_encapsulation(yaml, sub_ifname):
                     msgs.append("sub-interface %s doesn't have unique encapsulation" % (sub_ifname))
                     result = False
+                if 'l2xc' in sub_iface:
+                    if has_lcp(yaml, sub_ifname):
+                        msgs.append("sub-interface %s is l2xc so it cannot be an LCP" % (sub_ifname))
+                        result = False
+                    if has_address(yaml, sub_ifname):
+                        msgs.append("sub-interface %s is l2xc so it cannot have an address" % (sub_ifname))
+                        result = False
+                    if not get_by_name(yaml, sub_iface['l2xc']):
+                        msgs.append("sub-interface %s l2xc target %s does not exist" % (ifname, sub_iface['l2xc']))
+                        result = False
+                    if not is_l2xc_target_interface_unique(yaml, sub_iface['l2xc']):
+                        msgs.append("sub-interface %s l2xc target %s is not unique" % (ifname, sub_iface['l2xc']))
+                        result = False
+                    if is_bridge_interface(yaml, sub_iface['l2xc']):
+                        msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (ifname, sub_iface['l2xc']))
+                        result = False
+
 
     return result, msgs

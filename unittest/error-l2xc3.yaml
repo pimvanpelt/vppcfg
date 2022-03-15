@@ -1,0 +1,18 @@
+test:
+  description: "L2 cross connect targets cannot also occur in a bridgedomain"
+  errors:
+    expected:
+     - "interface .* l2xc target .* in a bridgedomain"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Cross connected to Gi1/0/1"
+    l2xc: GigabitEthernet1/0/1
+  GigabitEthernet1/0/1:
+    description: "In a Bridge Domain, so cannot be a target of L2XC"
+
+bridgedomains:
+  bd10:
+    description: "A Bridge with gi1/0/0 which also occurs as an L2XC target"
+    interfaces: [ GigabitEthernet1/0/1 ]

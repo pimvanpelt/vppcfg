@@ -1,0 +1,22 @@
+test:
+  description: "An interface that is in a bridgedomain, cannot also be an l2 cross connect"
+  errors:
+    expected:
+     - "interface .* l2xc target .* is in a bridgedomain"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  GigabitEthernet1/0/1:
+    mtu: 3000
+    l2xc: GigabitEthernet1/0/0
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10 has Gi1/0/0 which is also a target of an L2XC"
+    mtu: 3000
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]

@@ -1,0 +1,18 @@
+test:
+  description: "L2 cross connect targets cannot occur more than once"
+  errors:
+    expected:
+     - "interface .* l2xc target .* is not unique"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Cross connected to Gi1/0/1"
+    l2xc: GigabitEthernet1/0/1
+  GigabitEthernet1/0/1:
+    description: "Cross connected to Gi1/0/0"
+    l2xc: GigabitEthernet1/0/0
+
+  GigabitEthernet2/0/0:
+    description: "Cross connected to Gi1/0/0 as well"
+    l2xc: GigabitEthernet1/0/0

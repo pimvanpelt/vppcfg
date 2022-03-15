@@ -27,6 +27,7 @@ interface:
   mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),min=1,max=6,required=False)
   sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
+  l2xc: str(required=False)
 ---
 sub-interface:
   description: str(exclude='\'"',required=False)
@@ -34,6 +35,7 @@ sub-interface:
   mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),required=False)
   encapsulation: include('encapsulation',required=False)
+  l2xc: str(required=False)
 ---
 encapsulation:
   dot1q: int(min=1,max=4095,required=False)

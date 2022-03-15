@@ -1,0 +1,18 @@
+test:
+  description: "L2 cross connect from a phy cannot also have sub-interfaces"
+  errors:
+    expected:
+     - "interface .* l2xc so it cannot have sub-interfaces"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    l2xc: GigabitEthernet1/0/1.100
+    sub-interfaces:
+      100:
+        description: "If the parent is cross connected, it should not have sub-interfaces"
+
+  GigabitEthernet1/0/1:
+    sub-interfaces:
+      100:
+        l2xc: GigabitEthernet1/0/0

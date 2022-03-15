@@ -1,0 +1,41 @@
+test:
+  description: "A few correct ways of setting L2 cross connects"
+  errors:
+    count: 0
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Cross connected to Gi1/0/1"
+    l2xc: GigabitEthernet1/0/1
+  GigabitEthernet1/0/1:
+    description: "Cross connected to Gi1/0/0"
+    l2xc: GigabitEthernet1/0/0
+
+  GigabitEthernet2/0/0:
+    description: "Cross connected to Gi2/0/1.100"
+    l2xc: GigabitEthernet2/0/1.100
+  GigabitEthernet2/0/1:
+    description: "Main phy with a subint"
+    sub-interfaces:
+      100:
+        description: "Cross connected to Gi2/0/0"
+        l2xc: GigabitEthernet2/0/0
+
+  GigabitEthernet3/0/0:
+    mtu: 3000
+  GigabitEthernet3/0/1:
+    mtu: 3000
+
+  BondEthernet0:
+    description: "BE0 with two xconnected sub-ints"
+    sub-interfaces:
+      100:
+        description: "Cross connected to BE0.101"
+        l2xc: BondEthernet0.101
+      101:
+        description: "Cross connected to BE0.100"
+        l2xc: BondEthernet0.100

@@ -1,0 +1,18 @@
+test:
+  description: "L2 cross connect targets cannot have an IP address or LCP"
+  errors:
+    expected:
+     - "interface .* l2xc so it cannot be an LCP"
+     - "interface .* l2xc so it cannot have an address"
+    count: 3
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Cross connected to Gi1/0/1, but should not have an LCP"
+    l2xc: GigabitEthernet1/0/1
+    lcp: "e1-0-0"
+  GigabitEthernet1/0/1:
+    description: "Cross connected to Gi1/0/0, but should not have address and LCP"
+    l2xc: GigabitEthernet1/0/0
+    lcp: "e1-0-1"
+    addresses: [ 192.0.2.1/30 ]
