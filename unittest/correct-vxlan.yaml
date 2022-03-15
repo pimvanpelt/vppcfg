@@ -1,0 +1,42 @@
+test:
+  description: "A few correct examples of well formed VXLANs"
+  errors:
+    count: 0
+---
+vxlan_tunnels:
+  vxlan_tunnel0:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 100
+
+  vxlan_tunnel1:
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 101
+
+  vxlan_tunnel2:
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 102
+
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        l2xc: vxlan_tunnel1
+
+  vxlan_tunnel0:
+    mtu: 9216
+    description: "Bridgedomain member"
+
+  vxlan_tunnel1:
+    l2xc: GigabitEthernet1/0/0.100
+
+  vxlan_tunnel2:
+    lcp: 'vxlan2'
+    addresses: [ 10.0.0.1/24, 2001:db8:1::1/64 ]
+
+bridgedomains:
+  bd10:
+    mtu: 9216
+    interfaces: [ vxlan_tunnel0 ]

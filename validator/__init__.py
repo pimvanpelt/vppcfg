@@ -29,6 +29,7 @@ from validator.loopback import validate_loopbacks
 from validator.bondethernet import validate_bondethernets
 from validator.interface import validate_interfaces
 from validator.bridgedomain import validate_bridgedomains
+from validator.vxlan_tunnel import validate_vxlan_tunnels
 
 from yamale.validators import DefaultValidators, Validator
 import ipaddress
@@ -116,6 +117,12 @@ class Validator(object):
             ret_rv = False
 
         rv, msgs = validate_bridgedomains(yaml)
+        if msgs:
+            ret_msgs.extend(msgs)
+        if not rv:
+            ret_rv = False
+
+        rv, msgs = validate_vxlan_tunnels(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:
