@@ -1,0 +1,16 @@
+test:
+  description: "L2 cross connect source and target cannot be the same"
+  errors:
+    expected:
+     - "interface .* l2xc target cannot be itself"
+     - "sub-interface .* l2xc target cannot be itself"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    l2xc: GigabitEthernet1/0/0
+
+  GigabitEthernet2/0/0:
+    sub-interfaces:
+      100:
+        l2xc: GigabitEthernet2/0/0.100
