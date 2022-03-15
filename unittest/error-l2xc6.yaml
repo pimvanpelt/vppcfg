@@ -1,0 +1,23 @@
+test:
+  description: "L2 cross connect target cannot have an IP address or LCP"
+  errors:
+    expected:
+     - "sub-interface .* l2xc target .* cannot have an address"
+     - "sub-interface .* l2xc target .* cannot be an LCP"
+    count: 2
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      100:
+        l2xc: GigabitEthernet1/0/1.100
+      200:
+        l2xc: GigabitEthernet1/0/1.200
+
+  GigabitEthernet1/0/1:
+    lcp: "xe1-0-1"
+    sub-interfaces:
+      100:
+        addresses: [ 192.0.2.1/30 ]
+      200:
+        lcp: 'foo'

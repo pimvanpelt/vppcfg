@@ -2,7 +2,7 @@ test:
   description: "L2 cross connect from a phy cannot also have sub-interfaces"
   errors:
     expected:
-     - "interface .* l2xc so it cannot have sub-interfaces"
+     - "interface .* has l2xc so it cannot have sub-interfaces"
     count: 1
 ---
 interfaces:
