@@ -454,13 +454,13 @@ def validate_interfaces(yaml):
                         msgs.append("sub-interface %s has l2xc so it cannot have an address" % (sub_ifname))
                         result = False
                     if not get_by_name(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s does not exist" % (ifname, sub_iface['l2xc']))
+                        msgs.append("sub-interface %s l2xc target %s does not exist" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if not is_l2xc_target_interface_unique(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s is not unique" % (ifname, sub_iface['l2xc']))
+                        msgs.append("sub-interface %s l2xc target %s is not unique" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if is_bridge_interface(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (ifname, sub_iface['l2xc']))
+                        msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if has_lcp(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s cannot be an LCP" % (sub_ifname, sub_iface['l2xc']))
