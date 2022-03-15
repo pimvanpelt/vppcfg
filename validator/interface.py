@@ -160,15 +160,14 @@ def is_l2xc_interface(yaml, ifname):
 def get_l2xc_target_interfaces(yaml):
     """ Returns a list of all interfaces that are the target of an L2 CrossConnect """
     ret = []
-    if not 'interfaces' in yaml:
-        return ret
-    for ifname, iface in yaml['interfaces'].items():
-        if 'l2xc' in iface:
-            ret.append(iface['l2xc'])
-        if 'sub-interfaces' in iface:
-            for sub_ifname, sub_iface in iface['sub-interfaces'].items():
-                if 'l2xc' in sub_iface:
-                    ret.append(sub_iface['l2xc'])
+    if 'interfaces' in yaml:
+        for ifname, iface in yaml['interfaces'].items():
+            if 'l2xc' in iface:
+                ret.append(iface['l2xc'])
+            if 'sub-interfaces' in iface:
+                for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+                    if 'l2xc' in sub_iface:
+                        ret.append(sub_iface['l2xc'])
 
     return ret
 
