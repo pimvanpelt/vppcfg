@@ -1,0 +1,36 @@
+test:
+  description: "L2 cross connect source and target must have the same MTU"
+  errors:
+    expected:
+     - "interface .* l2xc target MTU .* does not match source MTU .*"
+     - "sub-interface .* l2xc target MTU .* does not match source MTU .*"
+    count: 6
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 9216
+    l2xc: GigabitEthernet1/0/1
+  GigabitEthernet1/0/1:
+    mtu: 9215
+    l2xc: GigabitEthernet1/0/0
+
+  GigabitEthernet2/0/0:
+    mtu: 9216
+    sub-interfaces:
+      100:
+        mtu: 1500
+        l2xc: GigabitEthernet2/0/0.200
+      200:
+        mtu: 1501
+        l2xc: GigabitEthernet2/0/0.100
+
+  GigabitEthernet3/0/0:
+    mtu: 9000
+    l2xc: GigabitEthernet3/0/1.100
+
+  GigabitEthernet3/0/1:
+    mtu: 3000
+    sub-interfaces:
+      100:
+        mtu: 2000
+        l2xc: GigabitEthernet3/0/0

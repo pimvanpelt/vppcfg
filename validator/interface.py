@@ -393,6 +393,10 @@ def validate_interfaces(yaml):
             if not get_by_name(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s does not exist" % (ifname, iface['l2xc']))
                 result = False
+            target_mtu = get_mtu(yaml, iface['l2xc'])
+            if target_mtu != iface_mtu:
+                msgs.append("interface %s l2xc target MTU %d does not match source MTU %d" % (ifname, target_mtu, iface_mtu))
+                result = False
             if not is_l2xc_target_interface_unique(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s is not unique" % (ifname, iface['l2xc']))
                 result = False
@@ -454,6 +458,10 @@ def validate_interfaces(yaml):
                         result = False
                     if not get_by_name(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s does not exist" % (sub_ifname, sub_iface['l2xc']))
+                        result = False
+                    target_mtu = get_mtu(yaml, sub_iface['l2xc'])
+                    if target_mtu != sub_mtu:
+                        msgs.append("sub-interface %s l2xc target MTU %d does not match source MTU %d" % (ifname, target_mtu, sub_mtu))
                         result = False
                     if not is_l2xc_target_interface_unique(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s is not unique" % (sub_ifname, sub_iface['l2xc']))
