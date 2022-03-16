@@ -32,6 +32,4 @@ def is_unique(yaml, lcpname):
         for ifname, iface in yaml['bridgedomains'].items():
             if 'lcp' in iface and iface['lcp'] == lcpname:
                 ncount = ncount + 1
-    if ncount > 1:
-        return False
-    return True
+    return ncount < 2

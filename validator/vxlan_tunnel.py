@@ -39,9 +39,7 @@ def vni_unique(yaml, vni):
         if iface['vni'] == vni:
             ncount = ncount + 1
 
-    if ncount > 1:
-        return False
-    return True
+    return ncount < 2
 
 
 def validate_vxlan_tunnels(yaml):

@@ -24,9 +24,9 @@ def get_parent_by_name(yaml, ifname):
     """ Returns the sub-interface's parent, or None if the sub-int doesn't exist. """
     if not '.' in ifname:
         return None
-    ifname, subid = ifname.split('.')
-    subid = int(subid)
     try:
+        ifname, subid = ifname.split('.')
+        subid = int(subid)
         iface = yaml['interfaces'][ifname]
         return iface
     except:
@@ -37,9 +37,9 @@ def get_parent_by_name(yaml, ifname):
 def get_by_name(yaml, ifname):
     """ Returns the interface or sub-interface by a given name, or None if it does not exist """
     if '.' in ifname:
-        ifname, subid = ifname.split('.')
-        subid = int(subid)
         try:
+            ifname, subid = ifname.split('.')
+            subid = int(subid)
             iface = yaml['interfaces'][ifname]['sub-interfaces'][subid]
             return iface
         except:
@@ -51,6 +51,12 @@ def get_by_name(yaml, ifname):
     except:
         pass
     return None
+
+
+def is_sub(yaml, ifname):
+    """ Returns True if this interface is a sub-interface """
+    parent_iface = get_parent_by_name(yaml, ifname)
+    return isinstance(parent_iface, dict)
 
 
 def has_sub(yaml, ifname):
@@ -67,25 +73,11 @@ def has_sub(yaml, ifname):
 
 def has_address(yaml, ifname):
     """ Returns True if this interface or sub-interface has one or more addresses"""
-    if not 'interfaces' in yaml:
-        return False
 
-    if '.' in ifname:
-        ifname, subid = ifname.split('.')
-        subid = int(subid)
-        try:
-            if len(yaml['interfaces'][ifname]['sub-interfaces'][subid]['addresses']) > 0:
-                return True
-        except:
-            pass
+    iface = get_by_name(yaml, ifname)
+    if not iface:
         return False
-
-    try:
-        if len(yaml['interfaces'][ifname]['addresses']) > 0:
-            return True
-    except:
-        pass
-    return False
+    return 'addresses' in iface
 
 
 def is_bond_member(yaml, ifname):
@@ -118,19 +110,13 @@ def is_bridge_interface_unique(yaml, ifname):
     """ Returns True if this interface is referenced in bridgedomains zero or one times """
 
     ifs = get_bridge_interfaces(yaml)
-    n = ifs.count(ifname)
-
-    if n == 0 or n == 1:
-        return True
-    return False
+    return ifs.count(ifname) < 2
 
 
 def is_bridge_interface(yaml, ifname):
     """ Returns True if this interface is a member of a BridgeDomain """
 
-    if ifname in get_bridge_interfaces(yaml):
-        return True
-    return False
+    return ifname in get_bridge_interfaces(yaml)
 
 
 def get_l2xc_interfaces(yaml):
@@ -152,9 +138,7 @@ def get_l2xc_interfaces(yaml):
 def is_l2xc_interface(yaml, ifname):
     """ Returns True if this interface has an L2 CrossConnect """
 
-    if ifname in get_l2xc_interfaces(yaml):
-        return True
-    return False
+    return ifname in get_l2xc_interfaces(yaml)
 
 
 def get_l2xc_target_interfaces(yaml):
@@ -175,43 +159,23 @@ def get_l2xc_target_interfaces(yaml):
 def is_l2xc_target_interface(yaml, ifname):
     """ Returns True if this interface is the target of an L2 CrossConnect """
 
-    if ifname in get_l2xc_target_interfaces(yaml):
-        return True
-    return False
+    return ifname in get_l2xc_target_interfaces(yaml)
 
 
 def is_l2xc_target_interface_unique(yaml, ifname):
     """ Returns True if this interface is referenced as an l2xc target zero or one times """
 
     ifs = get_l2xc_target_interfaces(yaml)
-    n = ifs.count(ifname)
-
-    if n == 0 or n == 1:
-        return True
-    return False
+    return ifs.count(ifname) < 2
 
 
 def has_lcp(yaml, ifname):
     """ Returns True if this interface or sub-interface has an LCP """
-    if not 'interfaces' in yaml:
-        return False
 
-    if '.' in ifname:
-        ifname, subid = ifname.split('.')
-        subid = int(subid)
-        try:
-            if len(yaml['interfaces'][ifname]['sub-interfaces'][subid]['lcp']) > 0:
-                return True
-        except:
-            pass
+    iface = get_by_name(yaml, ifname)
+    if not iface:
         return False
-
-    try:
-        if len(yaml['interfaces'][ifname]['lcp']) > 0:
-            return True
-    except:
-        pass
-    return False
+    return 'lcp' in iface
 
 
 def unique_encapsulation(yaml, sub_ifname):
@@ -255,18 +219,11 @@ def unique_encapsulation(yaml, sub_ifname):
             ## print("%s overlaps with %s: [%d,%d,%d]" % (sub_ifname, sibling_ifname, dot1q, dot1ad, inner_dot1q))
             ncount = ncount + 1
 
-    if (ncount == 0):
-        return True
-    return False
+    return ncount == 0
 
 def valid_encapsulation(yaml, sub_ifname):
-    try:
-        ifname, subid = sub_ifname.split('.')
-        subid = int(subid)
-        sub_iface = yaml['interfaces'][ifname]['sub-interfaces'][subid]
-    except:
-        return False
-
+    """ Returns True if the sub interface has a valid encapsulation """
+    sub_iface = get_by_name(yaml, sub_ifname)
     if not 'encapsulation' in sub_iface:
         return True
 
