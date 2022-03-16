@@ -386,7 +386,7 @@ def validate_interfaces(yaml):
                 if sub_lcp and len(sub_lcp)>15:
                     msgs.append("sub-interface %s has LCP with too long name %s" % (sub_ifname, sub_lcp))
                     result = False
-                if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
+                if sub_lcp and not lcp.is_unique(yaml, sub_lcp):
                     msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
                     result = False
                 sub_mtu = get_mtu(yaml, sub_ifname)
