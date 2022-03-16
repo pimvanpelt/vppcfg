@@ -232,22 +232,25 @@ def valid_encapsulation(yaml, sub_ifname):
         return False
     if 'inner-dot1q' in encap and not ('dot1ad' in encap or 'dot1q' in encap):
         return False
-    if 'exact-match' in encap and encap['exact-match'] == False and is_l3(yaml, sub_ifname):
+    if 'exact-match' in encap and encap['exact-match'] == False and has_lcp(yaml, sub_ifname):
         return False
 
     return True
 
 
-def is_l3(yaml, ifname):
-    """ Returns True if the interface exists and has either an LCP or an address """
-    iface = get_by_name(yaml, ifname)
-    if not iface:
-        return False
-    if has_lcp(yaml, ifname):
+def is_l2(yaml, ifname):
+    """ Returns True if the interface is an L2XC target or a member of a bridgedomain """
+    if is_bridge_interface(yaml, ifname):
         return True
-    if has_address(yaml, ifname):
+    if is_l2xc_target_interface(yaml, ifname):
         return True
     return False
+
+
+def is_l3(yaml, ifname):
+    """ Returns True if the interface exists and is neither l2xc target nor bridgedomain """
+    return not is_l2(yaml, ifname)
+
 
 def get_lcp(yaml, ifname):
     """ Returns the LCP of the interface. If the interface is a sub-interface with L3
@@ -258,7 +261,7 @@ def get_lcp(yaml, ifname):
     parent_iface = get_parent_by_name(yaml, ifname)
     if 'lcp' in iface:
         return iface['lcp']
-    if not is_l3(yaml, ifname):
+    if is_l2(yaml, ifname):
         return None
     if parent_iface and not 'lcp' in parent_iface:
         return None
