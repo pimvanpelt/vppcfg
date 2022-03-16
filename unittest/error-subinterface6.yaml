@@ -17,4 +17,3 @@ interfaces:
         encapsulation:
           ## Missing dot1q or dot1ad
           inner-dot1q: 100
-

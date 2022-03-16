@@ -9,6 +9,10 @@ interfaces:
     lcp: "e01234"
     sub-interfaces:
       100:
+        description: "Dot1Q subinterface"
+        encapsulation:
+          dot1q: 1234
+      101:
         description: "QinQ subinterface"
         addresses: [ 192.0.2.1/24 ]
         encapsulation:

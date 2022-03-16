@@ -39,6 +39,7 @@ interfaces:
     lcp: "bond0"
     sub-interfaces:
       200:
+        description: "This subint is needed to build the parent LCP bond0.1000 for QinQ subint 202 bond0.1000.1234"
         encapsulation:
           dot1q: 1000
       201:
