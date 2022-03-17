@@ -334,6 +334,9 @@ def validate_interfaces(yaml):
         if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
             msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
             result = False
+        if iface_lcp and len(iface_lcp)>15:
+            msgs.append("interface %s has LCP with too long name %s" % (fname, iface_lcp))
+            result = False
 
         if 'addresses' in iface:
             for a in iface['addresses']:

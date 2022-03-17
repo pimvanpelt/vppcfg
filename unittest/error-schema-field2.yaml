@@ -4,7 +4,8 @@ test:
     expected:
      - "yamale: .* is not a "
      - "yamale: .*: Unexpected element"
-    count: 12
+     - "Length of .* is greater than 15"
+    count: 13
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -20,6 +21,7 @@ interfaces:
 
   GigabitEthernet1/0/1:
     mtu: 1500
+    lcp: "a234567890123456"
     sub-interfaces:
       "string":
         description: "the sub-int key should be an int"

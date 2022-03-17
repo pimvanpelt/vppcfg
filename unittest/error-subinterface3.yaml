@@ -2,12 +2,23 @@ test:
   description: "The length of the LCP name is too long"
   errors:
     expected:
-     - "Length .* is greater than 8"
+    - "sub-interface .* has LCP with too long name .*"
+    count: 2
 ---
 interfaces:
   GigabitEthernet1/0/0:
-    lcp: "e01234567"
+    lcp: "e23456789012"
     sub-interfaces:
       100:
         description: "VLAN 100"
+  GigabitEthernet1/0/1:
+    lcp: "e2345678"
+    sub-interfaces:
+      100:
+        description: "VLAN 100"
+      101:
+        description: "QinQ 101"
+        encapsulation:
+          dot1q: 100
+          inner-dot1q: 100
 
