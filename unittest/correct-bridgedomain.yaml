@@ -49,7 +49,7 @@ bridgedomains:
     description: "Bridge Domain 11, both LCP and address"
     mtu: 2000
     interfaces: [ GigabitEthernet2/0/0.100, GigabitEthernet2/0/1.100, BondEthernet0.100 ]
-    lcp: "bvi11"
+    lcp: "bvi123456789012"
     addresses: [ 192.0.2.1/29, 2001:db8::1/64 ]
   bd12:
     description: "Bridge Domain 12, LCP but no address"

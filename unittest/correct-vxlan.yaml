@@ -33,7 +33,7 @@ interfaces:
     l2xc: GigabitEthernet1/0/0.100
 
   vxlan_tunnel2:
-    lcp: 'vxlan2'
+    lcp: 'vxlan1234567890'
     addresses: [ 10.0.0.1/24, 2001:db8:1::1/64 ]
 
 bridgedomains:
