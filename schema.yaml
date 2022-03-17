@@ -1,4 +1,4 @@
-interfaces: map(include('interface'),key=str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+|BondEthernet[0-9]+|vxlan_tunnel[0-9]+'),required=False)
+interfaces: map(include('interface'),key=str(),required=False)
 bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'),required=False)
 loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
 bridgedomains: map(include('bridgedomain'),key=str(matches='bd[0-9]+'),required=False)
