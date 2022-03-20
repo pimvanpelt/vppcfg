@@ -4,7 +4,7 @@ import validator.lcp as lcp
 
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/TestInterfaceMethods.yaml", "r") as f:
+        with open("unittest/test_lcp.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
     def test_lcp(self):

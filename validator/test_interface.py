@@ -4,7 +4,7 @@ import validator.interface as interface
 
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/TestInterfaceMethods.yaml", "r") as f:
+        with open("unittest/test_interface.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
     def test_enumerators(self):

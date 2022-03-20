@@ -1,0 +1,24 @@
+interfaces:
+  GigabitEthernet1/0/1:
+    mtu: 9216
+    lcp: "e1"
+    addresses: [ "192.0.2.1/30", "2001:db8:1::1/64" ]
+    sub-interfaces:
+      100:
+        lcp: "foo"
+        addresses: [ "10.0.0.1/24", "10.0.0.2/24", "2001:db8:2::1/64" ]
+      200:
+        mtu: 9000
+        encapsulation:
+          dot1q: 1000
+        addresses: [ "10.0.1.1/30" ]
+      201:
+        encapsulation:
+          dot1ad: 1000
+          inner-dot1q: 1000
+          exact-match: True
+        addresses: [ "10.0.2.1/30" ]
+
+  GigabitEthernet2/0/0:
+    description: "This interface has no sub-ints"
+    lcp: "e2"
