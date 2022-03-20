@@ -126,11 +126,11 @@ def get_l2xc_interfaces(yaml):
         return ret
     for ifname, iface in yaml['interfaces'].items():
         if 'l2xc' in iface:
-            ret.extend(ifname)
+            ret.append(ifname)
         if 'sub-interfaces' in iface:
             for sub_ifname, sub_iface in iface['sub-interfaces'].items():
                 if 'l2xc' in sub_iface:
-                    ret.extend(sub_ifname)
+                    ret.append(sub_ifname)
 
     return ret
 
@@ -237,6 +237,52 @@ def get_encapsulation(yaml, ifname):
       "inner-dot1q": int(inner_dot1q),
       "exact-match": bool(exact_match)
       }
+
+
+def get_interfaces(yaml):
+    """ Return a list of all interface and sub-interface names """
+    ret = []
+    if not 'interfaces' in yaml:
+        return ret
+    for ifname, iface in yaml['interfaces'].items():
+        ret.append(ifname)
+        if not 'sub-interfaces' in iface:
+            continue
+        for subid, sub_iface in iface['sub-interfaces'].items():
+            ret.append("%s.%d" % (ifname, subid))
+    return ret
+
+
+def get_sub_interfaces(yaml):
+    """ Return all interfaces which are a subinterface. """
+    ret = []
+    for ifname in get_interfaces(yaml):
+        if is_sub(yaml, ifname):
+            ret.append(ifname)
+    return ret
+
+def get_qinx_interfaces(yaml):
+    """ Return all interfaces which are double-tagged, either QinAD or QinQ.
+        These interfaces will always have a valid encapsulation with 'inner-dot1q'
+        set to non-zero.
+
+        Note: this is always a strict subset of get_sub_interfaces()
+    """
+    ret = []
+    for ifname in get_interfaces(yaml):
+        if not is_sub(yaml, ifname):
+            continue
+        encap = get_encapsulation(yaml, ifname)
+        if not encap:
+            continue
+        if encap['inner-dot1q'] > 0:
+            ret.append(ifname)
+    return ret
+
+
+def is_qinx(yaml, ifname):
+    """ Returns True if the interface is a double-tagged (QinQ or QinAD) interface """
+    return ifname in get_qinx_interfaces(yaml)
 
 
 def unique_encapsulation(yaml, sub_ifname):
