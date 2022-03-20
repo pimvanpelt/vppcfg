@@ -1,7 +1,6 @@
 import unittest
 import yaml
 import validator.interface as interface
-import validator.lcp as lcp
 
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):
@@ -77,11 +76,6 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1"), "e1")
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.100"), "foo")
 
-        self.assertTrue(lcp.is_unique(self.cfg, "e1"))
-        self.assertTrue(lcp.is_unique(self.cfg, "foo"))
-
-        ## TODO(pim) - ensure that is_unique also takes synthesized LCPs into account
-        ## self.assertFalse(lcp.is_unique(self.cfg, "e1.1000"))
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.200"), "e1.1000")
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.201"), "e1.1000")
 
