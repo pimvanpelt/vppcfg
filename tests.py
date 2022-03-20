@@ -58,13 +58,10 @@ class YAMLTest(unittest.TestCase):
 
         v = Validator(schema=self.yaml_schema)
         rv, msgs = v.validate(cfg)
-        count = None
-        try:
+        count = 0
+        if 'test' in unittest and 'errors' in unittest['test'] and 'count' in unittest['test']['errors']:
             count = unittest['test']['errors']['count']
-        except:
-            pass
-        if isinstance(count, int):
-            assert len(msgs) == count, "%s: Expected %d error messages, got %d" % (self.yaml_filename, count, len(msgs))
+        assert len(msgs) == count, "%s: Expected %d error messages, got %d" % (self.yaml_filename, count, len(msgs))
 
         msgs_unexpected = 0
         msgs_expected = []

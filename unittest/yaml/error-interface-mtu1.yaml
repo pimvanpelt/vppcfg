@@ -4,6 +4,7 @@ test:
     expected: 
      - "mtu.*less than 128"
      - "mtu.*greater than 9216"
+    count: 2
 ---
 interfaces:
   GigabitEthernet1/0/0:

@@ -3,6 +3,7 @@ test:
   errors:
     expected:
      - "sub-interface .* has LCP with too long name"
+    count: 1
 ---
 interfaces:
   GigabitEthernet1/0/0:

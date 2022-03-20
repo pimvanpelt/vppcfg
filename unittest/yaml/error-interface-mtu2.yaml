@@ -3,6 +3,7 @@ test:
   errors:
     expected: 
      - "sub-interface .* has MTU 9001 higher than parent MTU 9000"
+    count: 1
 ---
 interfaces:
   GigabitEthernet1/0/0:

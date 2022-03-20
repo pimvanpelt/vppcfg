@@ -3,6 +3,7 @@ test:
   errors:
     expected:
      - "sub-interface .* has LCP but .* does not have LCP"
+    count: 1
 ---
 interfaces:
   GigabitEthernet1/0/0:

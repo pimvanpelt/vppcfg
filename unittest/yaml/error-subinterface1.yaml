@@ -4,6 +4,7 @@ test:
     expected:
      - "100 .* unique encapsulation"
      - "101 .* unique encapsulation"
+    count: 2
 ---
 interfaces:
   GigabitEthernet1/0/0:
