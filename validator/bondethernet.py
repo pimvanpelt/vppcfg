@@ -29,6 +29,19 @@ def get_by_name(yaml, ifname):
     return None
 
 
+def is_bond_member(yaml, ifname):
+    """ Returns True if this interface is a member of a BondEthernet """
+    if not 'bondethernets' in yaml:
+        return False
+
+    for bond, iface in yaml['bondethernets'].items():
+        if not 'interfaces' in iface:
+            continue
+        if ifname in iface['interfaces']:
+            return True
+    return False
+
+
 def validate_bondethernets(yaml):
     result = True
     msgs = []

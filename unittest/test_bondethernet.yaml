@@ -1,0 +1,24 @@
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  GigabitEthernet2/0/0:
+    mtu: 3000
+    sub-interfaces:
+      100:
+        mtu: 2000
+
+  BondEthernet0:
+    mtu: 3000
+    lcp: "be012345678"
+    addresses: [ 192.0.2.1/29, 2001:db8::1/64 ]
+    sub-interfaces:
+      100:
+        mtu: 2000
+        addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]
