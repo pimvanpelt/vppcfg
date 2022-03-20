@@ -16,7 +16,6 @@
 
 import sys
 import yaml
-import logging
 from validator import Validator
 import glob
 import re
@@ -29,67 +28,6 @@ except ImportError:
     sys.exit(-2)
 
 
-def yamltest_one(fn, schema):
-    unittest = None
-    cfg = None
-    try:
-        with open(fn, "r") as f:
-            logging.debug("Reading test from %s" % fn)
-            n=0
-            for data in yaml.load_all(f, Loader=yaml.Loader):
-                if n==0:
-                    unittest = data
-                    n = n + 1
-                elif n==1:
-                    cfg = data
-                    n = n + 1
-                else:
-                    logging.error("Too many documents in %s" % fn)
-                    return False
-    except:
-        logging.error("Couldn't read config from %s" % fn)
-        return False
-
-    logging.info("YAML %s" % fn)
-    logging.debug("yamltest: %s" % unittest)
-    logging.debug("config: %s" % cfg)
-    this_failed =False
-    v = Validator(schema=schema)
-    rv, msgs = v.validate(cfg)
-    try:
-        if len(msgs) != unittest['test']['errors']['count']:
-            logging.error("Unittest %s failed: expected %d error messages, got %d" % (fn, unittest['test']['errors']['count'], len(msgs)))
-            this_failed = True
-    except:
-        pass
-
-    msgs_unexpected = 0
-    msgs_expected = []
-    if 'test' in unittest and 'errors' in unittest['test'] and 'expected' in unittest['test']['errors']:
-        msgs_expected = unittest['test']['errors']['expected']
-
-    for m in msgs:
-        this_msg_expected = False
-        for expected in msgs_expected:
-            logging.debug("Checking expected '%s'" % expected)
-            if re.search(expected, m):
-                logging.debug("Expected msg '%s' based on regexp '%s'" % (m, expected))
-                this_msg_expected = True
-                break
-        if not this_msg_expected:
-            logging.error("Unexpected message: %s" % (m))
-            this_failed = True
-    if this_failed:
-        if 'test' in unittest and 'description' in unittest['test']:
-            logging.error("YAML %s failed: %s" % (fn, unittest['test']['description']))
-        else:
-            logging.error("YAML %s failed" % (fn))
-        return False
-    else:
-        logging.info("YAML %s passed" % (fn))
-    return True
-
-
 class YAMLTest(unittest.TestCase):
     def __init__(self, testName, yaml_filename, yaml_schema):
         # calling the super class init varies for different python versions.  This works for 2.7
@@ -98,23 +36,59 @@ class YAMLTest(unittest.TestCase):
         self.yaml_schema = yaml_schema
 
     def test_yaml(self):
-        print()
-        assert yamltest_one(self.yaml_filename, self.yaml_schema)
+        print("%s ... " % self.yaml_filename, file=sys.stderr, end='')
+        unittest = None
+        cfg = None
+        n=0
+        try:
+            with open(self.yaml_filename, "r") as f:
+                for data in yaml.load_all(f, Loader=yaml.Loader):
+                    if n==0:
+                        unittest = data
+                        n = n + 1
+                    elif n==1:
+                        cfg = data
+                        n = n + 1
+        except:
+            pass
+        assert n == 2, "%s: Too many documents" % self.yaml_filename
+        assert unittest, "%s: Couldn't extract unittest metadata" % self.yaml_filename
+        if not cfg:
+            return
+
+        v = Validator(schema=self.yaml_schema)
+        rv, msgs = v.validate(cfg)
+        count = None
+        try:
+            count = unittest['test']['errors']['count']
+        except:
+            pass
+        if isinstance(count, int):
+            assert len(msgs) == count, "%s: Expected %d error messages, got %d" % (self.yaml_filename, count, len(msgs))
+
+        msgs_unexpected = 0
+        msgs_expected = []
+        if 'test' in unittest and 'errors' in unittest['test'] and 'expected' in unittest['test']['errors']:
+            msgs_expected = unittest['test']['errors']['expected']
+
+        for m in msgs:
+            this_msg_expected = False
+            for expected in msgs_expected:
+                if re.search(expected, m):
+                    this_msg_expected = True
+                    break
+            if not this_msg_expected:
+                assert this_msg_expected, "%s: Unexpected message: %s" % (self.yaml_filename, m)
+
+        return
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-t', '--test', dest='test', type=str, nargs='+', default=['unittest/yaml/*.yaml'], help="""YAML test file(s)""")
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
 
     args = parser.parse_args()
-    level = logging.INFO
-    if args.debug:
-        level = logging.DEBUG
-    logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
-    logging.debug("Arguments: %s" % args)
-
     yaml_suite = unittest.TestSuite()
     for pattern in args.test:
         for fn in glob.glob(pattern):
