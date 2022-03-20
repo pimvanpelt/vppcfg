@@ -31,6 +31,32 @@ def get_by_name(yaml, ifname):
     return None
 
 
+def get_bridge_interfaces(yaml):
+    """ Returns a list of all interfaces that are bridgedomain members """
+
+    ret = []
+    if not 'bridgedomains' in yaml:
+        return ret
+
+    for ifname, iface in yaml['bridgedomains'].items():
+        if 'interfaces' in iface:
+            ret.extend(iface['interfaces'])
+
+    return ret
+
+def is_bridge_interface_unique(yaml, ifname):
+    """ Returns True if this interface is referenced in bridgedomains zero or one times """
+
+    ifs = get_bridge_interfaces(yaml)
+    return ifs.count(ifname) < 2
+
+
+def is_bridge_interface(yaml, ifname):
+    """ Returns True if this interface is a member of a BridgeDomain """
+
+    return ifname in get_bridge_interfaces(yaml)
+
+
 def validate_bridgedomains(yaml):
     result = True
     msgs = []
@@ -66,7 +92,7 @@ def validate_bridgedomains(yaml):
                     result = False
                     continue
 
-                if not interface.is_bridge_interface_unique(yaml, member):
+                if not is_bridge_interface_unique(yaml, member):
                     msgs.append("bridgedomain %s member %s is not unique" % (ifname, member))
                     result = False
 

@@ -13,6 +13,7 @@
 #
 import logging
 import validator.bondethernet as bondethernet
+import validator.bridgedomain as bridgedomain
 import validator.lcp as lcp
 import validator.address as address
 
@@ -78,32 +79,6 @@ def has_address(yaml, ifname):
     if not iface:
         return False
     return 'addresses' in iface
-
-
-def get_bridge_interfaces(yaml):
-    """ Returns a list of all interfaces that are bridgedomain members """
-
-    ret = []
-    if not 'bridgedomains' in yaml:
-        return ret
-
-    for ifname, iface in yaml['bridgedomains'].items():
-        if 'interfaces' in iface:
-            ret.extend(iface['interfaces'])
-
-    return ret
-
-def is_bridge_interface_unique(yaml, ifname):
-    """ Returns True if this interface is referenced in bridgedomains zero or one times """
-
-    ifs = get_bridge_interfaces(yaml)
-    return ifs.count(ifname) < 2
-
-
-def is_bridge_interface(yaml, ifname):
-    """ Returns True if this interface is a member of a BridgeDomain """
-
-    return ifname in get_bridge_interfaces(yaml)
 
 
 def get_l2xc_interfaces(yaml):
@@ -298,7 +273,7 @@ def unique_encapsulation(yaml, sub_ifname):
 
 def is_l2(yaml, ifname):
     """ Returns True if the interface is an L2XC target or a member of a bridgedomain """
-    if is_bridge_interface(yaml, ifname):
+    if bridgedomain.is_bridge_interface(yaml, ifname):
         return True
     if is_l2xc_target_interface(yaml, ifname):
         return True
@@ -424,7 +399,7 @@ def validate_interfaces(yaml):
             if not is_l2xc_target_interface_unique(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s is not unique" % (ifname, iface['l2xc']))
                 result = False
-            if is_bridge_interface(yaml, iface['l2xc']):
+            if bridgedomain.is_bridge_interface(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s is in a bridgedomain" % (ifname, iface['l2xc']))
                 result = False
             if has_lcp(yaml, iface['l2xc']):
@@ -493,7 +468,7 @@ def validate_interfaces(yaml):
                     if not is_l2xc_target_interface_unique(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s is not unique" % (sub_ifname, sub_iface['l2xc']))
                         result = False
-                    if is_bridge_interface(yaml, sub_iface['l2xc']):
+                    if bridgedomain.is_bridge_interface(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if has_lcp(yaml, sub_iface['l2xc']):
