@@ -56,7 +56,7 @@ def load_unittest(fn):
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-t', '--test', dest='test', type=str, nargs='+', default=['unittest/*.yaml'], help="""YAML test file(s)""")
+    parser.add_argument('-t', '--test', dest='test', type=str, nargs='+', default=['unittest/yaml/*.yaml'], help="""YAML test file(s)""")
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
 
