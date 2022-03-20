@@ -10,26 +10,26 @@ class TestInterfaceMethods(unittest.TestCase):
 
     def test_enumerators(self):
         ifs = interface.get_interfaces(self.cfg)
-        self.assertEquals(len(ifs), 15)
+        self.assertEqual(len(ifs), 15)
         self.assertIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
         self.assertIn("GigabitEthernet1/0/1.204", ifs)
 
         ifs = interface.get_sub_interfaces(self.cfg)
-        self.assertEquals(len(ifs), 10)
+        self.assertEqual(len(ifs), 10)
         self.assertNotIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
         self.assertIn("GigabitEthernet1/0/1.204", ifs)
 
         ifs = interface.get_qinx_interfaces(self.cfg)
-        self.assertEquals(len(ifs), 3)
+        self.assertEqual(len(ifs), 3)
         self.assertNotIn("GigabitEthernet1/0/1.200", ifs)
         self.assertIn("GigabitEthernet1/0/1.204", ifs)
 
     def test_mtu(self):
-        self.assertEquals(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1"), 9216)
-        self.assertEquals(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.200"), 9000)
-        self.assertEquals(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.201"), 1500)
+        self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1"), 9216)
+        self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.200"), 9000)
+        self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.201"), 1500)
 
     def test_encapsulation(self):
         self.assertTrue(interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/1.200"))
@@ -74,23 +74,23 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/0"))
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/0.100"))
 
-        self.assertEquals(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1"), "e1")
-        self.assertEquals(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.100"), "foo")
+        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1"), "e1")
+        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.100"), "foo")
 
         self.assertTrue(lcp.is_unique(self.cfg, "e1"))
         self.assertTrue(lcp.is_unique(self.cfg, "foo"))
 
         ## TODO(pim) - ensure that is_unique also takes synthesized LCPs into account
         ## self.assertFalse(lcp.is_unique(self.cfg, "e1.1000"))
-        self.assertEquals(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.200"), "e1.1000")
-        self.assertEquals(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.201"), "e1.1000")
+        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.200"), "e1.1000")
+        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.201"), "e1.1000")
 
         ## TODO(pim) - sub 201-203 cannot have an LCP, their encap is not exact-match
         ## self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.200"))
         ## self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.201"))
         ## self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.202"))
         ## self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.203"))
-        self.assertEquals(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.204"), "e1.1000.1000")
+        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.204"), "e1.1000.1000")
 
     def test_address(self):
         self.assertFalse(interface.has_address(self.cfg, "GigabitEthernet1/0/0"))
