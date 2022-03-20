@@ -21,6 +21,33 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
+def get_qinx_parent_by_name(yaml, ifname):
+    """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None
+        if that sub-interface doesn't exist. """
+
+    if not is_qinx(yaml, ifname):
+        return None
+    qinx_iface = get_by_name(yaml, ifname)
+    if not qinx_iface:
+        return None
+
+    qinx_encap = get_encapsulation(yaml, ifname)
+    if not qinx_encap:
+        return None
+
+    for ifname, iface in yaml['interfaces'].items():
+        for subid, sub_iface in iface['sub-interfaces'].items():
+            sub_ifname = "%s.%d" % (ifname, subid)
+            sub_encap = get_encapsulation(yaml, sub_ifname)
+            if not sub_encap:
+                continue
+            if qinx_encap['dot1q'] > 0 and sub_encap['dot1q'] == qinx_encap['dot1q']:
+                return sub_ifname
+            if qinx_encap['dot1ad'] > 0 and sub_encap['dot1ad'] == qinx_encap['dot1ad']:
+                return sub_ifname
+    return None
+
+
 def get_parent_by_name(yaml, ifname):
     """ Returns the sub-interface's parent, or None if the sub-int doesn't exist. """
     if not '.' in ifname:
