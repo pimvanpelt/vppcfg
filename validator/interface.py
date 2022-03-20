@@ -178,18 +178,47 @@ def has_lcp(yaml, ifname):
     return 'lcp' in iface
 
 
-def unique_encapsulation(yaml, sub_ifname):
-    """ Ensures that for the sub_ifname specified, there exist no other sub-ints on the
-    parent with the same encapsulation. """
-    iface = get_by_name(yaml, sub_ifname)
-    parent_iface = get_parent_by_name(yaml, sub_ifname)
-    if not iface or not parent_iface:
+def valid_encapsulation(yaml, ifname):
+    """ Returns True if the sub interface has a valid encapsulation, or
+        none at all """
+    iface = get_by_name(yaml, ifname)
+    if not 'encapsulation' in iface:
+        return True
+
+    encap = iface['encapsulation']
+    if 'dot1ad' in encap and 'dot1q' in encap:
         return False
-    parent_ifname, subid = sub_ifname.split('.')
+    if 'inner-dot1q' in encap and not ('dot1ad' in encap or 'dot1q' in encap):
+        return False
+    if 'exact-match' in encap and encap['exact-match'] == False and has_lcp(yaml, ifname):
+        return False
+
+    return True
+
+
+def get_encapsulation(yaml, ifname):
+    """ Returns the encapsulation of an interface name as a fully formed dictionary:
+
+        dot1q: int (default 0)
+        dot1ad: int (default 0)
+        inner-dot1q: int (default 0)
+        exact-match: bool (default False)
+
+        If the interface is not a sub-int with valid encapsulation, None is returned.
+    """
+    if not valid_encapsulation(yaml, ifname):
+        return None
+
+    iface = get_by_name(yaml, ifname)
+    parent_iface = get_parent_by_name(yaml, ifname)
+    if not iface or not parent_iface:
+        return None
+    parent_ifname, subid = ifname.split('.')
 
     dot1q = 0
     dot1ad = 0
     inner_dot1q = 0
+    exact_match = False
     if not 'encapsulation' in iface:
         dot1q = int(subid)
     else:
@@ -199,43 +228,39 @@ def unique_encapsulation(yaml, sub_ifname):
             dot1ad = iface['encapsulation']['dot1ad']
         if 'inner-dot1q' in iface['encapsulation']:
             inner_dot1q = iface['encapsulation']['inner-dot1q']
+        if 'exact-match' in iface['encapsulation']:
+            exact_match = iface['encapsulation']['exact-match']
+
+    return {
+      "dot1q": int(dot1q),
+      "dot1ad": int(dot1ad),
+      "inner-dot1q": int(inner_dot1q),
+      "exact-match": bool(exact_match)
+      }
+
+
+def unique_encapsulation(yaml, sub_ifname):
+    """ Ensures that for the sub_ifname specified, there exist no other sub-ints on the
+    parent with the same encapsulation. """
+    iface = get_by_name(yaml, sub_ifname)
+    parent_iface = get_parent_by_name(yaml, sub_ifname)
+    if not iface or not parent_iface:
+        return False
+    parent_ifname, subid = sub_ifname.split('.')
+
+    sub_encap = get_encapsulation(yaml, sub_ifname)
+    if not sub_encap:
+        return False
 
     ncount = 0
     for subid, sibling_iface in parent_iface['sub-interfaces'].items():
-        sibling_dot1q = 0
-        sibling_dot1ad = 0
-        sibling_inner_dot1q = 0
         sibling_ifname = "%s.%d" % (parent_ifname, subid)
-        if not 'encapsulation' in sibling_iface:
-            sibling_dot1q = subid
-        else:
-            if 'dot1q' in sibling_iface['encapsulation']:
-                sibling_dot1q = sibling_iface['encapsulation']['dot1q']
-            elif 'dot1ad' in sibling_iface['encapsulation']:
-                sibling_dot1ad = sibling_iface['encapsulation']['dot1ad']
-            if 'inner-dot1q' in sibling_iface['encapsulation']:
-                sibling_inner_dot1q = sibling_iface['encapsulation']['inner-dot1q']
-        if (dot1q,dot1ad,inner_dot1q) == (sibling_dot1q, sibling_dot1ad, sibling_inner_dot1q) and sub_ifname != sibling_ifname:
-            ## print("%s overlaps with %s: [%d,%d,%d]" % (sub_ifname, sibling_ifname, dot1q, dot1ad, inner_dot1q))
+        sibling_encap = get_encapsulation(yaml, sibling_ifname)
+        if sub_encap == sibling_encap and sub_ifname != sibling_ifname:
+            ## print("%s overlaps with %s" % (sub_encap, sibling_encap))
             ncount = ncount + 1
 
     return ncount == 0
-
-def valid_encapsulation(yaml, sub_ifname):
-    """ Returns True if the sub interface has a valid encapsulation """
-    sub_iface = get_by_name(yaml, sub_ifname)
-    if not 'encapsulation' in sub_iface:
-        return True
-
-    encap = sub_iface['encapsulation']
-    if 'dot1ad' in encap and 'dot1q' in encap:
-        return False
-    if 'inner-dot1q' in encap and not ('dot1ad' in encap or 'dot1q' in encap):
-        return False
-    if 'exact-match' in encap and encap['exact-match'] == False and has_lcp(yaml, sub_ifname):
-        return False
-
-    return True
 
 
 def is_l2(yaml, ifname):
