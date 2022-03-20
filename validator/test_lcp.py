@@ -2,7 +2,7 @@ import unittest
 import yaml
 import validator.lcp as lcp
 
-class TestInterfaceMethods(unittest.TestCase):
+class TestLCPMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_lcp.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
