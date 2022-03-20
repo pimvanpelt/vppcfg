@@ -42,9 +42,9 @@ def get_qinx_parent_by_name(yaml, ifname):
             if not sub_encap:
                 continue
             if qinx_encap['dot1q'] > 0 and sub_encap['dot1q'] == qinx_encap['dot1q']:
-                return sub_ifname
+                return sub_iface
             if qinx_encap['dot1ad'] > 0 and sub_encap['dot1ad'] == qinx_encap['dot1ad']:
-                return sub_ifname
+                return sub_iface
     return None
 
 

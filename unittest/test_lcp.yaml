@@ -11,10 +11,11 @@ interfaces:
         mtu: 9000
         encapsulation:
           dot1q: 1000
+          exact-match: True
         addresses: [ "10.0.1.1/30" ]
       201:
         encapsulation:
-          dot1ad: 1000
+          dot1q: 1000
           inner-dot1q: 1000
           exact-match: True
         addresses: [ "10.0.2.1/30" ]

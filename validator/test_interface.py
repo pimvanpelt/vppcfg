@@ -116,8 +116,8 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertFalse(interface.is_l3(self.cfg, "GigabitEthernet3/0/0"))
 
     def test_qinx_parent(self):
-        self.assertEqual(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"), "GigabitEthernet1/0/1.200")
-        self.assertEqual(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"), "GigabitEthernet1/0/1.201")
+        self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"))
+        self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"))
         self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1"))
         self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.100"))
         self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200"))
