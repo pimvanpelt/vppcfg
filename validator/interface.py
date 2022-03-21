@@ -35,16 +35,19 @@ def get_qinx_parent_by_name(yaml, ifname):
     if not qinx_encap:
         return None,None
 
-    for ifname, iface in yaml['interfaces'].items():
-        for subid, sub_iface in iface['sub-interfaces'].items():
-            sub_ifname = "%s.%d" % (ifname, subid)
-            sub_encap = get_encapsulation(yaml, sub_ifname)
-            if not sub_encap:
-                continue
-            if qinx_encap['dot1q'] > 0 and sub_encap['dot1q'] == qinx_encap['dot1q']:
-                return sub_ifname, sub_iface
-            if qinx_encap['dot1ad'] > 0 and sub_encap['dot1ad'] == qinx_encap['dot1ad']:
-                return sub_ifname, sub_iface
+    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
+    if not parent_iface:
+        return None,None
+
+    for subid, sub_iface in parent_iface['sub-interfaces'].items():
+        sub_ifname = "%s.%d" % (parent_ifname, subid)
+        sub_encap = get_encapsulation(yaml, sub_ifname)
+        if not sub_encap:
+            continue
+        if qinx_encap['dot1q'] > 0 and sub_encap['dot1q'] == qinx_encap['dot1q']:
+            return sub_ifname, sub_iface
+        if qinx_encap['dot1ad'] > 0 and sub_encap['dot1ad'] == qinx_encap['dot1ad']:
+            return sub_ifname, sub_iface
     return None,None
 
 
@@ -201,6 +204,9 @@ def get_encapsulation(yaml, ifname):
         return None
 
     ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return None
+
     parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     if not iface or not parent_iface:
         return None
@@ -319,44 +325,9 @@ def get_lcp(yaml, ifname):
     Return None if no LCP can be found. """
 
     ifname, iface = get_by_name(yaml, ifname)
-    if not iface:
-        return None
-
-    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
-    if 'lcp' in iface:
+    if iface and 'lcp' in iface:
         return iface['lcp']
-    if is_l2(yaml, ifname):
-        return None
-    if parent_iface and not 'lcp' in parent_iface:
-        return None
-    if not 'encapsulation' in iface:
-        if not '.' in ifname:
-            ## Not a sub-int and no encap? Should not happen
-            return None
-        ifname, subid = ifname.split('.')
-        subid = int(subid)
-        return "%s.%d" % (parent_iface['lcp'], subid)
-
-    dot1q = 0
-    dot1ad = 0
-    inner_dot1q = 0
-    if 'dot1q' in iface['encapsulation']:
-        dot1q = iface['encapsulation']['dot1q']
-    elif 'dot1ad' in iface['encapsulation']:
-        dot1ad = iface['encapsulation']['dot1ad']
-    if 'inner-dot1q' in iface['encapsulation']:
-        inner_dot1q = iface['encapsulation']['inner-dot1q']
-    if inner_dot1q and dot1ad:
-        lcp = "%s.%d.%d" % (parent_iface['lcp'], dot1ad, inner_dot1q)
-    elif inner_dot1q and dot1q:
-        lcp = "%s.%d.%d" % (parent_iface['lcp'], dot1q, inner_dot1q)
-    elif dot1ad:
-        lcp = "%s.%d" % (parent_iface['lcp'], dot1ad)
-    elif dot1q:
-        lcp = "%s.%d" % (parent_iface['lcp'], dot1q)
-    else:
-        return None
-    return lcp
+    return None
 
 def get_mtu(yaml, ifname):
     """ Returns MTU of the interface. If it's not set, return the parent's MTU, and
@@ -391,18 +362,14 @@ def validate_interfaces(yaml):
             result = False
 
         iface_mtu = get_mtu(yaml, ifname)
-        iface_lcp = has_lcp(yaml, ifname)
+        iface_lcp = get_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
 
         if iface_address and not iface_lcp:
             msgs.append("interface %s has an address but no LCP" % ifname)
             result = False
-        iface_lcp = get_lcp(yaml, ifname)
         if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
             msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
-            result = False
-        if iface_lcp and len(iface_lcp)>15:
-            msgs.append("interface %s has LCP with too long name %s" % (fname, iface_lcp))
             result = False
 
         if 'addresses' in iface:
@@ -410,6 +377,7 @@ def validate_interfaces(yaml):
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
                     msgs.append("interface %s IP address %s conflicts with another" % (ifname, a))
                     result = False
+
         if 'l2xc' in iface:
             if has_sub(yaml, ifname):
                 msgs.append("interface %s has l2xc so it cannot have sub-interfaces" % (ifname))
@@ -452,21 +420,31 @@ def validate_interfaces(yaml):
                     result = False
                     continue
 
-                sub_lcp = get_lcp(yaml, sub_ifname)
-                if sub_lcp and len(sub_lcp)>15:
-                    msgs.append("sub-interface %s has LCP with too long name %s" % (sub_ifname, sub_lcp))
-                    result = False
-                if sub_lcp and not lcp.is_unique(yaml, sub_lcp):
-                    msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
-                    result = False
                 sub_mtu = get_mtu(yaml, sub_ifname)
                 if sub_mtu > iface_mtu:
                     msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))
                     result = False
-                if has_lcp(yaml, sub_ifname):
-                    if not iface_lcp:
-                        msgs.append("sub-interface %s has LCP but %s does not have LCP" % (sub_ifname, ifname))
+
+                sub_lcp = get_lcp(yaml, sub_ifname)
+                if sub_lcp and not lcp.is_unique(yaml, sub_lcp):
+                    msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
+                    result = False
+                if sub_lcp and not iface_lcp:
+                    msgs.append("sub-interface %s has LCP name %s but %s does not have LCP" % (sub_ifname, sub_lcp, ifname))
+                    result = False
+                if sub_lcp and is_qinx(yaml, sub_ifname):
+                    mid_ifname, mid_iface = get_qinx_parent_by_name(yaml, sub_ifname)
+                    if not mid_iface:
+                        msgs.append("sub-interface %s is QinX and has LCP name %s which requires a parent" % (sub_ifname, sub_lcp))
                         result = False
+                    elif not get_lcp(yaml, mid_ifname):
+                        msgs.append("sub-interface %s is QinX and has LCP name %s but %s does not have LCP" % (sub_ifname, sub_lcp, mid_ifname))
+                        result = False
+                if sub_lcp and 'encapsulation' in sub_iface and 'exact-match' in sub_iface['encapsulation'] and not sub_iface['encapsulation']['exact-match']:
+                    msgs.append("sub-interface %s has LCP name %s but its encapsulation is not exact-match" % (sub_ifname, sub_lcp))
+                    result = False
+
+
                 if has_address(yaml, sub_ifname):
                     ## The sub_iface lcp is not required: it can be derived from the iface_lcp, which has to be set
                     if not iface_lcp:

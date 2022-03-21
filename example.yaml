@@ -6,18 +6,18 @@ bondethernets:
 interfaces:
   GigabitEthernet1/0/0:
     description: "Infra: nikhef-core-1.nl.switch.coloclue.net e1/34"
-    lcp: e0-0
+    lcp: "e0-0"
     addresses: [ 94.142.244.85/24, 2A02:898::146:1/64 ]
     sub-interfaces:
       100:
         description: "Cust: hvn0.nlams0.ipng.ch"
+        lcp: "e0-0.100"
         addresses: [ 94.142.241.185/29, 2a02:898:146::1/64 ]
       101:
         description: "Infra: L2 for FrysIX AS112"
 
   GigabitEthernet1/0/1:
-    description: "Broken - has same LCP as above"
-    lcp: e0-1
+    lcp: "e0-1"
 
   GigabitEthernet2/0/0:
     description: "Infra: LAG to xsw0"
@@ -26,7 +26,7 @@ interfaces:
     description: "Infra: LAG to xsw1"
 
   GigabitEthernet3/0/0:
-    description: "Infra: Bridge Doamin 10"
+    description: "Infra: Bridge Domain 10"
 
   BondEthernet0:
     description: "Bond, James Bond!"
@@ -34,15 +34,19 @@ interfaces:
     lcp: "bond0"
     sub-interfaces:
       200:
+        lcp: "bond0.1000"
         encapsulation:
           dot1q: 1000
+          exact-match: True
       201:
         encapsulation:
           dot1ad: 1000
       202:
+        lcp: "bond0.1000.1234"
         encapsulation:
           dot1q: 1000
           inner-dot1q: 1234
+          exact-match: True
         addresses: [ 192.168.1.1/24 ]
       203:
         encapsulation:

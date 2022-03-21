@@ -2,7 +2,7 @@ test:
   description: "A subinterface cannot have an LCP if the parent doesn't have one"
   errors:
     expected:
-     - "sub-interface .* has LCP but .* does not have LCP"
+     - "sub-interface .* has LCP name .* but .* does not have LCP"
     count: 1
 ---
 interfaces:

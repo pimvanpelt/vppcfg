@@ -1,24 +1,39 @@
 test:
-  description: "The length of the LCP name is too long"
+  description: "Children with an LCP require their parent to have one too"
   errors:
     expected:
-    - "sub-interface .* has LCP with too long name .*"
-    count: 2
+    - "sub-interface .* has LCP name .* but .* does not have LCP"
+    - "sub-interface .* is QinX and has LCP name .* but .* does not have LCP"
+    - "sub-interface .* has LCP name .* but its encapsulation is not exact-match"
+    - "sub-interface .* has invalid encapsulation"
+    count: 4
 ---
 interfaces:
   GigabitEthernet1/0/0:
-    lcp: "e23456789012"
     sub-interfaces:
       100:
-        description: "VLAN 100"
+        lcp: "e0.100"
+        description: "VLAN 100 has an LCP, but Gi1/0/0 does not"
+
   GigabitEthernet1/0/1:
-    lcp: "e2345678"
+    lcp: "e1"
     sub-interfaces:
       100:
         description: "VLAN 100"
       101:
-        description: "QinQ 101"
+        description: "QinQ 101 has an LCP but VLAN 100 does not"
         encapsulation:
           dot1q: 100
           inner-dot1q: 100
+          exact-match: True
+        lcp: "e1.100.100"
 
+  GigabitEthernet1/0/2:
+    lcp: "e2"
+    sub-interfaces:
+      100:
+        description: "Sub-interfaces must be exact-match in order to have an LCP"
+        encapsulation:
+          dot1q: 100
+          exact-match: False
+        lcp: "e2.100"

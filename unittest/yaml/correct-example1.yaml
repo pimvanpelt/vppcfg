@@ -16,6 +16,7 @@ interfaces:
     sub-interfaces:
       100:
         description: "Cust: hvn0.nlams0.ipng.ch"
+        lcp: e0-0.100
         addresses: [ 94.142.241.185/29, 2a02:898:146::1/64 ]
       101:
         description: "Infra: L2 for FrysIX AS112"
@@ -40,8 +41,10 @@ interfaces:
     sub-interfaces:
       200:
         description: "This subint is needed to build the parent LCP bond0.1000 for QinQ subint 202 bond0.1000.1234"
+        lcp: "bond0.1000"
         encapsulation:
           dot1q: 1000
+          exact-match: True
       201:
         encapsulation:
           dot1ad: 1000
@@ -49,6 +52,8 @@ interfaces:
         encapsulation:
           dot1q: 1000
           inner-dot1q: 1234
+          exact-match: True
+        lcp: "bond0.1000.1234"
         addresses: [ 192.168.1.1/24 ]
       203:
         encapsulation:

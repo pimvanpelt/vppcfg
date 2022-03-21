@@ -10,9 +10,11 @@ interfaces:
     sub-interfaces:
       100:
         description: "Overlapping IP addresses are fine, if in the same prefix"
+        lcp: e0-0.100
         addresses: [ 192.0.2.9/29, 192.0.2.10/29 ]
       101:
         description: ".. and for IPv6 also, provided the same prefix is used"
+        lcp: e0-0.101
         addresses: [ 2001:db8:2::1/64, 2001:db8:2::2/64 ]
 
   GigabitEthernet3/0/0:

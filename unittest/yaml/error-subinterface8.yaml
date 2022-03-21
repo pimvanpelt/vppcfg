@@ -3,7 +3,8 @@ test:
   errors:
     expected:
      - "sub-interface GigabitEthernet1/0/0.(101|102) has invalid encapsulation"
-    count: 2
+     - "sub-interface .* has LCP name .* but its encapsulation is not exact-match"
+    count: 4
 ---
 interfaces:
   GigabitEthernet1/0/0:

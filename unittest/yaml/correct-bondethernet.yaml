@@ -33,4 +33,5 @@ interfaces:
     sub-interfaces:
       100:
         mtu: 2000
+        lcp: "be1.2000"
         addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]
