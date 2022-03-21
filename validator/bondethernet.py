@@ -20,13 +20,13 @@ class NullHandler(logging.Handler):
 
 
 def get_by_name(yaml, ifname):
-    """ Return the BondEthernet by name, if it exists. Return None otherwise. """
+    """ Return the BondEthernet by name, if it exists. Return None,None otherwise. """
     try:
         if ifname in yaml['bondethernets']:
-            return yaml['bondethernets'][ifname]
+            return ifname, yaml['bondethernets'][ifname]
     except:
         pass
-    return None
+    return None, None
 
 
 def is_bond_member(yaml, ifname):
@@ -54,7 +54,7 @@ def validate_bondethernets(yaml):
     for ifname, iface in yaml['bondethernets'].items():
         logger.debug("bondethernet %s: %s" % (ifname, iface))
         for member in iface['interfaces']:
-            if not interface.get_by_name(yaml, member):
+            if (None, None) == interface.get_by_name(yaml, member):
                 msgs.append("bondethernet %s member %s does not exist" % (ifname, member))
                 result = False
 

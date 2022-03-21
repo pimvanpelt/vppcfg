@@ -24,7 +24,7 @@ def get_by_name(yaml, ifname):
     """ Return the VXLAN by name, if it exists. Return None otherwise. """
     try:
         if ifname in yaml['vxlan_tunnels']:
-            return yaml['vxlan_tunnels'][ifname]
+            return ifname, yaml['vxlan_tunnels'][ifname]
     except:
         pass
     return None

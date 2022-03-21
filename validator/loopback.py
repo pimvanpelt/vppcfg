@@ -23,7 +23,7 @@ def get_by_name(yaml, ifname):
     """ Return the loopback by name, if it exists. Return None otherwise. """
     try:
         if ifname in yaml['loopbacks']:
-            return yaml['loopbacks'][ifname]
+            return ifname, yaml['loopbacks'][ifname]
     except:
         pass
     return None

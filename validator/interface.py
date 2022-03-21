@@ -22,18 +22,18 @@ class NullHandler(logging.Handler):
         pass
 
 def get_qinx_parent_by_name(yaml, ifname):
-    """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None
+    """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None,None
         if that sub-interface doesn't exist. """
 
     if not is_qinx(yaml, ifname):
-        return None
-    qinx_iface = get_by_name(yaml, ifname)
+        return None, None
+    qinx_ifname, qinx_iface = get_by_name(yaml, ifname)
     if not qinx_iface:
-        return None
+        return None,None
 
     qinx_encap = get_encapsulation(yaml, ifname)
     if not qinx_encap:
-        return None
+        return None,None
 
     for ifname, iface in yaml['interfaces'].items():
         for subid, sub_iface in iface['sub-interfaces'].items():
@@ -42,48 +42,48 @@ def get_qinx_parent_by_name(yaml, ifname):
             if not sub_encap:
                 continue
             if qinx_encap['dot1q'] > 0 and sub_encap['dot1q'] == qinx_encap['dot1q']:
-                return sub_iface
+                return sub_ifname, sub_iface
             if qinx_encap['dot1ad'] > 0 and sub_encap['dot1ad'] == qinx_encap['dot1ad']:
-                return sub_iface
-    return None
+                return sub_ifname, sub_iface
+    return None,None
 
 
 def get_parent_by_name(yaml, ifname):
-    """ Returns the sub-interface's parent, or None if the sub-int doesn't exist. """
+    """ Returns the sub-interface's parent, or None,None if the sub-int doesn't exist. """
     if not '.' in ifname:
-        return None
+        return None, None
     try:
-        ifname, subid = ifname.split('.')
+        parent_ifname, subid = ifname.split('.')
         subid = int(subid)
-        iface = yaml['interfaces'][ifname]
-        return iface
+        iface = yaml['interfaces'][parent_ifname]
+        return parent_ifname, iface
     except:
         pass
-    return None
+    return None,None
 
 
 def get_by_name(yaml, ifname):
-    """ Returns the interface or sub-interface by a given name, or None if it does not exist """
+    """ Returns the interface or sub-interface by a given name, or None,None if it does not exist """
     if '.' in ifname:
         try:
-            ifname, subid = ifname.split('.')
+            phy_ifname, subid = ifname.split('.')
             subid = int(subid)
-            iface = yaml['interfaces'][ifname]['sub-interfaces'][subid]
-            return iface
+            iface = yaml['interfaces'][phy_ifname]['sub-interfaces'][subid]
+            return ifname, iface
         except:
-            return None
+            return None, None
 
     try:
         iface = yaml['interfaces'][ifname]
-        return iface
+        return ifname, iface
     except:
         pass
-    return None
+    return None, None
 
 
 def is_sub(yaml, ifname):
     """ Returns True if this interface is a sub-interface """
-    parent_iface = get_parent_by_name(yaml, ifname)
+    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     return isinstance(parent_iface, dict)
 
 
@@ -102,7 +102,7 @@ def has_sub(yaml, ifname):
 def has_address(yaml, ifname):
     """ Returns True if this interface or sub-interface has one or more addresses"""
 
-    iface = get_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
     if not iface:
         return False
     return 'addresses' in iface
@@ -161,7 +161,7 @@ def is_l2xc_target_interface_unique(yaml, ifname):
 def has_lcp(yaml, ifname):
     """ Returns True if this interface or sub-interface has an LCP """
 
-    iface = get_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
     if not iface:
         return False
     return 'lcp' in iface
@@ -170,7 +170,9 @@ def has_lcp(yaml, ifname):
 def valid_encapsulation(yaml, ifname):
     """ Returns True if the sub interface has a valid encapsulation, or
         none at all """
-    iface = get_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return True
     if not 'encapsulation' in iface:
         return True
 
@@ -198,8 +200,8 @@ def get_encapsulation(yaml, ifname):
     if not valid_encapsulation(yaml, ifname):
         return None
 
-    iface = get_by_name(yaml, ifname)
-    parent_iface = get_parent_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
+    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     if not iface or not parent_iface:
         return None
     parent_ifname, subid = ifname.split('.')
@@ -277,13 +279,12 @@ def is_qinx(yaml, ifname):
 def unique_encapsulation(yaml, sub_ifname):
     """ Ensures that for the sub_ifname specified, there exist no other sub-ints on the
     parent with the same encapsulation. """
-    iface = get_by_name(yaml, sub_ifname)
-    parent_iface = get_parent_by_name(yaml, sub_ifname)
+    new_ifname, iface = get_by_name(yaml, sub_ifname)
+    parent_ifname, parent_iface = get_parent_by_name(yaml, new_ifname)
     if not iface or not parent_iface:
         return False
-    parent_ifname, subid = sub_ifname.split('.')
 
-    sub_encap = get_encapsulation(yaml, sub_ifname)
+    sub_encap = get_encapsulation(yaml, new_ifname)
     if not sub_encap:
         return False
 
@@ -291,7 +292,7 @@ def unique_encapsulation(yaml, sub_ifname):
     for subid, sibling_iface in parent_iface['sub-interfaces'].items():
         sibling_ifname = "%s.%d" % (parent_ifname, subid)
         sibling_encap = get_encapsulation(yaml, sibling_ifname)
-        if sub_encap == sibling_encap and sub_ifname != sibling_ifname:
+        if sub_encap == sibling_encap and new_ifname != sibling_ifname:
             ## print("%s overlaps with %s" % (sub_encap, sibling_encap))
             ncount = ncount + 1
 
@@ -317,8 +318,11 @@ def get_lcp(yaml, ifname):
     enabled, synthesize it based on its parent, using smart QinQ syntax.
     Return None if no LCP can be found. """
 
-    iface = get_by_name(yaml, ifname)
-    parent_iface = get_parent_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return None
+
+    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     if 'lcp' in iface:
         return iface['lcp']
     if is_l2(yaml, ifname):
@@ -357,8 +361,11 @@ def get_lcp(yaml, ifname):
 def get_mtu(yaml, ifname):
     """ Returns MTU of the interface. If it's not set, return the parent's MTU, and
     return 1500 if no MTU was set on the sub-int or the parent."""
-    iface = get_by_name(yaml, ifname)
-    parent_iface = get_parent_by_name(yaml, ifname)
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return 1500
+
+    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
 
     try:
         return iface['mtu']
@@ -379,7 +386,7 @@ def validate_interfaces(yaml):
 
     for ifname, iface in yaml['interfaces'].items():
         logger.debug("interface %s" % iface)
-        if ifname.startswith("BondEthernet") and not bondethernet.get_by_name(yaml, ifname):
+        if ifname.startswith("BondEthernet") and (None,None) == bondethernet.get_by_name(yaml, ifname):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
 
@@ -413,7 +420,7 @@ def validate_interfaces(yaml):
             if iface_address:
                 msgs.append("interface %s has l2xc so it cannot have an address" % (ifname))
                 result = False
-            if not get_by_name(yaml, iface['l2xc']):
+            if (None,None) == get_by_name(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s does not exist" % (ifname, iface['l2xc']))
                 result = False
             if iface['l2xc'] == ifname:
@@ -482,7 +489,7 @@ def validate_interfaces(yaml):
                     if has_address(yaml, sub_ifname):
                         msgs.append("sub-interface %s has l2xc so it cannot have an address" % (sub_ifname))
                         result = False
-                    if not get_by_name(yaml, sub_iface['l2xc']):
+                    if (None, None) == get_by_name(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s does not exist" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if sub_iface['l2xc'] == sub_ifname:

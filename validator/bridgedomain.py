@@ -22,13 +22,13 @@ class NullHandler(logging.Handler):
 
 
 def get_by_name(yaml, ifname):
-    """ Return the BridgeDomain by name, if it exists. Return None otherwise. """
+    """ Return the BridgeDomain by name, if it exists. Return None,None otherwise. """
     try:
         if ifname in yaml['bridgedomains']:
-            return yaml['bridgedomains'][ifname]
+            return ifname, yaml['bridgedomains'][ifname]
     except:
         pass
-    return None
+    return None, None
 
 
 def get_bridge_interfaces(yaml):
@@ -86,8 +86,7 @@ def validate_bridgedomains(yaml):
 
         if 'interfaces' in iface:
             for member in iface['interfaces']:
-                member_iface = interface.get_by_name(yaml, member)
-                if not member_iface:
+                if (None, None) == interface.get_by_name(yaml, member):
                     msgs.append("bridgedomain %s member %s does not exist" % (ifname, member))
                     result = False
                     continue

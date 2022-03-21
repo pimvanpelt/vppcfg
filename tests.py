@@ -51,8 +51,8 @@ class YAMLTest(unittest.TestCase):
                         n = n + 1
         except:
             pass
-        assert n == 2, "%s: Too many documents" % self.yaml_filename
-        assert unittest, "%s: Couldn't extract unittest metadata" % self.yaml_filename
+        self.assertEqual(n,2)
+        self.assertIsNotNone(unittest)
         if not cfg:
             return
 
@@ -61,13 +61,16 @@ class YAMLTest(unittest.TestCase):
         count = 0
         if 'test' in unittest and 'errors' in unittest['test'] and 'count' in unittest['test']['errors']:
             count = unittest['test']['errors']['count']
-        assert len(msgs) == count, "%s: Expected %d error messages, got %d" % (self.yaml_filename, count, len(msgs))
+        if len(msgs) != count:
+            print(msgs, file=sys.stderr)
+        self.assertEqual(len(msgs), count)
 
         msgs_unexpected = 0
         msgs_expected = []
         if 'test' in unittest and 'errors' in unittest['test'] and 'expected' in unittest['test']['errors']:
             msgs_expected = unittest['test']['errors']['expected']
 
+        fail = False
         for m in msgs:
             this_msg_expected = False
             for expected in msgs_expected:
@@ -75,7 +78,9 @@ class YAMLTest(unittest.TestCase):
                     this_msg_expected = True
                     break
             if not this_msg_expected:
-                assert this_msg_expected, "%s: Unexpected message: %s" % (self.yaml_filename, m)
+                print("%s: Unexpected message: %s" % (self.yaml_filename, m), file=sys.stderr)
+                fail = True
+        self.assertFalse(fail)
 
         return
 

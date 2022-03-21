@@ -118,7 +118,19 @@ class TestInterfaceMethods(unittest.TestCase):
     def test_qinx_parent(self):
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"))
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"))
-        self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1"))
-        self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.100"))
-        self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200"))
-        self.assertIsNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201"))
+
+        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
+
+        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.100")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
+
+        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
+
+        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)

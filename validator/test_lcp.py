@@ -16,9 +16,9 @@ class TestLCPMethods(unittest.TestCase):
         ## self.assertFalse(lcp.is_unique(self.cfg, "e1.1000"))
 
     def test_qinx(self):
-        qinq_iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.201")
-        mid_iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
-        parent_iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        qint_ifname, qinq_iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        mid_ifname, mid_iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        parent_ifname, parent_iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
 
         # TODO(pim) - complete once get_*_by_name() returns a dict
         # print("qinq", qinq_iface)
