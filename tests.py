@@ -58,12 +58,6 @@ class YAMLTest(unittest.TestCase):
 
         v = Validator(schema=self.yaml_schema)
         rv, msgs = v.validate(cfg)
-        count = 0
-        if 'test' in unittest and 'errors' in unittest['test'] and 'count' in unittest['test']['errors']:
-            count = unittest['test']['errors']['count']
-        if len(msgs) != count:
-            print(msgs, file=sys.stderr)
-        self.assertEqual(len(msgs), count)
 
         msgs_unexpected = 0
         msgs_expected = []
@@ -80,6 +74,12 @@ class YAMLTest(unittest.TestCase):
             if not this_msg_expected:
                 print("%s: Unexpected message: %s" % (self.yaml_filename, m), file=sys.stderr)
                 fail = True
+
+        count = 0
+        if 'test' in unittest and 'errors' in unittest['test'] and 'count' in unittest['test']['errors']:
+            count = unittest['test']['errors']['count']
+
+        self.assertEqual(len(msgs), count)
         self.assertFalse(fail)
 
         return
