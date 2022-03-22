@@ -34,3 +34,7 @@ class TestBridgeDomainMethods(unittest.TestCase):
         self.assertIn("BondEthernet0", ifs)
         self.assertIn("GigabitEthernet1/0/0", ifs)
         self.assertIn("GigabitEthernet2/0/0.100", ifs)
+
+    def test_get_bridgedomains(self):
+        ifs = bridgedomain.get_bridgedomains(self.cfg)
+        self.assertEqual(len(ifs), 3)

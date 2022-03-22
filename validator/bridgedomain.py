@@ -21,6 +21,16 @@ class NullHandler(logging.Handler):
         pass
 
 
+def get_bridgedomains(yaml):
+    """ Return a list of all bridgedomains. """
+    ret = []
+    if not 'bridgedomains' in yaml:
+        return ret
+    for ifname, iface in yaml['bridgedomains'].items():
+        ret.append(ifname)
+    return ret
+
+
 def get_by_name(yaml, ifname):
     """ Return the BridgeDomain by name, if it exists. Return None,None otherwise. """
     try:
