@@ -13,11 +13,12 @@
 #
 import logging
 
-def get_lcps(yaml):
-    """ Returns a list of all LCPs configured in the system, or an empty list if there are none. """
+def get_lcps(yaml, interfaces=True, loopbacks=True, bridgedomains=True):
+    """ Returns a list of LCPs configured in the system. Optionally (de)select the different
+    types of LCP. Return an empty list if there are none of the given type(s). """
 
     ret = []
-    if 'interfaces' in yaml:
+    if interfaces and 'interfaces' in yaml:
         for ifname, iface in yaml['interfaces'].items():
             if 'lcp' in iface:
                 ret.append(iface['lcp'])
@@ -26,11 +27,11 @@ def get_lcps(yaml):
                     if 'lcp' in sub_iface:
                         ret.append(sub_iface['lcp'])
 
-    if 'loopbacks' in yaml:
+    if loopbacks and 'loopbacks' in yaml:
         for ifname, iface in yaml['loopbacks'].items():
             if 'lcp' in iface:
                 ret.append(iface['lcp'])
-    if 'bridgedomains' in yaml:
+    if bridgedomains and 'bridgedomains' in yaml:
         for ifname, iface in yaml['bridgedomains'].items():
             if 'lcp' in iface:
                 ret.append(iface['lcp'])

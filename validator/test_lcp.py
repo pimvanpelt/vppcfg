@@ -13,6 +13,9 @@ class TestLCPMethods(unittest.TestCase):
         self.assertIn("e1", lcps)
         self.assertIn("foo", lcps)
         self.assertIn("e2", lcps)
+        loopback_lcps = lcp.get_lcps(self.cfg, interfaces=False, bridgedomains=False)
+        self.assertIn("thrice", loopback_lcps)
+        self.assertNotIn("e1", loopback_lcps)
 
     def test_lcp(self):
         self.assertTrue(lcp.is_unique(self.cfg, "e1"))
