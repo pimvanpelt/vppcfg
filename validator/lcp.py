@@ -22,7 +22,7 @@ def get_lcps(yaml):
             if 'lcp' in iface:
                 ret.append(iface['lcp'])
             if 'sub-interfaces' in iface:
-                for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+                for subid, sub_iface in iface['sub-interfaces'].items():
                     if 'lcp' in sub_iface:
                         ret.append(sub_iface['lcp'])
 

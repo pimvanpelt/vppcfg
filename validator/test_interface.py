@@ -9,12 +9,12 @@ class TestInterfaceMethods(unittest.TestCase):
 
     def test_enumerators(self):
         ifs = interface.get_interfaces(self.cfg)
-        self.assertEqual(len(ifs), 16)
+        self.assertEqual(len(ifs), 19)
         self.assertIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
 
         ifs = interface.get_sub_interfaces(self.cfg)
-        self.assertEqual(len(ifs), 11)
+        self.assertEqual(len(ifs), 13)
         self.assertNotIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
         self.assertIn("GigabitEthernet1/0/1.201", ifs)
@@ -27,6 +27,24 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertNotIn("GigabitEthernet1/0/1.202", ifs)
         self.assertIn("GigabitEthernet1/0/1.201", ifs)
         self.assertIn("GigabitEthernet1/0/1.203", ifs)
+
+        ifs = interface.get_l2xc_interfaces(self.cfg)
+        self.assertEqual(len(ifs), 3)
+        self.assertIn("GigabitEthernet3/0/0", ifs)
+        self.assertIn("GigabitEthernet3/0/1", ifs)
+        self.assertIn("GigabitEthernet3/0/2.100", ifs)
+        self.assertNotIn("GigabitEthernet3/0/2.200", ifs)
+
+        target_ifs = interface.get_l2xc_target_interfaces(self.cfg)
+        self.assertEqual(len(target_ifs), 3)
+        self.assertIn("GigabitEthernet3/0/0", target_ifs)
+        self.assertIn("GigabitEthernet3/0/1", target_ifs)
+        self.assertNotIn("GigabitEthernet3/0/2.100", target_ifs)
+        self.assertIn("GigabitEthernet3/0/2.200", target_ifs)
+
+        ## Since l2xc cannot connect to itself, and the target must exist,
+        ## it follows that the same number of l2xc target interfaces must exist.
+        self.assertEqual(len(target_ifs), len(ifs))
 
     def test_mtu(self):
         self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1"), 9216)

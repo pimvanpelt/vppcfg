@@ -120,7 +120,8 @@ def get_l2xc_interfaces(yaml):
         if 'l2xc' in iface:
             ret.append(ifname)
         if 'sub-interfaces' in iface:
-            for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+            for subid, sub_iface in iface['sub-interfaces'].items():
+                sub_ifname = "%s.%d" % (ifname, subid)
                 if 'l2xc' in sub_iface:
                     ret.append(sub_ifname)
 
@@ -141,7 +142,7 @@ def get_l2xc_target_interfaces(yaml):
             if 'l2xc' in iface:
                 ret.append(iface['l2xc'])
             if 'sub-interfaces' in iface:
-                for sub_ifname, sub_iface in iface['sub-interfaces'].items():
+                for subid, sub_iface in iface['sub-interfaces'].items():
                     if 'l2xc' in sub_iface:
                         ret.append(sub_iface['l2xc'])
 

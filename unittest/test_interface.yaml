@@ -63,3 +63,11 @@ interfaces:
     l2xc: GigabitEthernet3/0/1
   GigabitEthernet3/0/1:
     l2xc: GigabitEthernet3/0/0
+
+  GigabitEthernet3/0/2:
+    sub-interfaces:
+      100:
+        description: "This interface connects one-way to Gi3/0/2.200. Strange, but valid."
+        l2xc: GigabitEthernet3/0/2.200
+      200:
+        description: "This interface does not connect back to Gi3/0/2.100. Strange, but valid."
