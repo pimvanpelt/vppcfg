@@ -83,10 +83,12 @@ in the configuration file is able to be committed.
 
 It is incredibly important that changes to this codebase, particularly the validators, are well
 tested. Unit tests are provided in the `unittests/` directory with a Python test runner in
-`tests.py`. A test is a two-document YAML file, the first document describes the unit test
-and the second document is a candidate configuration file to test.
+`tests.py`. Besides regular unittests provided by the Python framework, a YAMLTest is a test which
+reads a two-document YAML file, with the first document describing test metadata, and the second
+document being a candidate configuration to test, and it then runs all syntax and semantic
+validators and reports back.
 
-The format of the unit test is as follows:
+The format of the YAMLTest is as follows:
 ```
 test:
   description: str()
