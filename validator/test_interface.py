@@ -125,6 +125,8 @@ class TestInterfaceMethods(unittest.TestCase):
     def test_l2(self):
         self.assertTrue(interface.is_l2(self.cfg, "GigabitEthernet3/0/0"))
         self.assertFalse(interface.is_l2(self.cfg, "GigabitEthernet1/0/0"))
+        self.assertTrue(interface.is_l2(self.cfg, "GigabitEthernet3/0/2.100"))
+        self.assertTrue(interface.is_l2(self.cfg, "GigabitEthernet3/0/2.200"))
 
     def test_l3(self):
         self.assertTrue(interface.is_l3(self.cfg, "GigabitEthernet1/0/0"))

@@ -307,8 +307,10 @@ def unique_encapsulation(yaml, sub_ifname):
 
 
 def is_l2(yaml, ifname):
-    """ Returns True if the interface is an L2XC target or a member of a bridgedomain """
+    """ Returns True if the interface is an L2XC source, L2XC target or a member of a bridgedomain """
     if bridgedomain.is_bridge_interface(yaml, ifname):
+        return True
+    if is_l2xc_interface(yaml, ifname):
         return True
     if is_l2xc_target_interface(yaml, ifname):
         return True
