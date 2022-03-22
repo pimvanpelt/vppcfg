@@ -2,7 +2,7 @@ test:
   description: "A bunch of sub-interfaces with incorrect encapsulation"
   errors:
     expected:
-     - "has invalid encapsulation"
+     - "sub-interface .* has invalid encapsulation"
     count: 2
 ---
 interfaces:

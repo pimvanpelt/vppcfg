@@ -2,8 +2,8 @@ test:
   description: "Two subinterfaces can't have the same encapsulation"
   errors:
     expected:
-     - "100 .* unique encapsulation"
-     - "101 .* unique encapsulation"
+     - "sub-interface .*.100 does not have unique encapsulation"
+     - "sub-interface .*.101 does not have unique encapsulation"
     count: 2
 ---
 interfaces:

@@ -4,7 +4,7 @@ test:
     expected:
      - "yamale: .* is not a "
      - "yamale: .*: Unexpected element"
-     - "Length of .* is greater than 15"
+     - "yamale: .*: Length of .* is greater than 15"
     count: 13
 ---
 interfaces:

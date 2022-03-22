@@ -2,8 +2,8 @@ test:
   description: "MTU too small on one interface, too large on another"
   errors:
     expected: 
-     - "mtu.*less than 128"
-     - "mtu.*greater than 9216"
+     - "yamale:.*mtu: 127 is less than 128"
+     - "yamale:.*mtu: 9217 is greater than 9216"
     count: 2
 ---
 interfaces:

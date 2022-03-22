@@ -68,7 +68,7 @@ class YAMLTest(unittest.TestCase):
         for m in msgs:
             this_msg_expected = False
             for expected in msgs_expected:
-                if re.search(expected, m):
+                if re.match(expected, m):
                     this_msg_expected = True
                     break
             if not this_msg_expected:
