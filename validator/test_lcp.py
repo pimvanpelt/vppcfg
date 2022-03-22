@@ -8,12 +8,19 @@ class TestLCPMethods(unittest.TestCase):
         with open("unittest/test_lcp.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
+    def test_enumerators(self):
+        lcps = lcp.get_lcps(self.cfg)
+        self.assertIn("e1", lcps)
+        self.assertIn("foo", lcps)
+        self.assertIn("e2", lcps)
+
     def test_lcp(self):
         self.assertTrue(lcp.is_unique(self.cfg, "e1"))
         self.assertTrue(lcp.is_unique(self.cfg, "foo"))
+        self.assertTrue(lcp.is_unique(self.cfg, "notexist"))
 
-        ## TODO(pim) - ensure that is_unique also takes synthesized LCPs into account
-        ## self.assertFalse(lcp.is_unique(self.cfg, "e1.1000"))
+        self.assertFalse(lcp.is_unique(self.cfg, "twice"))
+        self.assertFalse(lcp.is_unique(self.cfg, "thrice"))
 
     def test_qinx(self):
         qinx_ifname, qinx_iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.201")

@@ -23,3 +23,20 @@ interfaces:
   GigabitEthernet2/0/0:
     description: "This interface has no sub-ints"
     lcp: "e2"
+
+  GigabitEthernet2/0/1:
+    description: "This LCP also on gi2/0/2"
+    lcp: "twice"
+
+  GigabitEthernet2/0/2:
+    description: "This LCP also on gi2/0/1"
+    lcp: "twice"
+
+  GigabitEthernet2/0/3:
+    description: "This LCP also on loop0"
+    lcp: "thrice"
+
+loopbacks:
+  loop0:
+    description: "This LCP also on gi2/0/3"
+    lcp: "thrice"
