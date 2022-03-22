@@ -7,6 +7,14 @@ class TestBondEthernetMethods(unittest.TestCase):
         with open("unittest/test_bondethernet.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
+    def test_get_by_name(self):
+        ifname, iface = bondethernet.get_by_name(self.cfg, "BondEthernet0")
+        self.assertIsNotNone(iface)
+        self.assertEqual("BondEthernet0", ifname)
+        self.assertIn("GigabitEthernet1/0/0", iface['interfaces'])
+        self.assertNotIn("GigabitEthernet2/0/0", iface['interfaces'])
+
+
     def test_members(self):
         self.assertTrue(bondethernet.is_bond_member(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(bondethernet.is_bond_member(self.cfg, "GigabitEthernet1/0/1"))

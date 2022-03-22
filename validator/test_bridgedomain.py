@@ -7,6 +7,13 @@ class TestBridgeDomainMethods(unittest.TestCase):
         with open("unittest/test_bridgedomain.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
+    def test_get_by_name(self):
+        ifname, iface = bridgedomain.get_by_name(self.cfg, "bd10")
+        self.assertIsNotNone(iface)
+        self.assertEqual("bd10", ifname)
+        self.assertEqual(iface['mtu'], 3000)
+        self.assertIn("BondEthernet0", iface['interfaces'])
+
     def test_members(self):
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet2/0/0.100"))

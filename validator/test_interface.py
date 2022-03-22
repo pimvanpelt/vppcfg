@@ -87,7 +87,11 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertTrue(interface.is_qinx(self.cfg, "GigabitEthernet1/0/1.201"))
         self.assertTrue(interface.is_qinx(self.cfg, "GigabitEthernet1/0/1.203"))
 
-    def test_lcp(self):
+    def test_has_lcp(self):
+        self.assertTrue(interface.has_lcp(self.cfg, "GigabitEthernet1/0/1"))
+        self.assertFalse(interface.has_lcp(self.cfg, "GigabitEthernet1/0/0"))
+
+    def test_get_lcp(self):
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/0"))
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/0.100"))
 
@@ -132,7 +136,29 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertTrue(interface.is_l3(self.cfg, "GigabitEthernet1/0/0"))
         self.assertFalse(interface.is_l3(self.cfg, "GigabitEthernet3/0/0"))
 
-    def test_qinx_parent(self):
+    def test_get_by_name(self):
+        ifname, iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        self.assertEqual(ifname, "GigabitEthernet1/0/1.201")
+        self.assertIsNotNone(iface)
+        encap = interface.get_encapsulation(self.cfg, ifname)
+        self.assertEqual(encap, {'dot1q': 1000, 'dot1ad': 0, 'inner-dot1q': 1234, 'exact-match': False})
+
+    def test_get_parent_by_name(self):
+        ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        self.assertEqual(ifname, "GigabitEthernet1/0/1")
+        self.assertIsNotNone(iface)
+        self.assertNotIn('encapsulation', iface)
+
+        ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200")
+        self.assertEqual(ifname, "GigabitEthernet1/0/1")
+        self.assertIsNotNone(iface)
+        self.assertNotIn('encapsulation', iface)
+
+        ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1")
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
+    def test_get_qinx_parent_by_name(self):
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"))
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"))
 
