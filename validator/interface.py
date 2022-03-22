@@ -371,6 +371,12 @@ def validate_interfaces(yaml):
         if iface_address and not iface_lcp:
             msgs.append("interface %s has an address but no LCP" % ifname)
             result = False
+        if is_l2(yaml, ifname) and iface_lcp:
+            msgs.append("interface %s is in L2 mode but has LCP name %s" % (ifname, iface_lcp))
+            result = False
+        if is_l2(yaml, ifname) and iface_address:
+            msgs.append("interface %s is in L2 mode but has an address" % ifname)
+            result = False
         if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
             msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
             result = False
@@ -386,7 +392,7 @@ def validate_interfaces(yaml):
                 msgs.append("interface %s has l2xc so it cannot have sub-interfaces" % (ifname))
                 result = False
             if iface_lcp:
-                msgs.append("interface %s has l2xc so it cannot be an LCP" % (ifname))
+                msgs.append("interface %s has l2xc so it cannot have an LCP" % (ifname))
                 result = False
             if iface_address:
                 msgs.append("interface %s has l2xc so it cannot have an address" % (ifname))
@@ -408,7 +414,7 @@ def validate_interfaces(yaml):
                 msgs.append("interface %s l2xc target %s is in a bridgedomain" % (ifname, iface['l2xc']))
                 result = False
             if has_lcp(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s cannot be an LCP" % (ifname, iface['l2xc']))
+                msgs.append("interface %s l2xc target %s cannot have an LCP" % (ifname, iface['l2xc']))
                 result = False
             if has_address(yaml, iface['l2xc']):
                 msgs.append("interface %s l2xc target %s cannot have an address" % (ifname, iface['l2xc']))
@@ -465,7 +471,7 @@ def validate_interfaces(yaml):
                     result = False
                 if 'l2xc' in sub_iface:
                     if has_lcp(yaml, sub_ifname):
-                        msgs.append("sub-interface %s has l2xc so it cannot be an LCP" % (sub_ifname))
+                        msgs.append("sub-interface %s has l2xc so it cannot have an LCP" % (sub_ifname))
                         result = False
                     if has_address(yaml, sub_ifname):
                         msgs.append("sub-interface %s has l2xc so it cannot have an address" % (sub_ifname))
@@ -487,7 +493,7 @@ def validate_interfaces(yaml):
                         msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if has_lcp(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s cannot be an LCP" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append("sub-interface %s l2xc target %s cannot have an LCP" % (sub_ifname, sub_iface['l2xc']))
                         result = False
                     if has_address(yaml, sub_iface['l2xc']):
                         msgs.append("sub-interface %s l2xc target %s cannot have an address" % (sub_ifname, sub_iface['l2xc']))

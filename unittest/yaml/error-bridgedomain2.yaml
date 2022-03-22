@@ -3,7 +3,8 @@ test:
   errors:
     expected:
      - "bridgedomain .* member .* has an LCP"
-    count: 3
+     - "interface .* is in L2 mode but has LCP name .*"
+    count: 5
 ---
 interfaces:
   GigabitEthernet1/0/0:

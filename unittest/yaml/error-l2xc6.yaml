@@ -3,7 +3,7 @@ test:
   errors:
     expected:
      - "sub-interface .* l2xc target .* cannot have an address"
-     - "sub-interface .* l2xc target .* cannot be an LCP"
+     - "sub-interface .* l2xc target .* cannot have an LCP"
     count: 2
 ---
 interfaces:

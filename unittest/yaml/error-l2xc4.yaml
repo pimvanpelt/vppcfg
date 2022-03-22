@@ -2,11 +2,13 @@ test:
   description: "L2 cross connect targets cannot have an IP address or LCP"
   errors:
     expected:
-     - "interface .* has l2xc so it cannot be an LCP"
+     - "interface .* has l2xc so it cannot have an LCP"
      - "interface .* has l2xc so it cannot have an address"
-     - "interface .* l2xc target .* cannot be an LCP"
+     - "interface .* l2xc target .* cannot have an LCP"
      - "interface .* l2xc target .* cannot have an address"
-    count: 6
+     - "interface .* is in L2 mode but has LCP name .*"
+     - "interface .* is in L2 mode but has an address"
+    count: 9
 ---
 interfaces:
   GigabitEthernet1/0/0:
