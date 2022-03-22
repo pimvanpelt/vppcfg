@@ -2,8 +2,8 @@ test:
   description: "Children with an LCP require their parent to have one too"
   errors:
     expected:
-    - "sub-interface .* has LCP name .* but .* does not have LCP"
-    - "sub-interface .* is QinX and has LCP name .* but .* does not have LCP"
+    - "sub-interface .* has LCP name .* but .* does not have an LCP"
+    - "sub-interface .* is QinX and has LCP name .* but .* does not have an LCP"
     - "sub-interface .* has LCP name .* but its encapsulation is not exact-match"
     - "sub-interface .* has invalid encapsulation"
     count: 4

@@ -3,7 +3,7 @@ test:
   errors:
     expected:
      - "interface .* has an address but no LCP"
-     - "sub-interface .* has an address but .* does not have LCP"
+     - "sub-interface .* has an address but .* does not have an LCP"
      - "bridgedomain .* member .* has an address"
      - "interface .* is in L2 mode but has an address"
      - "sub-interface .* is in L2 mode but has an address"

@@ -442,7 +442,7 @@ def validate_interfaces(yaml):
                     msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
                     result = False
                 if sub_lcp and not iface_lcp:
-                    msgs.append("sub-interface %s has LCP name %s but %s does not have LCP" % (sub_ifname, sub_lcp, ifname))
+                    msgs.append("sub-interface %s has LCP name %s but %s does not have an LCP" % (sub_ifname, sub_lcp, ifname))
                     result = False
                 if sub_lcp and is_qinx(yaml, sub_ifname):
                     mid_ifname, mid_iface = get_qinx_parent_by_name(yaml, sub_ifname)
@@ -450,7 +450,7 @@ def validate_interfaces(yaml):
                         msgs.append("sub-interface %s is QinX and has LCP name %s which requires a parent" % (sub_ifname, sub_lcp))
                         result = False
                     elif not get_lcp(yaml, mid_ifname):
-                        msgs.append("sub-interface %s is QinX and has LCP name %s but %s does not have LCP" % (sub_ifname, sub_lcp, mid_ifname))
+                        msgs.append("sub-interface %s is QinX and has LCP name %s but %s does not have an LCP" % (sub_ifname, sub_lcp, mid_ifname))
                         result = False
                 if sub_lcp and 'encapsulation' in sub_iface and 'exact-match' in sub_iface['encapsulation'] and not sub_iface['encapsulation']['exact-match']:
                     msgs.append("sub-interface %s has LCP name %s but its encapsulation is not exact-match" % (sub_ifname, sub_lcp))
@@ -460,7 +460,7 @@ def validate_interfaces(yaml):
                 if has_address(yaml, sub_ifname):
                     ## The sub_iface lcp is not required: it can be derived from the iface_lcp, which has to be set
                     if not iface_lcp:
-                        msgs.append("sub-interface %s has an address but %s does not have LCP" % (sub_ifname, ifname))
+                        msgs.append("sub-interface %s has an address but %s does not have an LCP" % (sub_ifname, ifname))
                         result = False
                     if is_l2(yaml, sub_ifname):
                         msgs.append("sub-interface %s is in L2 mode but has an address" % sub_ifname)
