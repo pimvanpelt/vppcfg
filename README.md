@@ -19,7 +19,7 @@ sudo pip3 install pyyaml
 sudo pip3 install pyinstaller
 
 ## Ensure all unittests pass.
-./tests.py -t unittest/*.yaml
+./tests.py -d -t unittest/yaml/*.yaml
 
 ## Build the tool
 pyinstaller vppcfg  --onefile
@@ -85,7 +85,7 @@ It is incredibly important that changes to this codebase, particularly the valid
 tested. Unit tests are provided in the `unittests/` directory with a Python test runner in
 `tests.py`. Besides regular unittests provided by the Python framework, a YAMLTest is a test which
 reads a two-document YAML file, with the first document describing test metadata, and the second
-document being a candidate configuration to test, and it then runs all syntax and semantic
+document being a candidate configuration to test, and it then runs all schema and semantic
 validators and reports back.
 
 The format of the YAMLTest is as follows:
