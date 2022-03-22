@@ -143,6 +143,10 @@ class TestInterfaceMethods(unittest.TestCase):
         encap = interface.get_encapsulation(self.cfg, ifname)
         self.assertEqual(encap, {'dot1q': 1000, 'dot1ad': 0, 'inner-dot1q': 1234, 'exact-match': False})
 
+        ifname, iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.1")
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
     def test_get_parent_by_name(self):
         ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
         self.assertEqual(ifname, "GigabitEthernet1/0/1")

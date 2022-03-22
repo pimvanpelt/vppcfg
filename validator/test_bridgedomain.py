@@ -14,6 +14,10 @@ class TestBridgeDomainMethods(unittest.TestCase):
         self.assertEqual(iface['mtu'], 3000)
         self.assertIn("BondEthernet0", iface['interfaces'])
 
+        ifname, iface = bridgedomain.get_by_name(self.cfg, "bd-notexist")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
+
     def test_members(self):
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet2/0/0.100"))

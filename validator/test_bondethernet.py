@@ -14,6 +14,9 @@ class TestBondEthernetMethods(unittest.TestCase):
         self.assertIn("GigabitEthernet1/0/0", iface['interfaces'])
         self.assertNotIn("GigabitEthernet2/0/0", iface['interfaces'])
 
+        ifname, iface = bondethernet.get_by_name(self.cfg, "BondEthernet-notexist")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
 
     def test_members(self):
         self.assertTrue(bondethernet.is_bond_member(self.cfg, "GigabitEthernet1/0/0"))
