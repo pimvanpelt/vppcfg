@@ -29,14 +29,16 @@ except ImportError:
 
 
 class YAMLTest(unittest.TestCase):
-    def __init__(self, testName, yaml_filename, yaml_schema):
+    def __init__(self, testName, yaml_filename, yaml_schema, debug=False):
         # calling the super class init varies for different python versions.  This works for 2.7
         super(YAMLTest, self).__init__(testName)
         self.yaml_filename = yaml_filename
         self.yaml_schema = yaml_schema
+        self.debug = debug
 
     def test_yaml(self):
-        print("%s ... " % self.yaml_filename, file=sys.stderr, end='')
+        if self.debug:
+            print("%s ... " % self.yaml_filename, file=sys.stderr, end='')
         unittest = None
         cfg = None
         n=0
@@ -72,7 +74,8 @@ class YAMLTest(unittest.TestCase):
                     this_msg_expected = True
                     break
             if not this_msg_expected:
-                print("%s: Unexpected message: %s" % (self.yaml_filename, m), file=sys.stderr)
+                if self.debug:
+                    print("%s: Unexpected message: %s" % (self.yaml_filename, m), file=sys.stderr)
                 fail = True
 
         count = 0
@@ -89,16 +92,25 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-t', '--test', dest='test', type=str, nargs='+', default=['unittest/yaml/*.yaml'], help="""YAML test file(s)""")
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only log warnings/errors), default False""")
+
 
     args = parser.parse_args()
+    if args.debug:
+        verbosity=2
+    elif args.quiet:
+        verbosity=0
+    else:
+        verbosity=1
     yaml_suite = unittest.TestSuite()
     for pattern in args.test:
         for fn in glob.glob(pattern):
-            yaml_suite.addTest(YAMLTest('test_yaml', yaml_filename=fn, yaml_schema=args.schema))
-    yaml_ok = unittest.TextTestRunner(verbosity=2).run(yaml_suite)
+            yaml_suite.addTest(YAMLTest('test_yaml', yaml_filename=fn, yaml_schema=args.schema, debug=args.debug))
+    yaml_ok = unittest.TextTestRunner(verbosity=verbosity).run(yaml_suite)
 
     tests = unittest.TestLoader().discover(start_dir=".", pattern='test_*.py')
-    unit_ok = unittest.TextTestRunner(verbosity=2).run(tests).wasSuccessful()
+    unit_ok = unittest.TextTestRunner(verbosity=verbosity).run(tests).wasSuccessful()
 
     if not yaml_ok or not unit_ok:
         sys.exit(-1)
