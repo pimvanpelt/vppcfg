@@ -6,7 +6,8 @@ test:
      - "sub-interface .* has an address but .* does not have LCP"
      - "bridgedomain .* member .* has an address"
      - "interface .* is in L2 mode but has an address"
-    count: 8
+     - "sub-interface .* is in L2 mode but has an address"
+    count: 9
 ---
 interfaces:
   GigabitEthernet1/0/0:

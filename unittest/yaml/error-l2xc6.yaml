@@ -4,7 +4,9 @@ test:
     expected:
      - "sub-interface .* l2xc target .* cannot have an address"
      - "sub-interface .* l2xc target .* cannot have an LCP"
-    count: 2
+     - "sub-interface .* is in L2 mode but has an address"
+     - "sub-interface .* is in L2 mode but has LCP name .*"
+    count: 4
 ---
 interfaces:
   GigabitEthernet1/0/0:

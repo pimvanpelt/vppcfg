@@ -435,6 +435,9 @@ def validate_interfaces(yaml):
                     result = False
 
                 sub_lcp = get_lcp(yaml, sub_ifname)
+                if is_l2(yaml, sub_ifname) and sub_lcp:
+                    msgs.append("sub-interface %s is in L2 mode but has LCP name %s" % (sub_ifname, sub_lcp))
+                    result = False
                 if sub_lcp and not lcp.is_unique(yaml, sub_lcp):
                     msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
                     result = False
@@ -458,6 +461,9 @@ def validate_interfaces(yaml):
                     ## The sub_iface lcp is not required: it can be derived from the iface_lcp, which has to be set
                     if not iface_lcp:
                         msgs.append("sub-interface %s has an address but %s does not have LCP" % (sub_ifname, ifname))
+                        result = False
+                    if is_l2(yaml, sub_ifname):
+                        msgs.append("sub-interface %s is in L2 mode but has an address" % sub_ifname)
                         result = False
                     for a in sub_iface['addresses']:
                         if not address.is_allowed(yaml, sub_ifname, sub_iface['addresses'], a):

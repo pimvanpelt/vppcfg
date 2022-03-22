@@ -4,7 +4,8 @@ test:
     expected:
      - "bridgedomain .* member .* has an LCP"
      - "interface .* is in L2 mode but has LCP name .*"
-    count: 5
+     - "sub-interface .* is in L2 mode but has LCP name .*"
+    count: 6
 ---
 interfaces:
   GigabitEthernet1/0/0:
