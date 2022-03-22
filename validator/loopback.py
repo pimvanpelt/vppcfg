@@ -19,6 +19,14 @@ class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
+def get_loopbacks(yaml):
+    """ Return a list of all loopbacks. """
+    ret = []
+    if 'loopbacks' in yaml:
+        for ifname, iface in yaml['loopbacks'].items():
+            ret.append(ifname)
+    return ret
+
 def get_by_name(yaml, ifname):
     """ Return the loopback by name, if it exists. Return None otherwise. """
     try:
@@ -26,7 +34,7 @@ def get_by_name(yaml, ifname):
             return ifname, yaml['loopbacks'][ifname]
     except:
         pass
-    return None
+    return None, None
 
 
 def validate_loopbacks(yaml):

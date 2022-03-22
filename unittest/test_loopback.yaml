@@ -1,0 +1,12 @@
+loopbacks:
+  loop0:
+    description: "Loopback, no config"
+  loop1:
+    description: "Loopback, both LCP and address"
+    mtu: 2000
+    lcp: "loop56789012345"
+    addresses: [ 192.0.2.1/29, 2001:db8::1/64 ]
+  loop2:
+    description: "Loopback, invalid because it has an address but no LCP"
+    mtu: 2000
+    addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]
