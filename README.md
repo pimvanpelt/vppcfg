@@ -107,3 +107,67 @@ Fields:
     an error is repeated N times, and it's good practice to precisely establish how many errors
     should be expected. That said, this field can be empty or omitted.
 
+## Reconsiling
+
+The second important task of this utility is to take the wellformed (validated) configuration and
+apply it to the VPP dataplane. The overall flow is this:
+
+1. Prune phase (things in VPP that are not in the config), the order is:
+   1.  Retrieve all LCP interfaces from VPP
+       *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
+           *   Remove those that do not exist in the config
+           *   Remove those that do exist in the config but are on a different phy
+           *   Remove those that do exist in the config but have a different encapsulation
+   1.  Retrieve all Loopbacks and BVIs from VPP
+       *   Remove those that do not exist in the config
+       *   Remove all IP addresses that are not in the config
+   1.  Retrieve all Bridge Domains from VPP
+       *   Remove those that do not exist in the config
+       *   Remove all IP addresses that are not in the config
+       *   Remove all member interfaces that are not in the config, return them to L3 mode
+       *   Remove tag-rewrite options on member interfaces if they have encapsulation
+   1.  For L2 Cross Connects from VPP
+       *   For interfaces that do not exist in the config (either as source or target):
+           *   Return the interface to L3 mode
+           *   Remove tag-rewrite options on if it has encapsulation
+   1.  Retrieve all BondEthernets from VPP
+       *   Remove those that do not exist in the config
+       *   Remove all member interfaces that are not in the config, return them to L3 mode
+       *   Remove all IP addresses that are not in the config
+   1.  Retrieve all Tunnels from VPP
+       *   Remove those that do not exist in the config
+       *   Remove all IP addresses that are not in the config
+   1.  Retrieve all interfaces from VPP
+       *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels):
+           *   Remove those that do not exist in the config
+           *   Remove those that do exist in the config but have a different encapsulation
+           *   Remove all IP addresses that are not in the config
+       *  And finally, for each PHY:
+           *   Remove all IP addresses that are not in the config
+           *   If not in the config, return to default (L3 mode, MTU 9000, admin-state down)
+1. Create phase (things in the config that are not in VPP), the order is:
+   1.  Loopbacks and BVIs
+   1.  Bridge Domains
+   1.  BondEthernets
+   1.  Tunnels
+   1.  Dot1Q and Dot1AD sub-interfaces
+   1.  Qin1Q and Qin1AD sub-interfaces
+   1.  LCP pairs
+1. Sync phase, for each interface in the configuration
+   1.  For BondEthernets:
+       *   Set MTU of member interfaces
+       *   Add them as slaves, lexicographically sorted by name
+       *   Set their admin-state up
+       *   Ensure LCP has the same MAC as the BondEthernet
+   1.  For Bridge Domains:
+       *   Set the MTU of the member interface (including BVI)
+       *   Add the members (including the BVI)
+       *   Set tag-rewrite options if any of the interfaces have encapsulation
+   1.  For L2 Cross Connects, if applicable:
+       *   Set the MTU of the two interfaces
+       *   Set the L2XC option on both
+       *   Set tag-rewrite options if any of the interfaces have encapsulation
+   1.  Decrease MTU for QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
+   1.  Raise MTU for (PHYs, Tunnels, BondEthernets), then Dot1Q/Dot1AD, then QinQ/QinAD
+   1.  Add IPv4/IPv6 addresses
+   1.  Set admin state up
