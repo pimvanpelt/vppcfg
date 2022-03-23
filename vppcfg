@@ -18,6 +18,7 @@ import sys
 import yaml
 import logging
 from validator import Validator
+from vpp.vppapi import VPPApi
 
 try:
     import argparse
@@ -57,6 +58,11 @@ def main():
             logging.error(m)
     else:
         logging.info("Configuration validated successfully")
+
+    vpp = VPPApi()
+    vpp.readconfig()
+    vpp.dump()
+    vpp.disconnect()
 
 if __name__ == "__main__":
     main()
