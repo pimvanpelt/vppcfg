@@ -128,13 +128,22 @@ and finally for all interfaces, they are synchronized with the configuratino (IP
 
 ### Pruning
 
-1.  Retrieve all LCP interfaces from VPP
+1.  For any interface that exists in VPP but not in the config:
+    *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
+        *   Set it admin-state down
+        *   Remove all of its IP addresses
+1.  Retrieve all LCP interfaces from VPP, and retrieve their interface information
     *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
         *   Remove those that do not exist in the config
-        *   Remove those that do exist in the config but are on a different phy
-        *   Remove those that do exist in the config but have a different encapsulation
+        *   Remove those that do exist in the config but have a different encapsulation, for example
+            if `e0.100` exists with dot1q 100, but has moved to dot1ad 1234.
+        *   Remove those that do exist in the config but have mismatched VPP/LCP interface names,
+            for example if `e0` was paired with interface Te1/0/0 but has moved to interface Te1/0/1.
 1.  Retrieve all Loopbacks and BVIs from VPP
     *   Remove those that do not exist in the config
+    *   For BVIs, remove those that exist in the config but are associated with a different
+        bridge-domain, for example if `bvi123` exists in bridge-domain 10, but it has moved to
+        bridge-domain 123.
     *   Remove all IP addresses that are not in the config
 1.  Retrieve all Bridge Domains from VPP
     *   Remove those that do not exist in the config
@@ -169,7 +178,8 @@ and finally for all interfaces, they are synchronized with the configuratino (IP
 1.  Tunnels
 1.  Dot1Q and Dot1AD sub-interfaces
 1.  Qin1Q and Qin1AD sub-interfaces
-1.  LCP pairs
+1.  LCP pairs for Tunnels (TUN type)
+1.  LCP pairs for PHYs, BondEthernets, Dot1Q/Dot1AD and finally QinQ/QinAD (TAP type)
 
 ### Syncing
 
