@@ -142,7 +142,3 @@ class Validator(object):
 
         self.logger.info("Configuration validated successfully")
         return True
-
-    def get_phys(self, yaml):
-        """ Return all PHYs in the config """
-        return interface.get_phys(yaml)

@@ -18,6 +18,7 @@ import sys
 import yaml
 import logging
 from config import Validator
+import config.interface as interface
 from vpp.vppapi import VPPApi
 
 try:
@@ -52,15 +53,14 @@ def main():
         logging.error("Couldn't read config from %s" % args.config)
         sys.exit(-1)
 
-    config = Validator(schema=args.schema)
-    if not config.valid_config(cfg):
+    v = Validator(schema=args.schema)
+    if not v.valid_config(cfg):
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
 
-    config_phys = config.get_phys(cfg)
     vpp = VPPApi()
     vpp.readconfig()
-    if not vpp.phys_exist(config_phys):
+    if not vpp.phys_exist(interface.get_phys(cfg)):
         logging.error("Not all PHYs in the config exist in VPP")
         vpp.disconnect()
         sys.exit(-3)
