@@ -16,6 +16,19 @@ class TestBridgeDomainMethods(unittest.TestCase):
         self.assertIsNone(iface)
         self.assertIsNone(ifname)
 
+    def test_get_by_bvi_name(self):
+        ifname, iface = bridgedomain.get_by_bvi_name(self.cfg, "bvi11")
+        self.assertEqual("bd11", ifname)
+        self.assertIsNotNone(iface)
+
+        ifname, iface = bridgedomain.get_by_bvi_name(self.cfg, "bvi10")
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
+        ifname, iface = bridgedomain.get_by_bvi_name(self.cfg, "bd11")
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
     def test_get_by_name(self):
         ifname, iface = bridgedomain.get_by_name(self.cfg, "bd10")
         self.assertIsNotNone(iface)

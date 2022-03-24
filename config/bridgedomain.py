@@ -36,8 +36,23 @@ def get_by_lcp_name(yaml, lcpname):
     return None,None
 
 
+def get_by_bvi_name(yaml, ifname):
+    """ Return the BridgeDomain by BVI interface name (bvi*), if it exists. Return None,None otherwise. """
+
+    if not ifname.startswith("bvi"):
+        return None,None
+    idx = ifname[3:]
+    if not idx.isnumeric():
+        return None,None
+
+    bridgename = "bd%d" % int(idx)
+    if bridgename in yaml['bridgedomains'] and 'lcp' in yaml['bridgedomains'][bridgename]:
+        return bridgename, yaml['bridgedomains'][bridgename]
+    return None, None
+
+
 def get_by_name(yaml, ifname):
-    """ Return the BridgeDomain by name, if it exists. Return None,None otherwise. """
+    """ Return the BridgeDomain by name (bd*), if it exists. Return None,None otherwise. """
     try:
         if ifname in yaml['bridgedomains']:
             return ifname, yaml['bridgedomains'][ifname]
@@ -47,19 +62,15 @@ def get_by_name(yaml, ifname):
 
 
 def is_bridgedomain(yaml, ifname):
-    """ Returns True if the name is an existing bridgedomain (ie bd[0-9]+). """
+    """ Returns True if the name (bd*) is an existing bridgedomain. """
     ifname, iface = get_by_name(yaml, ifname)
     return not iface == None
 
 
 def is_bvi(yaml, ifname):
-    """ Returns True if the interface name is an existing BVI. """
-    if not ifname.startswith("bvi"):
-        return False
-    idx = ifname[3:]
-    if not idx.isnumeric():
-        return False
-    bridgename, bridge = get_by_name(yaml, "bd%d" % (int(idx)))
+    """ Returns True if the interface name (bvi*) is an existing BVI. """
+
+    bridgename, bridge = get_by_bvi_name(yaml, ifname)
     if not bridge:
         return False
 
