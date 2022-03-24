@@ -15,10 +15,6 @@ import logging
 import validator.lcp as lcp
 import validator.address as address
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
 def get_loopbacks(yaml):
     """ Return a list of all loopbacks. """
     ret = []
@@ -48,7 +44,7 @@ def validate_loopbacks(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
     if not 'loopbacks' in yaml:
         return result, msgs

@@ -35,6 +35,7 @@ def main():
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only log warnings/errors), default False""")
 
     args = parser.parse_args()
+
     level = logging.INFO
     if args.debug:
         level = logging.DEBUG
@@ -51,13 +52,10 @@ def main():
         logging.error("Couldn't read config from %s" % args.config)
         sys.exit(-1)
 
-    v = Validator(schema=args.schema)
-    rv, msgs = v.validate(cfg)
-    if not rv:
-        for m in msgs:
-            logging.error(m)
-    else:
-        logging.info("Configuration validated successfully")
+    validator = Validator(schema=args.schema)
+    if not validator.valid_config(cfg):
+        logging.error("Configuration is not valid, bailing")
+        sys.exit(-2)
 
     vpp = VPPApi()
     vpp.readconfig()

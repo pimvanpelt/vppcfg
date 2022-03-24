@@ -60,15 +60,10 @@ class IPInterfaceWithPrefixLength(Validator):
 
 
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-
 class Validator(object):
     def __init__(self, schema):
         self.logger = logging.getLogger('vppcfg.validator')
-        self.logger.addHandler(NullHandler())
+        self.logger.addHandler(logging.NullHandler())
 
         self.schema = schema
 
@@ -131,3 +126,19 @@ class Validator(object):
         if ret_rv:
             self.logger.debug("Semantics correctly validated")
         return ret_rv, ret_msgs
+
+    def valid_config(self, yaml):
+        """ Validate the given YAML configuration in 'yaml' against syntax
+        validation given in the yamale 'schema', and all semantic validators.
+
+        Returns True if the configuration is valid, False otherwise.
+        """
+
+        rv, msgs = self.validate(yaml)
+        if not rv:
+            for m in msgs:
+                self.logger.error(m)
+            return False
+
+        self.logger.info("Configuration validated successfully")
+        return True

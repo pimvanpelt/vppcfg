@@ -19,10 +19,6 @@ import validator.vxlan_tunnel as vxlan_tunnel
 import validator.lcp as lcp
 import validator.address as address
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
 def get_qinx_parent_by_name(yaml, ifname):
     """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None,None
         if that sub-interface doesn't exist. """
@@ -389,7 +385,7 @@ def validate_interfaces(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
     if not 'interfaces' in yaml:
         return result, msgs

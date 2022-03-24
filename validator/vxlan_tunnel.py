@@ -15,11 +15,6 @@ import logging
 import validator.interface as interface
 import ipaddress
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-
 def get_by_name(yaml, ifname):
     """ Return the VXLAN by name, if it exists. Return None otherwise. """
     try:
@@ -64,7 +59,7 @@ def validate_vxlan_tunnels(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
     if not 'vxlan_tunnels' in yaml:
         return result, msgs

@@ -14,11 +14,6 @@
 import logging
 import validator.interface as interface
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-
 def get_by_name(yaml, ifname):
     """ Return the BondEthernet by name, if it exists. Return None,None otherwise. """
     try:
@@ -52,7 +47,7 @@ def validate_bondethernets(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
     if not 'bondethernets' in yaml:
         return result, msgs

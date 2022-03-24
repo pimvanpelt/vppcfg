@@ -16,11 +16,6 @@ import validator.interface as interface
 import validator.lcp as lcp
 import validator.address as address
 
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-
 def get_bridgedomains(yaml):
     """ Return a list of all bridgedomains. """
     ret = []
@@ -94,7 +89,7 @@ def validate_bridgedomains(yaml):
     result = True
     msgs = []
     logger = logging.getLogger('vppcfg.validator')
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
     if not 'bridgedomains' in yaml:
         return result, msgs

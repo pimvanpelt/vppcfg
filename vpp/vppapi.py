@@ -9,22 +9,16 @@ import fnmatch
 import logging
 import socket
 
-
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
 class VPPApi():
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
-        self.logger = logging.getLogger('%s.vppapi' % clientname)
-        self.logger.addHandler(NullHandler())
+        self.logger = logging.getLogger('vppcfg.vppapi')
+        self.logger.addHandler(logging.NullHandler())
 
         self.address = address
         self.connected = False
         self.clientname = clientname
         self.vpp = None
-        self.config = {}
-        self.clearconfig()
+        self.config = self.clearconfig()
 
 
     def connect(self):
@@ -66,7 +60,7 @@ class VPPApi():
         return True
 
     def clearconfig(self):
-        self.config = {"lcps": {}, "interfaces": {}, "interface_addresses": {}, 
+        return {"lcps": {}, "interfaces": {}, "interface_addresses": {}, 
                 "bondethernets": {}, "bondethernet_members": {},
                 "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}}
 
