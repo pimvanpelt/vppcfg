@@ -3,7 +3,7 @@ test:
   errors:
     expected:
      - "sub-interface .*.100 does not have unique encapsulation"
-     - "sub-interface .*.101 does not have unique encapsulation"
+     - "sub-interface .*.102 does not have unique encapsulation"
     count: 2
 ---
 interfaces:
@@ -12,7 +12,11 @@ interfaces:
       100:
         description: "VLAN 100"
       101:
-        description: "Another VLAN 100"
+        description: "Another VLAN 100, but without exact-match"
         encapsulation:
           dot1q: 100
-
+      102:
+        description: "Another VLAN 100, but without exact-match"
+        encapsulation:
+          dot1q: 100
+          exact-match: True

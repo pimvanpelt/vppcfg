@@ -63,6 +63,22 @@ def get_parent_by_name(yaml, ifname):
     return None,None
 
 
+def get_by_lcp_name(yaml, lcpname):
+    """ Returns the interface or sub-interface by a given lcp name, or None,None if it does not exist """
+    if not 'interfaces' in yaml:
+        return None,None
+    for ifname, iface in yaml['interfaces'].items():
+        if 'lcp' in iface and iface['lcp'] == lcpname:
+            return ifname, iface
+        if not 'sub-interfaces' in iface:
+            continue
+        for subid, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
+            sub_ifname = "%s.%d" % (ifname, subid)
+            if 'lcp' in sub_iface and sub_iface['lcp'] == lcpname:
+                return sub_ifname, sub_iface
+    return None,None
+
+
 def get_by_name(yaml, ifname):
     """ Returns the interface or sub-interface by a given name, or None,None if it does not exist """
     if '.' in ifname:
@@ -217,6 +233,7 @@ def get_encapsulation(yaml, ifname):
     exact_match = False
     if not 'encapsulation' in iface:
         dot1q = int(subid)
+        exact_match = True
     else:
         if 'dot1q' in iface['encapsulation']:
             dot1q = iface['encapsulation']['dot1q']

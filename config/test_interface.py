@@ -136,6 +136,16 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertTrue(interface.is_l3(self.cfg, "GigabitEthernet1/0/0"))
         self.assertFalse(interface.is_l3(self.cfg, "GigabitEthernet3/0/0"))
 
+    def test_get_by_lcp_name(self):
+        ifname, iface = interface.get_by_lcp_name(self.cfg, "notexist")
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
+        ifname, iface = interface.get_by_lcp_name(self.cfg, "e1.100.100")
+        self.assertEqual(ifname, "GigabitEthernet1/0/1.102")
+        ifname, iface = interface.get_by_lcp_name(self.cfg, "e2")
+        self.assertEqual(ifname, "GigabitEthernet2/0/0")
+
     def test_get_by_name(self):
         ifname, iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.201")
         self.assertEqual(ifname, "GigabitEthernet1/0/1.201")

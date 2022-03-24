@@ -17,6 +17,7 @@ interfaces:
         description: "This sub-int is has the same encap as 102"
         encapsulation:
           dot1q: 102
+          exact-match: True
 
   GigabitEthernet1/0/1:
     mtu: 9216
