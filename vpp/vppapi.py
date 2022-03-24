@@ -143,23 +143,49 @@ class VPPApi():
         self.dump_phys()
         self.dump_subints()
 
+    def get_qinx_interfaces(self):
+        qinx_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id>0]
+        return qinx_subints
+
+    def get_dot1x_interfaces(self):
+        dot1x_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id==0]
+        return dot1x_subints
+
+    def get_phys(self):
+        phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sub_id==0]
+        return phys
+
+    def get_bondethernets(self):
+        bonds = [self.config['bondethernets'][x].interface_name for x in self.config['bondethernets']]
+        return bonds
+
+    def get_vxlan_tunnels(self):
+        vxlan_tunnels = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['VXLAN']]
+        return vxlan_tunnels
+
+    def get_lcp_by_interface(self, sw_if_index):
+        for idx, lcp in self.config['lcps'].items():
+            if lcp.phy_sw_if_index == sw_if_index:
+                return lcp
+        return None
+
     def dump_phys(self):
-        phys = [self.config['interfaces'][x].sw_if_index for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sub_id==0]
-        for idx in phys:
-            iface = self.config['interfaces'][idx]
-            self.logger.info("%s idx=%d" % (iface.interface_name, idx))
+        phys = self.get_phys()
+        for ifname in phys:
+            iface = self.config['interface_names'][ifname]
+            self.logger.info("%s idx=%d" % (iface.interface_name, iface.sw_if_index))
 
     def dump_subints(self):
         self.logger.info("*** QinX ***")
-        qinx_subints = [self.config['interfaces'][x].sw_if_index for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id>0]
-        for idx in qinx_subints:
-            iface = self.config['interfaces'][idx]
+        subints = self.get_qinx_interfaces()
+        for ifname in subints:
+            iface = self.config['interfaces_names'][ifname]
             self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, idx, self.get_encapsulation(iface)))
         
         self.logger.info("*** .1q/.1ad ***")
-        subints = [self.config['interfaces'][x].sw_if_index for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id==0]
-        for idx in subints:
-            iface = self.config['interfaces'][idx]
+        subints = self.get_dot1x_interfaces()
+        for ifname in subints:
+            iface = self.config['interface_names'][ifname]
             self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, idx, self.get_encapsulation(iface)))
 
     def dump_bridgedomains(self):

@@ -14,6 +14,10 @@
 #
 # -*- coding: utf-8 -*-
 import logging
+import config.interface as interface
+import config.bondethernet as bondethernet
+import config.vxlan_tunnel as vxlan_tunnel
+import config.lcp as lcp
 from vpp.vppapi import VPPApi
 
 class Reconciler():
@@ -22,6 +26,7 @@ class Reconciler():
         self.logger.addHandler(logging.NullHandler())
 
         self.vpp = VPPApi()
+        self.cfg = cfg
 
     def readconfig(self):
         return self.vpp.readconfig()
@@ -38,9 +43,24 @@ class Reconciler():
 
     def prune_addresses(self, ifname, address_list):
         """ Remove all addresses from interface ifname, except those in address_list """
+        idx = self.vpp.config['interface_names'][ifname].sw_if_index
+        for a in self.vpp.config['interface_addresses'][idx]:
+            self.logger.info("> set interface ip address del %s %s" % (ifname, a))
         
     def prune(self):
-        return False
+        ret = True
+        if not self.prune_addresses_set_interface_down():
+            self.logger.warning("Could not prune addresses and set interfaces down from VPP that are not in the config")
+            ret = False
+        return ret
+
+    def prune_addresses_set_interface_down(self):
+        for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_vxlan_tunnels() + self.vpp.get_phys():
+            if not ifname in interface.get_interfaces(self.cfg):
+                self.logger.info("> set interface state %s down" % ifname)
+                self.prune_addresses(ifname, [])
+
+        return True
 
     def create(self):
         return False
