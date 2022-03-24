@@ -39,6 +39,8 @@ def get_by_lcp_name(yaml, lcpname):
 def get_by_bvi_name(yaml, ifname):
     """ Return the BridgeDomain by BVI interface name (bvi*), if it exists. Return None,None otherwise. """
 
+    if not 'bridgedomains' in yaml:
+        return None,None
     if not ifname.startswith("bvi"):
         return None,None
     idx = ifname[3:]
