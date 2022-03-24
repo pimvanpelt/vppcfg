@@ -141,15 +141,12 @@ and finally for all interfaces, they are synchronized with the configuratino (IP
             for example if `e0` was paired with interface Te1/0/0 but has moved to interface Te1/0/1.
 1.  Retrieve all Loopbacks and BVIs from VPP
     *   Remove those that do not exist in the config
-    *   For BVIs, remove those that exist in the config but are associated with a different
-        bridge-domain, for example if `bvi123` exists in bridge-domain 10, but it has moved to
-        bridge-domain 123.
     *   Remove all IP addresses that are not in the config
 1.  Retrieve all Bridge Domains from VPP
     *   Remove those that do not exist in the config
-    *   Remove all IP addresses that are not in the config
-    *   Remove all member interfaces that are not in the config, return them to L3 mode
-    *   Remove tag-rewrite options on member interfaces if they have encapsulation
+    *   Remove all member interfaces (including BVIs) that are not in the config, return them to
+        L3 mode
+    *   Remove tag-rewrite options on removed member interfaces if they have encapsulation
 1.  For L2 Cross Connects from VPP
     *   For interfaces that do not exist in the config (either as source or target):
         *   Return the interface to L3 mode
