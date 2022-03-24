@@ -66,6 +66,9 @@ class Reconciler():
         if not self.prune_bvis():
             self.logger.warning("Could not prune BVIs from VPP that are not in the config")
             ret = False
+        if not self.prune_bridgedomains():
+            self.logger.warning("Could not prune BridgeDomains from VPP that are not in the config")
+            ret = False
         return ret
 
     def prune_loopbacks(self):
@@ -96,6 +99,28 @@ class Reconciler():
             if 'addresses' in config_iface:
                 addresses = config_iface['addresses']
             self.prune_addresses(vpp_iface.interface_name, addresses)
+        return True
+
+    def prune_bridgedomains(self):
+        for idx, bridge in self.vpp.config['bridgedomains'].items():
+            bridgename = "bd%d" % idx
+            config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, bridgename)
+            members = []
+            if not config_iface:
+                for member in bridge.sw_if_details:
+                    member_ifname = self.vpp.config['interfaces'][member.sw_if_index].interface_name
+                    if interface.is_sub(self.cfg, member_ifname):
+                        self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
+                    self.logger.info("1> set interface l3 %s" % member_ifname)
+                self.logger.info("1> create bridge-domain %d del" % idx)
+            else:
+                self.logger.debug("BridgeDomain OK: %s" % (bridgename))
+                for member in bridge.sw_if_details:
+                    member_ifname = self.vpp.config['interfaces'][member.sw_if_index].interface_name
+                    if 'members' in config_iface and member_ifname in config_iface['members']:
+                        if interface.is_sub(self.cfg, member_ifname):
+                            self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
+                        self.logger.info("1> set interface l3 %s" % member_ifname)
         return True
 
     def __parent_iface_by_encap(self, sup_sw_if_index, outer, dot1ad=True):
