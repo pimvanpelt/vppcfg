@@ -72,6 +72,9 @@ class Reconciler():
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP that are not in the config")
             ret = False
+        if not self.prune_bondethernets():
+            self.logger.warning("Could not prune BondEthernets from VPP that are not in the config")
+            ret = False
         return ret
 
     def prune_loopbacks(self):
@@ -148,6 +151,26 @@ class Reconciler():
                 self.logger.info("3> set interface l3 %s" % vpp_rx_ifname)
                 continue
             self.logger.debug("L2XC OK: %s -> %s" % (vpp_rx_ifname, vpp_tx_ifname))
+        return True
+
+    def prune_bondethernets(self):
+        for idx, bond in self.vpp.config['bondethernets'].items():
+            vpp_ifname = bond.interface_name
+            config_ifname, config_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
+            if not config_iface:
+                for member in self.vpp.config['bondethernet_members'][idx]:
+                    self.logger.info("1> bond del %s" % self.vpp.config['interfaces'][member].interface_name)
+                self.logger.info("1> delete bond %s" % (vpp_ifname))
+                continue
+            for member in self.vpp.config['bondethernet_members'][idx]:
+                member_ifname = self.vpp.config['interfaces'][member].interface_name
+                if 'interfaces' in config_iface and not member_ifname in config_iface['interfaces']:
+                    self.logger.info("2> bond del %s" % member_ifname)
+            addresses = []
+            if 'addresses' in config_iface:
+                addresses = config_iface['addresses']
+            self.prune_addresses(vpp_ifname, addresses)
+            self.logger.debug("BondEthernet OK: %s" % (vpp_ifname))
         return True
 
     def __parent_iface_by_encap(self, sup_sw_if_index, outer, dot1ad=True):

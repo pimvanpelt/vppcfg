@@ -153,7 +153,7 @@ and finally for all interfaces, they are synchronized with the configuratino (IP
         *   Remove tag-rewrite options on if it has encapsulation
 1.  Retrieve all BondEthernets from VPP
     *   Remove those that do not exist in the config
-    *   Remove all member interfaces that are not in the config, return them to L3 mode
+    *   Remove all member interfaces that are not in the config
     *   Remove all IP addresses that are not in the config
 1.  Retrieve all Tunnels from VPP
     *   Remove those that do not exist in the config
