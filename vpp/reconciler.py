@@ -69,6 +69,9 @@ class Reconciler():
         if not self.prune_bridgedomains():
             self.logger.warning("Could not prune BridgeDomains from VPP that are not in the config")
             ret = False
+        if not self.prune_l2xcs():
+            self.logger.warning("Could not prune L2 Cross Connects from VPP that are not in the config")
+            ret = False
         return ret
 
     def prune_loopbacks(self):
@@ -121,6 +124,30 @@ class Reconciler():
                         if interface.is_sub(self.cfg, member_ifname):
                             self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
                         self.logger.info("1> set interface l3 %s" % member_ifname)
+        return True
+
+    def prune_l2xcs(self):
+        for idx, l2xc in self.vpp.config['l2xcs'].items():
+            vpp_rx_ifname = self.vpp.config['interfaces'][l2xc.rx_sw_if_index].interface_name
+            config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, vpp_rx_ifname)
+            if not config_rx_ifname:
+                if self.vpp.config['interfaces'][l2xc.rx_sw_if_index].sub_id > 0:
+                    self.logger.info("1> set interface l2 tag-rewrite %s disable" % vpp_rx_ifname)
+                self.logger.info("1> set interface l3 %s" % vpp_rx_ifname)
+                continue
+
+            if not interface.is_l2xc_interface(self.cfg, config_rx_ifname):
+                if interface.is_sub(self.cfg, config_rx_ifname):
+                    self.logger.info("2> set interface l2 tag-rewrite %s disable" % vpp_rx_ifname)
+                self.logger.info("2> set interface l3 %s" % vpp_rx_ifname)
+                continue
+            vpp_tx_ifname = self.vpp.config['interfaces'][l2xc.tx_sw_if_index].interface_name
+            if vpp_tx_ifname != config_rx_iface['l2xc']:
+                if interface.is_sub(self.cfg, config_rx_ifname):
+                    self.logger.info("3> set interface l2 tag-rewrite %s disable" % vpp_rx_ifname)
+                self.logger.info("3> set interface l3 %s" % vpp_rx_ifname)
+                continue
+            self.logger.debug("L2XC OK: %s -> %s" % (vpp_rx_ifname, vpp_tx_ifname))
         return True
 
     def __parent_iface_by_encap(self, sup_sw_if_index, outer, dot1ad=True):
