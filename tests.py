@@ -78,6 +78,8 @@ class YAMLTest(unittest.TestCase):
         if 'test' in unittest and 'errors' in unittest['test'] and 'count' in unittest['test']['errors']:
             count = unittest['test']['errors']['count']
 
+        if len(msgs) != count:
+            print("%s: Unexpected error count %d (expecting %d)" % (self.yaml_filename, len(msgs), count), file=sys.stderr)
         self.assertEqual(len(msgs), count)
         self.assertFalse(fail)
 
