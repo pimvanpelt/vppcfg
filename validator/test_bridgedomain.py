@@ -18,6 +18,20 @@ class TestBridgeDomainMethods(unittest.TestCase):
         self.assertIsNone(iface)
         self.assertIsNone(ifname)
 
+    def test_is_bridgedomain(self):
+        self.assertTrue(bridgedomain.is_bridgedomain(self.cfg, "bd10"))
+        self.assertTrue(bridgedomain.is_bridgedomain(self.cfg, "bd11"))
+        self.assertTrue(bridgedomain.is_bridgedomain(self.cfg, "bd12"))
+        self.assertFalse(bridgedomain.is_bridgedomain(self.cfg, "bd-notexist"))
+        self.assertFalse(bridgedomain.is_bridgedomain(self.cfg, "GigabitEthernet1/0/0"))
+
+    def test_is_bvi(self):
+        self.assertFalse(bridgedomain.is_bvi(self.cfg, "bvi10"))
+        self.assertTrue(bridgedomain.is_bvi(self.cfg, "bvi11"))
+        self.assertTrue(bridgedomain.is_bvi(self.cfg, "bvi12"))
+        self.assertFalse(bridgedomain.is_bvi(self.cfg, "bvi-notexist"))
+        self.assertFalse(bridgedomain.is_bvi(self.cfg, "GigabitEthernet1/0/0"))
+
     def test_members(self):
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(bridgedomain.is_bridge_interface(self.cfg, "GigabitEthernet2/0/0.100"))

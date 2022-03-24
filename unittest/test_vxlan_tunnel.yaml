@@ -1,0 +1,24 @@
+vxlan_tunnels:
+  vxlan_tunnel0:
+    description: "Correctly configured VXLAN"
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 100
+
+  vxlan_tunnel1:
+    description: "VXLAN VNI overlaps with vxlan_tunnel2"
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 101
+
+  vxlan_tunnel2:
+    description: "VXLAN VNI overlaps with vxlan_tunnel1"
+    local: 192.0.2.9
+    remote: 192.0.2.10
+    vni: 101
+
+  vxlan_tunnel3:
+    description: "VXLAN src/dst address family mismatch"
+    local: 192.0.2.17
+    remote: 2001:db8:1::2
+    vni: 102

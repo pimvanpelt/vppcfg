@@ -27,7 +27,14 @@ def get_by_name(yaml, ifname):
             return ifname, yaml['vxlan_tunnels'][ifname]
     except:
         pass
-    return None
+    return None, None
+
+
+def is_vxlan_tunnel(yaml, ifname):
+    """ Returns True if the interface name is an existing VXLAN Tunnel. """
+    ifname, iface = get_by_name(yaml, ifname)
+    return not iface == None
+
 
 def vni_unique(yaml, vni):
     """ Return True if the VNI is unique amongst all VXLANs """
@@ -40,6 +47,17 @@ def vni_unique(yaml, vni):
             ncount = ncount + 1
 
     return ncount < 2
+
+
+def get_vxlan_tunnels(yaml):
+    """ Returns a list of all VXLAN tunnel interface names. """
+    ret = []
+    if not 'vxlan_tunnels' in yaml:
+        return ret
+
+    for ifname, iface in yaml['vxlan_tunnels'].items():
+        ret.append(ifname)
+    return ret
 
 
 def validate_vxlan_tunnels(yaml):

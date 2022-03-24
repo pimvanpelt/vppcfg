@@ -29,8 +29,14 @@ def get_by_name(yaml, ifname):
     return None, None
 
 
+def is_bondethernet(yaml, ifname):
+    """ Returns True if the interface name is an existing BondEthernet. """
+    ifname, iface = get_by_name(yaml, ifname)
+    return not iface == None
+
+
 def is_bond_member(yaml, ifname):
-    """ Returns True if this interface is a member of a BondEthernet """
+    """ Returns True if this interface is a member of a BondEthernet. """
     if not 'bondethernets' in yaml:
         return False
 

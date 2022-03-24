@@ -27,6 +27,7 @@ def get_loopbacks(yaml):
             ret.append(ifname)
     return ret
 
+
 def get_by_name(yaml, ifname):
     """ Return the loopback by name, if it exists. Return None otherwise. """
     try:
@@ -35,6 +36,12 @@ def get_by_name(yaml, ifname):
     except:
         pass
     return None, None
+
+
+def is_loopback(yaml, ifname):
+    """ Returns True if the interface name is an existing loopback. """
+    ifname, iface = get_by_name(yaml, ifname)
+    return not iface == None
 
 
 def validate_loopbacks(yaml):

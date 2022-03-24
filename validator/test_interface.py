@@ -180,3 +180,14 @@ class TestInterfaceMethods(unittest.TestCase):
 
         ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
         self.assertEqual(ifname, "GigabitEthernet1/0/1.200")
+
+    def test_get_phys(self):
+        phys = interface.get_phys(self.cfg)
+        print(phys)
+        self.assertEqual(len(phys), 6)
+        self.assertIn("GigabitEthernet1/0/0", phys)
+        self.assertNotIn("GigabitEthernet1/0/0.100", phys)
+
+    def test_is_phy(self):
+        self.assertTrue(interface.is_phy(self.cfg, "GigabitEthernet1/0/0"))
+        self.assertFalse(interface.is_phy(self.cfg, "GigabitEthernet1/0/0.100"))

@@ -41,6 +41,29 @@ def get_by_name(yaml, ifname):
     return None, None
 
 
+def is_bridgedomain(yaml, ifname):
+    """ Returns True if the name is an existing bridgedomain (ie bd[0-9]+). """
+    ifname, iface = get_by_name(yaml, ifname)
+    return not iface == None
+
+
+def is_bvi(yaml, ifname):
+    """ Returns True if the interface name is an existing BVI. """
+    if not ifname.startswith("bvi"):
+        return False
+    idx = ifname[3:]
+    if not idx.isnumeric():
+        return False
+    bridgename, bridge = get_by_name(yaml, "bd%d" % (int(idx)))
+    if not bridge:
+        return False
+
+    ## If the BridgeDomain has an 'lcp', then it has a Bridge Virtual Interface
+    if 'lcp' in bridge:
+        return True
+    return False
+
+
 def get_bridge_interfaces(yaml):
     """ Returns a list of all interfaces that are bridgedomain members """
 

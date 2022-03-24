@@ -14,6 +14,8 @@
 import logging
 import validator.bondethernet as bondethernet
 import validator.bridgedomain as bridgedomain
+import validator.loopback as loopback
+import validator.vxlan_tunnel as vxlan_tunnel
 import validator.lcp as lcp
 import validator.address as address
 
@@ -235,6 +237,40 @@ def get_encapsulation(yaml, ifname):
       "inner-dot1q": int(inner_dot1q),
       "exact-match": bool(exact_match)
       }
+
+
+def get_phys(yaml):
+    """ Return a list of all toplevel (ie. non-sub) interfaces which are
+    assumed to be physical network cards, eg TenGigabitEthernet1/0/0. Note
+    that derived/created interfaces such as Tunnels, BondEthernets and
+    Loopbacks/BVIs are not returned """
+    ret = []
+    if not 'interfaces' in yaml:
+        return ret
+    for ifname, iface in yaml['interfaces'].items():
+        if is_phy(yaml, ifname):
+            ret.append(ifname)
+    return ret
+
+
+def is_phy(yaml, ifname):
+    """ Returns True if the ifname is the name of a physical network interface. """
+
+    ifname, iface = get_by_name(yaml, ifname)
+    if iface == None:
+        return False
+    if is_sub(yaml, ifname):
+        return False
+
+    if bondethernet.is_bondethernet(yaml, ifname):
+        return False
+    if loopback.is_loopback(yaml, ifname):
+        return False
+    if bridgedomain.is_bvi(yaml, ifname):
+        return False
+    if vxlan_tunnel.is_vxlan_tunnel(yaml, ifname):
+        return False
+    return True
 
 
 def get_interfaces(yaml):
