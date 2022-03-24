@@ -75,6 +75,9 @@ class Reconciler():
         if not self.prune_bondethernets():
             self.logger.warning("Could not prune BondEthernets from VPP that are not in the config")
             ret = False
+        if not self.prune_vxlan_tunnels():
+            self.logger.warning("Could not prune VXLAN Tunnels from VPP that are not in the config")
+            ret = False
         return ret
 
     def prune_loopbacks(self):
@@ -171,6 +174,25 @@ class Reconciler():
                 addresses = config_iface['addresses']
             self.prune_addresses(vpp_ifname, addresses)
             self.logger.debug("BondEthernet OK: %s" % (vpp_ifname))
+        return True
+
+    def prune_vxlan_tunnels(self):
+        for idx, vpp_vxlan in self.vpp.config['vxlan_tunnels'].items():
+            vpp_ifname = self.vpp.config['interfaces'][idx].interface_name
+            config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, vpp_ifname)
+            if not config_iface:
+                self.logger.info("1> create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
+                    vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni))
+                continue
+            if config_iface['local'] != str(vpp_vxlan.src_address) or config_iface['remote'] != str(vpp_vxlan.dst_address) or config_iface['vni'] != vpp_vxlan.vni:
+                self.logger.info("2> create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
+                    vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni))
+                continue
+            addresses = []
+            if 'addresses' in config_iface:
+                addresses = config_iface['addresses']
+            self.prune_addresses(vpp_ifname, addresses)
+            self.logger.debug("VXLAN Tunnel OK: %s" % (vpp_ifname))
         return True
 
     def __parent_iface_by_encap(self, sup_sw_if_index, outer, dot1ad=True):
