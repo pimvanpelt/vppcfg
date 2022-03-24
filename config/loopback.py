@@ -12,8 +12,8 @@
 # limitations under the License.
 #
 import logging
-import validator.lcp as lcp
-import validator.address as address
+import config.lcp as lcp
+import config.address as address
 
 def get_loopbacks(yaml):
     """ Return a list of all loopbacks. """
@@ -43,7 +43,7 @@ def is_loopback(yaml, ifname):
 def validate_loopbacks(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.validator')
+    logger = logging.getLogger('vppcfg.config')
     logger.addHandler(logging.NullHandler())
 
     if not 'loopbacks' in yaml:

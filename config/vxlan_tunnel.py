@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 import logging
-import validator.interface as interface
+import config.interface as interface
 import ipaddress
 
 def get_by_name(yaml, ifname):
@@ -58,7 +58,7 @@ def get_vxlan_tunnels(yaml):
 def validate_vxlan_tunnels(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.validator')
+    logger = logging.getLogger('vppcfg.config')
     logger.addHandler(logging.NullHandler())
 
     if not 'vxlan_tunnels' in yaml:

@@ -1,6 +1,6 @@
 import unittest
 import yaml
-import validator.bridgedomain as bridgedomain
+import config.bridgedomain as bridgedomain
 
 class TestBridgeDomainMethods(unittest.TestCase):
     def setUp(self):

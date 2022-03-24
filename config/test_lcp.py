@@ -1,7 +1,7 @@
 import unittest
 import yaml
-import validator.lcp as lcp
-import validator.interface as interface
+import config.lcp as lcp
+import config.interface as interface
 
 class TestLCPMethods(unittest.TestCase):
     def setUp(self):

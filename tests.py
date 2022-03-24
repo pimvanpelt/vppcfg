@@ -16,7 +16,7 @@
 
 import sys
 import yaml
-from validator import Validator
+from config import Validator
 import glob
 import re
 import unittest

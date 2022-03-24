@@ -12,9 +12,9 @@
 # limitations under the License.
 #
 import logging
-import validator.interface as interface
-import validator.lcp as lcp
-import validator.address as address
+import config.interface as interface
+import config.lcp as lcp
+import config.address as address
 
 def get_bridgedomains(yaml):
     """ Return a list of all bridgedomains. """
@@ -88,7 +88,7 @@ def is_bridge_interface(yaml, ifname):
 def validate_bridgedomains(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.validator')
+    logger = logging.getLogger('vppcfg.config')
     logger.addHandler(logging.NullHandler())
 
     if not 'bridgedomains' in yaml:

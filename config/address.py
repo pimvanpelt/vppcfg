@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 import logging
-import validator.interface as interface
+import config.interface as interface
 import ipaddress
 
 def get_all_addresses_except_ifname(yaml, except_ifname):

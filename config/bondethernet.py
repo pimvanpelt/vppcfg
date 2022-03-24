@@ -12,7 +12,7 @@
 # limitations under the License.
 #
 import logging
-import validator.interface as interface
+import config.interface as interface
 
 def get_by_name(yaml, ifname):
     """ Return the BondEthernet by name, if it exists. Return None,None otherwise. """
@@ -46,7 +46,7 @@ def is_bond_member(yaml, ifname):
 def validate_bondethernets(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.validator')
+    logger = logging.getLogger('vppcfg.config')
     logger.addHandler(logging.NullHandler())
 
     if not 'bondethernets' in yaml:

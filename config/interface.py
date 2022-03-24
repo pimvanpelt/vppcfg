@@ -12,12 +12,12 @@
 # limitations under the License.
 #
 import logging
-import validator.bondethernet as bondethernet
-import validator.bridgedomain as bridgedomain
-import validator.loopback as loopback
-import validator.vxlan_tunnel as vxlan_tunnel
-import validator.lcp as lcp
-import validator.address as address
+import config.bondethernet as bondethernet
+import config.bridgedomain as bridgedomain
+import config.loopback as loopback
+import config.vxlan_tunnel as vxlan_tunnel
+import config.lcp as lcp
+import config.address as address
 
 def get_qinx_parent_by_name(yaml, ifname):
     """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None,None
@@ -384,7 +384,7 @@ def get_mtu(yaml, ifname):
 def validate_interfaces(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.validator')
+    logger = logging.getLogger('vppcfg.config')
     logger.addHandler(logging.NullHandler())
 
     if not 'interfaces' in yaml:

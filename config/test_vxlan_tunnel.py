@@ -1,6 +1,6 @@
 import unittest
 import yaml
-import validator.vxlan_tunnel as vxlan_tunnel
+import config.vxlan_tunnel as vxlan_tunnel
 
 class TestVXLANMethods(unittest.TestCase):
     def setUp(self):

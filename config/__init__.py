@@ -25,17 +25,17 @@ try:
 except ImportError:
     print("ERROR: install yamale manually: sudo pip install yamale")
     sys.exit(-2)
-from validator.loopback import validate_loopbacks
-from validator.bondethernet import validate_bondethernets
-from validator.interface import validate_interfaces
-from validator.bridgedomain import validate_bridgedomains
-from validator.vxlan_tunnel import validate_vxlan_tunnels
+from config.loopback import validate_loopbacks
+from config.bondethernet import validate_bondethernets
+from config.interface import validate_interfaces
+from config.bridgedomain import validate_bridgedomains
+from config.vxlan_tunnel import validate_vxlan_tunnels
 
 from yamale.validators import DefaultValidators, Validator
 import ipaddress
 
 class IPInterfaceWithPrefixLength(Validator):
-    """ Custom IPAddress validator - takes IP/prefixlen as input:
+    """ Custom IPAddress config - takes IP/prefixlen as input:
         192.0.2.1/29 or 2001:db8::1/64 are correct. The PrefixLength
         is required, and must be a number (0-32 for IPv4 and 0-128 for
         IPv6).
@@ -62,7 +62,7 @@ class IPInterfaceWithPrefixLength(Validator):
 
 class Validator(object):
     def __init__(self, schema):
-        self.logger = logging.getLogger('vppcfg.validator')
+        self.logger = logging.getLogger('vppcfg.config')
         self.logger.addHandler(logging.NullHandler())
 
         self.schema = schema
@@ -129,7 +129,7 @@ class Validator(object):
 
     def valid_config(self, yaml):
         """ Validate the given YAML configuration in 'yaml' against syntax
-        validation given in the yamale 'schema', and all semantic validators.
+        validation given in the yamale 'schema', and all semantic configs.
 
         Returns True if the configuration is valid, False otherwise.
         """

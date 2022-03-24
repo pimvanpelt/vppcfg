@@ -1,6 +1,6 @@
 import unittest
 import yaml
-import validator.bondethernet as bondethernet
+import config.bondethernet as bondethernet
 
 class TestBondEthernetMethods(unittest.TestCase):
     def setUp(self):

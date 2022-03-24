@@ -1,6 +1,6 @@
 import unittest
 import yaml
-import validator.interface as interface
+import config.interface as interface
 
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):

@@ -1,6 +1,6 @@
 import unittest
 import yaml
-import validator.loopback as loopback
+import config.loopback as loopback
 
 class TestLoopbackMethods(unittest.TestCase):
     def setUp(self):
