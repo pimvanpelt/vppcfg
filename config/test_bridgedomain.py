@@ -7,6 +7,15 @@ class TestBridgeDomainMethods(unittest.TestCase):
         with open("unittest/test_bridgedomain.yaml", "r") as f:
             self.cfg = yaml.load(f, Loader = yaml.FullLoader)
 
+    def test_get_by_lcp_name(self):
+        ifname, iface = bridgedomain.get_by_lcp_name(self.cfg, "bvi12")
+        self.assertIsNotNone(iface)
+        self.assertEqual("bd12", ifname)
+
+        ifname, iface = bridgedomain.get_by_lcp_name(self.cfg, "bvi-noexist")
+        self.assertIsNone(iface)
+        self.assertIsNone(ifname)
+
     def test_get_by_name(self):
         ifname, iface = bridgedomain.get_by_name(self.cfg, "bd10")
         self.assertIsNotNone(iface)

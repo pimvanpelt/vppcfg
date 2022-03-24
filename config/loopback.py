@@ -24,6 +24,16 @@ def get_loopbacks(yaml):
     return ret
 
 
+def get_by_lcp_name(yaml, lcpname):
+    """ Returns the loopback by a given lcp name, or None,None if it does not exist """
+    if not 'loopbacks' in yaml:
+        return None,None
+    for ifname, iface in yaml['loopbacks'].items():
+        if 'lcp' in iface and iface['lcp'] == lcpname:
+            return ifname, iface
+    return None,None
+
+
 def get_by_name(yaml, ifname):
     """ Return the loopback by name, if it exists. Return None otherwise. """
     try:
