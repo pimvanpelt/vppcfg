@@ -19,7 +19,7 @@ import yaml
 import logging
 from config import Validator
 import config.interface as interface
-from vpp.vppapi import VPPApi
+from vpp.reconciler import Reconciler
 
 try:
     import argparse
@@ -34,6 +34,7 @@ def main():
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only log warnings/errors), default False""")
+    parser.add_argument('-f', '--force', dest='force', action='store_true', help="""Force progress despite warnings, default False""")
 
     args = parser.parse_args()
 
@@ -58,16 +59,33 @@ def main():
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
 
-    vpp = VPPApi()
-    vpp.readconfig()
-    if not vpp.phys_exist(interface.get_phys(cfg)):
-        logging.error("Not all PHYs in the config exist in VPP")
-        vpp.disconnect()
+    r = Reconciler(cfg)
+    if not r.readconfig():
+        logging.error("Couldn't read config from VPP")
         sys.exit(-3)
 
-    vpp.dump()
+    if not r.phys_exist(interface.get_phys(cfg)):
+        logging.error("Not all PHYs in the config exist in VPP")
+        sys.exit(-4)
 
-    vpp.disconnect()
+    if not r.prune():
+        if not args.force:
+            logging.error("Reconciliation prune failure")
+            sys.exit(-5)
+        logging.warning("Reconciliation prune failure, continuing due to --force")
+
+    if not r.create():
+        if not args.force:
+            logging.error("Reconciliation create failure")
+            sys.exit(-6)
+        logging.warning("Reconciliation create failure, continuing due to --force")
+
+    if not r.sync():
+        if not args.force:
+            logging.error("Reconciliation sync failure")
+            sys.exit(-7)
+        logging.warning("Reconciliation sync failure, continuing due to --force")
+
 
 if __name__ == "__main__":
     main()

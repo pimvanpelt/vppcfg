@@ -20,4 +20,5 @@ from __future__ import (
 )
 
 import logging
-import vpp.vppapi
+from vpp.vppapi import VPPApi
+from vpp.reconciler import Reconciler
