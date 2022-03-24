@@ -103,11 +103,14 @@ if __name__ == "__main__":
     for pattern in args.test:
         for fn in glob.glob(pattern):
             yaml_suite.addTest(YAMLTest('test_yaml', yaml_filename=fn, yaml_schema=args.schema))
-    yaml_ok = unittest.TextTestRunner(verbosity=verbosity, buffer=True).run(yaml_suite)
+    yaml_ok = unittest.TextTestRunner(verbosity=verbosity, buffer=True).run(yaml_suite).wasSuccessful()
 
     tests = unittest.TestLoader().discover(start_dir=".", pattern='test_*.py')
     unit_ok = unittest.TextTestRunner(verbosity=verbosity, buffer=True).run(tests).wasSuccessful()
 
-    if not yaml_ok or not unit_ok:
-        sys.exit(-1)
-    sys.exit(0)
+    retval = 0
+    if not yaml_ok:
+        retval = retval - 1
+    if not unit_ok:
+        retval = retval - 2
+    sys.exit(retval)
