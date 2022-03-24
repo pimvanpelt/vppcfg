@@ -57,9 +57,16 @@ def main():
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
 
+    config_phys = validator.get_phys(cfg)
     vpp = VPPApi()
     vpp.readconfig()
+    if not vpp.phys_exist(config_phys):
+        logging.error("Not all PHYs in the config exist in VPP")
+        vpp.disconnect()
+        sys.exit(-3)
+
     vpp.dump()
+
     vpp.disconnect()
 
 if __name__ == "__main__":

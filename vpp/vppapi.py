@@ -60,7 +60,7 @@ class VPPApi():
         return True
 
     def clearconfig(self):
-        return {"lcps": {}, "interfaces": {}, "interface_addresses": {}, 
+        return {"lcps": {}, "interface_names": {}, "interfaces": {}, "interface_addresses": {},
                 "bondethernets": {}, "bondethernet_members": {},
                 "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}}
 
@@ -79,6 +79,7 @@ class VPPApi():
         r = self.vpp.api.sw_interface_dump()
         for iface in r:
             self.config['interfaces'][iface.sw_if_index] = iface
+            self.config['interface_names'][iface.interface_name] = iface
             self.config['interface_addresses'][iface.sw_if_index] = []
             self.logger.debug("Retrieving IPv4 addresses for %s" % iface.interface_name)
             ipr = self.vpp.api.ip_address_dump(sw_if_index=iface.sw_if_index, is_ipv6=False)
@@ -125,6 +126,16 @@ class VPPApi():
         if iface.sub_if_flags & 16:
             encap += " exact-match"
         return encap
+
+    def phys_exist(self, ifname_list):
+        """ Return True if all interfaces in the `ifname_list` exist as physical interface names
+        in VPP. Return False otherwise."""
+        ret = True
+        for ifname in ifname_list:
+            if not ifname in self.config['interface_names']:
+                self.logger.warning("Interface %s does not exist in VPP" % ifname)
+                ret = False
+        return ret
 
     def dump(self):
         self.dump_interfaces()
