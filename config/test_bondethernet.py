@@ -28,3 +28,10 @@ class TestBondEthernetMethods(unittest.TestCase):
         self.assertTrue(bondethernet.is_bondethernet(self.cfg, "BondEthernet0"))
         self.assertFalse(bondethernet.is_bondethernet(self.cfg, "BondEthernet-notexist"))
         self.assertFalse(bondethernet.is_bondethernet(self.cfg, "GigabitEthernet1/0/0"))
+
+    def test_enumerators(self):
+        ifs = bondethernet.get_bondethernets(self.cfg)
+        self.assertEqual(len(ifs), 1)
+        self.assertIn("BondEthernet0", ifs)
+        self.assertNotIn("BondEthernet-noexist", ifs)
+

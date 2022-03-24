@@ -14,6 +14,15 @@
 import logging
 import config.interface as interface
 
+def get_bondethernets(yaml):
+    """ Return a list of all bondethernets. """
+    ret = []
+    if 'bondethernets' in yaml:
+        for ifname, iface in yaml['bondethernets'].items():
+            ret.append(ifname)
+    return ret
+
+
 def get_by_name(yaml, ifname):
     """ Return the BondEthernet by name, if it exists. Return None,None otherwise. """
     try:
