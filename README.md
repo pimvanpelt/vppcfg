@@ -109,21 +109,21 @@ Fields:
     an error is repeated N times, and it's good practice to precisely establish how many errors
     should be expected. That said, this field can be empty or omitted.
 
-## Reconsiling
+## Reconciling
 
 The second important task of this utility is to take the wellformed (validated) configuration and
 apply it to the VPP dataplane. The overall flow consists of three phases:
 
-1. Prune phase (things in VPP that are not in the config), the order is:
-1. Create phase (things in the config that are not in VPP), the order is:
-1. Sync phase, for each interface in the configuration
+1. Prune phase (remove objects from VPP that are not in the config)
+1. Create phase (add objects to VPP that are in the config but not VPP)
+1. Sync phase, for each object in the configuration
 
 When removing things, care has to be taken to remove inner-most objects first. For example,
 QinQ/QinAD sub-interfaces should be removed before before their intermediary Dot1Q/Dot1AD. Another
 example, MTU of parents should raise before their children, while children should shrink before their
 parent. Order matters, so first the tool will ensure all items do not have config which they should
 not, then it will ensure that all items that are not yet present, get created in the right order,
-and finally for all interfaces, they are synchronized with the configuratino (IP addresses, MTU etc).
+and finally all objects are synchronized with the configuration (IP addresses, MTU etc).
 
 
 ### Pruning
@@ -131,7 +131,6 @@ and finally for all interfaces, they are synchronized with the configuratino (IP
 1.  For any interface that exists in VPP but not in the config:
     *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
         *   Set it admin-state down
-        *   Remove all of its IP addresses
 1.  Retrieve all LCP interfaces from VPP, and retrieve their interface information
     *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
         *   Remove those that do not exist in the config
