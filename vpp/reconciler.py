@@ -66,11 +66,11 @@ class Reconciler():
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
             ret = False
-        if not self.prune_vxlan_tunnels():
-            self.logger.warning("Could not prune VXLAN Tunnels from VPP")
-            ret = False
         if not self.prune_sub_interfaces():
             self.logger.warning("Could not prune sub-interfaces from VPP")
+            ret = False
+        if not self.prune_vxlan_tunnels():
+            self.logger.warning("Could not prune VXLAN Tunnels from VPP")
             ret = False
         if not self.prune_bondethernets():
             self.logger.warning("Could not prune BondEthernets from VPP")

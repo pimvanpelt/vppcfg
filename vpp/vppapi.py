@@ -121,6 +121,8 @@ class VPPApi():
 
         iface = self.config['interface_names'][ifname]
         del self.config['interfaces'][iface.sw_if_index]
+        if len(self.config['interface_addresses'][iface.sw_if_index]) > 0:
+            self.logger.warning("Not all addresses were removed on %s" % ifname)
         del self.config['interface_addresses'][iface.sw_if_index]
         del self.config['interface_names'][ifname]
 
