@@ -150,21 +150,21 @@ and finally all objects are synchronized with the configuration (IP addresses, M
     *   For interfaces that do not exist in the config (either as source or target):
         *   Return the interface to L3 mode
         *   Remove tag-rewrite options on if it has encapsulation
+1.  Retrieve all Tunnels from VPP
+    *   Remove those that do not exist in the config
+    *   Remove all IP addresses that are not in the config
+1.  Retrieve all sub-interfaces from VPP
+    *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD:
+        *   Remove those that do not exist in the config
+        *   Remove those that do exist in the config but have a different encapsulation
+        *   Remove all IP addresses that are not in the config
 1.  Retrieve all BondEthernets from VPP
     *   Remove those that do not exist in the config
     *   Remove all member interfaces that are not in the config
     *   Remove all IP addresses that are not in the config
-1.  Retrieve all Tunnels from VPP
-    *   Remove those that do not exist in the config
+1.  And finally, for each PHY interface:
     *   Remove all IP addresses that are not in the config
-1.  Retrieve all interfaces from VPP
-    *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels):
-        *   Remove those that do not exist in the config
-        *   Remove those that do exist in the config but have a different encapsulation
-        *   Remove all IP addresses that are not in the config
-    *  And finally, for each PHY:
-        *   Remove all IP addresses that are not in the config
-        *   If not in the config, return to default (L3 mode, MTU 9000, admin-state down)
+    *   If not in the config, return to default (L3 mode, MTU 9000, admin-state down)
 
 ### Creating
 

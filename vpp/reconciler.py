@@ -66,13 +66,16 @@ class Reconciler():
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
             ret = False
-        if not self.prune_bondethernets():
-            self.logger.warning("Could not prune BondEthernets from VPP")
-            ret = False
         if not self.prune_vxlan_tunnels():
             self.logger.warning("Could not prune VXLAN Tunnels from VPP")
             ret = False
-        if not self.prune_interfaces():
+        if not self.prune_sub_interfaces():
+            self.logger.warning("Could not prune interfaces from VPP")
+            ret = False
+        if not self.prune_bondethernets():
+            self.logger.warning("Could not prune BondEthernets from VPP")
+            ret = False
+        if not self.prune_phys():
             self.logger.warning("Could not prune interfaces from VPP")
             ret = False
         return ret
@@ -95,6 +98,7 @@ class Reconciler():
                 continue
             config_ifname, config_iface = loopback.get_by_name(self.cfg, vpp_iface.interface_name)
             if not config_iface:
+                self.prune_addresses(vpp_iface.interface_name, [])
                 self.logger.info("1> delete loopback interface intfc %s" % vpp_iface.interface_name)
                 continue
             self.logger.debug("Loopback OK: %s" % (vpp_iface.interface_name))
@@ -111,6 +115,7 @@ class Reconciler():
                 continue
             config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
             if not config_iface:
+                self.prune_addresses(vpp_iface.interface_name, [])
                 self.logger.info("1> bvi delete %s" % vpp_iface.interface_name)
                 continue
             self.logger.debug("BVI OK: %s" % (vpp_iface.interface_name))
@@ -178,6 +183,7 @@ class Reconciler():
             vpp_ifname = bond.interface_name
             config_ifname, config_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
+                self.prune_addresses(vpp_ifname, [])
                 for member in self.vpp.config['bondethernet_members'][idx]:
                     self.logger.info("1> bond del %s" % self.vpp.config['interfaces'][member].interface_name)
                 self.logger.info("1> delete bond %s" % (vpp_ifname))
@@ -214,21 +220,33 @@ class Reconciler():
             self.logger.debug("VXLAN Tunnel OK: %s" % (vpp_ifname))
         return True
 
-    def prune_interfaces(self):
+    def prune_sub_interfaces(self):
         """ Remove interfaces from VPP if they are not in the config. Start with inner-most (QinQ/QinAD), then
-            Dot1Q/Dot1AD, and finally PHY interfaces (which cannot be removed, but their MTU will be set to
-            the default of 9000, they will have been set down by prune_interfaces_down(). """
-        for vpp_ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_phys():
+            Dot1Q/Dot1AD."""
+        for vpp_ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces():
             vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
-                if vpp_iface.sub_id > 0:
-                    self.logger.info("1> delete sub %s" % vpp_ifname)
-                else:
-                    ## Interfaces were sent DOWN in the prune_interfaces_down() step previously
-                    self.prune_addresses(vpp_ifname, [])
-                    if vpp_iface.link_mtu != 9000:
-                        self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
+                self.prune_addresses(vpp_ifname, [])
+                self.logger.info("1> delete sub %s" % vpp_ifname)
+                continue
+            addresses = []
+            if 'addresses' in config_iface:
+                addresses = config_iface['addresses']
+            self.prune_addresses(vpp_ifname, addresses)
+            self.logger.debug("Sub Interface OK: %s" % (vpp_ifname))
+        return True
+
+    def prune_phys(self):
+        """ Set default MTU and remove IPs for PHYs that are not in the config. """
+        for vpp_ifname in self.vpp.get_phys():
+            vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
+            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+            if not config_iface:
+                ## Interfaces were sent DOWN in the prune_interfaces_down() step previously
+                self.prune_addresses(vpp_ifname, [])
+                if vpp_iface.link_mtu != 9000:
+                    self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
                 continue
             addresses = []
             if 'addresses' in config_iface:
