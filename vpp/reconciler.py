@@ -78,6 +78,9 @@ class Reconciler():
         if not self.prune_vxlan_tunnels():
             self.logger.warning("Could not prune VXLAN Tunnels from VPP that are not in the config")
             ret = False
+        if not self.prune_interfaces():
+            self.logger.warning("Could not prune interfaces from VPP that are not in the config")
+            ret = False
         return ret
 
     def prune_loopbacks(self):
@@ -193,6 +196,26 @@ class Reconciler():
                 addresses = config_iface['addresses']
             self.prune_addresses(vpp_ifname, addresses)
             self.logger.debug("VXLAN Tunnel OK: %s" % (vpp_ifname))
+        return True
+
+    def prune_interfaces(self):
+        for vpp_ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_phys():
+            vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
+            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+            if not config_iface:
+                if vpp_iface.sub_id > 0:
+                    self.logger.info("1> delete sub %s" % vpp_ifname)
+                else:
+                    self.logger.info("1> set interface state %s down" % vpp_ifname)
+                    self.logger.info("1> set interface l3 %s" % vpp_ifname)
+                    self.prune_addresses(vpp_ifname, [])
+                    self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
+                continue
+            addresses = []
+            if 'addresses' in config_iface:
+                addresses = config_iface['addresses']
+            self.prune_addresses(vpp_ifname, addresses)
+            self.logger.debug("Interface OK: %s" % (vpp_ifname))
         return True
 
     def __parent_iface_by_encap(self, sup_sw_if_index, outer, dot1ad=True):
