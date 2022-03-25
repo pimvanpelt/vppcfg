@@ -93,36 +93,48 @@ class Reconciler():
 
     def prune_loopbacks(self):
         """ Remove loopbacks from VPP, if they do not occur in the config. """
-        for idx, vpp_iface in self.vpp.config['interfaces'].items():
-            if vpp_iface.interface_dev_type!='Loopback':
-                continue
-            config_ifname, config_iface = loopback.get_by_name(self.cfg, vpp_iface.interface_name)
-            if not config_iface:
-                self.prune_addresses(vpp_iface.interface_name, [])
-                self.logger.info("1> delete loopback interface intfc %s" % vpp_iface.interface_name)
-                continue
-            self.logger.debug("Loopback OK: %s" % (vpp_iface.interface_name))
-            addresses = []
-            if 'addresses' in config_iface:
-                addresses = config_iface['addresses']
-            self.prune_addresses(vpp_iface.interface_name, addresses)
+        for numtags in [ 2, 1, 0 ]:
+            for idx, vpp_iface in self.vpp.config['interfaces'].items():
+                if vpp_iface.interface_dev_type!='Loopback':
+                    continue
+                if vpp_iface.sub_number_of_tags != numtags:
+                    continue
+                config_ifname, config_iface = loopback.get_by_name(self.cfg, vpp_iface.interface_name)
+                if not config_iface:
+                    self.prune_addresses(vpp_iface.interface_name, [])
+                    if numtags == 0:
+                        self.logger.info("1> delete loopback interface intfc %s" % vpp_iface.interface_name)
+                    else:
+                        self.logger.info("1> delete sub %s" % vpp_iface.interface_name)
+                    continue
+                self.logger.debug("Loopback OK: %s" % (vpp_iface.interface_name))
+                addresses = []
+                if 'addresses' in config_iface:
+                    addresses = config_iface['addresses']
+                self.prune_addresses(vpp_iface.interface_name, addresses)
         return True
 
     def prune_bvis(self):
         """ Remove BVIs (bridge-domain virtual interfaces) from VPP, if they do not occur in the config. """
-        for idx, vpp_iface in self.vpp.config['interfaces'].items():
-            if vpp_iface.interface_dev_type!='BVI':
-                continue
-            config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
-            if not config_iface:
-                self.prune_addresses(vpp_iface.interface_name, [])
-                self.logger.info("1> bvi delete %s" % vpp_iface.interface_name)
-                continue
-            self.logger.debug("BVI OK: %s" % (vpp_iface.interface_name))
-            addresses = []
-            if 'addresses' in config_iface:
-                addresses = config_iface['addresses']
-            self.prune_addresses(vpp_iface.interface_name, addresses)
+        for numtags in [ 2, 1, 0 ]:
+            for idx, vpp_iface in self.vpp.config['interfaces'].items():
+                if vpp_iface.interface_dev_type!='BVI':
+                    continue
+                if vpp_iface.sub_number_of_tags != numtags:
+                    continue
+                config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
+                if not config_iface:
+                    self.prune_addresses(vpp_iface.interface_name, [])
+                    if numtags == 0:
+                        self.logger.info("1> bvi delete %s" % vpp_iface.interface_name)
+                    else:
+                        self.logger.info("1> delete sub %s" % vpp_iface.interface_name)
+                    continue
+                self.logger.debug("BVI OK: %s" % (vpp_iface.interface_name))
+                addresses = []
+                if 'addresses' in config_iface:
+                    addresses = config_iface['addresses']
+                self.prune_addresses(vpp_iface.interface_name, addresses)
         return True
 
     def prune_bridgedomains(self):
@@ -224,18 +236,21 @@ class Reconciler():
     def prune_sub_interfaces(self):
         """ Remove interfaces from VPP if they are not in the config. Start with inner-most (QinQ/QinAD), then
             Dot1Q/Dot1AD."""
-        for vpp_ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces():
-            vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
-            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
-            if not config_iface:
-                self.prune_addresses(vpp_ifname, [])
-                self.logger.info("1> delete sub %s" % vpp_ifname)
-                continue
-            addresses = []
-            if 'addresses' in config_iface:
-                addresses = config_iface['addresses']
-            self.prune_addresses(vpp_ifname, addresses)
-            self.logger.debug("Sub Interface OK: %s" % (vpp_ifname))
+        for numtags in [ 2, 1 ]:
+            for vpp_ifname in self.vpp.get_sub_interfaces():
+                vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
+                if vpp_iface.sub_number_of_tags != numtags:
+                    continue
+                config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+                if not config_iface:
+                    self.prune_addresses(vpp_ifname, [])
+                    self.logger.info("1> delete sub %s" % vpp_ifname)
+                    continue
+                addresses = []
+                if 'addresses' in config_iface:
+                    addresses = config_iface['addresses']
+                self.prune_addresses(vpp_ifname, addresses)
+                self.logger.debug("Sub Interface OK: %s" % (vpp_ifname))
         return True
 
     def prune_phys(self):

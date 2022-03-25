@@ -143,6 +143,10 @@ class VPPApi():
         self.dump_phys()
         self.dump_subints()
 
+    def get_sub_interfaces(self):
+        subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_number_of_tags > 0]
+        return subints
+
     def get_qinx_interfaces(self):
         qinx_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id>0]
         return qinx_subints
