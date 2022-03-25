@@ -425,7 +425,7 @@ class Reconciler():
 
     def prune_interfaces_down(self):
         """ Set admin-state down for all interfaces that are not in the config. """
-        for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_vxlan_tunnels() + self.vpp.get_phys():
+        for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_bvis() + self.vpp.get_loopbacks():
             if not ifname in interface.get_interfaces(self.cfg):
                 iface = self.vpp.config['interface_names'][ifname]
                 if iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP

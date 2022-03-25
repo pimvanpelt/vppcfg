@@ -151,6 +151,14 @@ class VPPApi():
         dot1x_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id==0]
         return dot1x_subints
 
+    def get_loopbacks(self):
+        loopbacks = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='Loopback']
+        return loopbacks
+
+    def get_bvis(self):
+        bvis = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='BVI']
+        return bvis
+
     def get_phys(self):
         phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sub_id==0]
         return phys
