@@ -64,6 +64,76 @@ class VPPApi():
                 "bondethernets": {}, "bondethernet_members": {},
                 "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}}
 
+    def remove_lcp(self, lcpname):
+        """ Removes the LCP and TAP interface, identified by lcpname, from the config. """
+        self.logger.info("Removing %s" % lcpname)
+
+        for idx, lcp in self.config['lcps'].items():
+            if lcp.host_if_name == lcpname:
+                found = True
+                break
+        if not found:
+            self.logger.warning("Trying to remove an LCP which is not in the config: %s" % lcpname)
+            return False
+
+        ifname = self.config['interfaces'][lcp.host_sw_if_index].interface_name
+        del self.config['interface_names'][ifname]
+        del self.config['interface_addresses'][lcp.host_sw_if_index]
+        del self.config['interfaces'][lcp.host_sw_if_index]
+        del self.config['lcps'][lcp.phy_sw_if_index]
+        return True
+
+    def remove_bondethernet_member(self, ifname):
+        """ Removes the bonderthernet member interface, identified by name, from the config. """
+        if not ifname in self.config['interface_names']:
+            self.logger.warning("Trying to remove a bondethernet member interface which is not in the config: %s" % ifname)
+            return False
+
+        iface = self.config['interface_names'][ifname]
+        for bond_idx, members in self.config['bondethernet_members'].items():
+            if iface.sw_if_index in members:
+                self.config['bondethernet_members'][bond_idx].remove(iface.sw_if_index)
+
+        return True
+
+    def remove_l2xc(self, ifname):
+        if not ifname in self.config['interface_names']:
+            self.logger.warning("Trying to remove an L2XC which is not in the config: %s" % ifname)
+            return False
+        iface = self.config['interface_names'][ifname]
+        self.config['l2xcs'].pop(iface.sw_if_index, None)
+        return True
+
+    def remove_vxlan_tunnel(self, ifname):
+        if not ifname in self.config['interface_names']:
+            self.logger.warning("Trying to remove a VXLAN Tunnel which is not in the config: %s" % ifname)
+            return False
+
+        iface = self.config['interface_names'][ifname]
+        self.config['vxlan_tunnels'].pop(iface.sw_if_index, None)
+        return True
+
+    def remove_interface(self, ifname):
+        """ Removes the interface, identified by name, from the config. """
+        if not ifname in self.config['interface_names']:
+            self.logger.warning("Trying to remove an interface which is not in the config: %s" % ifname)
+            return False
+
+        iface = self.config['interface_names'][ifname]
+        del self.config['interfaces'][iface.sw_if_index]
+        del self.config['interface_addresses'][iface.sw_if_index]
+        del self.config['interface_names'][ifname]
+
+        ## Use my_dict.pop('key', None), as it allows 'key' to be absent
+        if iface.sw_if_index in self.config['bondethernet_members']:
+            if len(self.config['bondethernet_members'][iface.sw_if_index]) != 0:
+                self.logger.warning("When removing BondEthernet %s, its members are not empty: %s" % (ifname, self.config['bondethernet_members'][iface.sw_if_index]))
+            else:
+                del self.config['bondethernet_members'][iface.sw_if_index]
+        self.config['bondethernets'].pop(iface.sw_if_index, None)
+        return True
+
+
     def readconfig(self):
         if not self.connected and not self.connect():
             self.logger.error("Could not connect to VPP")
@@ -144,15 +214,15 @@ class VPPApi():
         self.dump_subints()
 
     def get_sub_interfaces(self):
-        subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_number_of_tags > 0]
+        subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_number_of_tags > 0]
         return subints
 
     def get_qinx_interfaces(self):
-        qinx_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id>0]
+        qinx_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id>0]
         return qinx_subints
 
     def get_dot1x_interfaces(self):
-        dot1x_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type in ['dpdk','bond'] and self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id==0]
+        dot1x_subints = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].sub_id>0 and self.config['interfaces'][x].sub_inner_vlan_id==0]
         return dot1x_subints
 
     def get_loopbacks(self):
@@ -164,7 +234,7 @@ class VPPApi():
         return bvis
 
     def get_phys(self):
-        phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sub_id==0]
+        phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sw_if_index == self.config['interfaces'][x].sup_sw_if_index]
         return phys
 
     def get_bondethernets(self):
