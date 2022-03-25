@@ -57,11 +57,11 @@ class Reconciler():
         if not self.prune_loopbacks():
             self.logger.warning("Could not prune loopbacks from VPP")
             ret = False
-        if not self.prune_bvis():
-            self.logger.warning("Could not prune BVIs from VPP")
-            ret = False
         if not self.prune_bridgedomains():
             self.logger.warning("Could not prune BridgeDomains from VPP")
+            ret = False
+        if not self.prune_bvis():
+            self.logger.warning("Could not prune BVIs from VPP")
             ret = False
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
@@ -70,13 +70,13 @@ class Reconciler():
             self.logger.warning("Could not prune VXLAN Tunnels from VPP")
             ret = False
         if not self.prune_sub_interfaces():
-            self.logger.warning("Could not prune interfaces from VPP")
+            self.logger.warning("Could not prune sub-interfaces from VPP")
             ret = False
         if not self.prune_bondethernets():
             self.logger.warning("Could not prune BondEthernets from VPP")
             ret = False
         if not self.prune_phys():
-            self.logger.warning("Could not prune interfaces from VPP")
+            self.logger.warning("Could not prune PHYs from VPP")
             ret = False
         return ret
 
@@ -134,8 +134,9 @@ class Reconciler():
             members = []
             if not config_iface:
                 for member in bridge.sw_if_details:
-                    member_ifname = self.vpp.config['interfaces'][member.sw_if_index].interface_name
-                    if interface.is_sub(self.cfg, member_ifname):
+                    member_iface = self.vpp.config['interfaces'][member.sw_if_index]
+                    member_ifname = member_iface.interface_name
+                    if member_iface.sub_id > 0:
                         self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
                     self.logger.info("1> set interface l3 %s" % member_ifname)
                 self.logger.info("1> create bridge-domain %d del" % idx)

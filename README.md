@@ -138,42 +138,46 @@ and finally all objects are synchronized with the configuration (IP addresses, M
             if `e0.100` exists with dot1q 100, but has moved to dot1ad 1234.
         *   Remove those that do exist in the config but have mismatched VPP/LCP interface names,
             for example if `e0` was paired with interface Te1/0/0 but has moved to interface Te1/0/1.
-1.  Retrieve all Loopbacks and BVIs from VPP
-    *   Remove those that do not exist in the config
+1.  Retrieve all Loopbacks from VPP
     *   Remove all IP addresses that are not in the config
+    *   Remove those that do not exist in the config
 1.  Retrieve all Bridge Domains from VPP
     *   Remove those that do not exist in the config
     *   Remove all member interfaces (including BVIs) that are not in the config, return them to
         L3 mode
     *   Remove tag-rewrite options on removed member interfaces if they have encapsulation
+1.  Retrieve all BVIs from VPP
+    *   Remove all IP addresses that are not in the config
+    *   Remove those that do not exist in the config
 1.  For L2 Cross Connects from VPP
     *   For interfaces that do not exist in the config (either as source or target):
         *   Return the interface to L3 mode
         *   Remove tag-rewrite options on if it has encapsulation
 1.  Retrieve all Tunnels from VPP
-    *   Remove those that do not exist in the config
     *   Remove all IP addresses that are not in the config
+    *   Remove those that do not exist in the config
 1.  Retrieve all sub-interfaces from VPP
     *   Starting with QinQ/QinAD, then Dot1Q/Dot1AD:
+        *   Remove all IP addresses that are not in the config
         *   Remove those that do not exist in the config
         *   Remove those that do exist in the config but have a different encapsulation
-        *   Remove all IP addresses that are not in the config
 1.  Retrieve all BondEthernets from VPP
+    *   Remove all IP addresses that are not in the config
     *   Remove those that do not exist in the config
     *   Remove all member interfaces that are not in the config
-    *   Remove all IP addresses that are not in the config
 1.  And finally, for each PHY interface:
     *   Remove all IP addresses that are not in the config
     *   If not in the config, return to default (L3 mode, MTU 9000, admin-state down)
 
 ### Creating
 
-1.  Loopbacks and BVIs
-1.  Bridge Domains
+1.  Loopbacks
 1.  BondEthernets
-1.  Tunnels
 1.  Dot1Q and Dot1AD sub-interfaces
 1.  Qin1Q and Qin1AD sub-interfaces
+1.  Tunnels
+1.  BVIs
+1.  Bridge Domains
 1.  LCP pairs for Tunnels (TUN type)
 1.  LCP pairs for PHYs, BondEthernets, Dot1Q/Dot1AD and finally QinQ/QinAD (TAP type)
 
@@ -194,5 +198,7 @@ and finally all objects are synchronized with the configuration (IP addresses, M
     *   Set tag-rewrite options if any of the interfaces have encapsulation
 1.  Decrease MTU for QinQ/QinAD, then Dot1Q/Dot1AD, then (BondEthernets, Tunnels, PHYs)
 1.  Raise MTU for (PHYs, Tunnels, BondEthernets), then Dot1Q/Dot1AD, then QinQ/QinAD
+    *   Take special care for PHYs which need a max-frame-size change (some interfaces
+        must be temporarily set admin-down to change that!)
 1.  Add IPv4/IPv6 addresses
-1.  Set admin state up
+1.  Set admin state for all interfaces
