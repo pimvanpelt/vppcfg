@@ -206,10 +206,11 @@ class Reconciler():
                 if vpp_iface.sub_id > 0:
                     self.logger.info("1> delete sub %s" % vpp_ifname)
                 else:
-                    self.logger.info("1> set interface state %s down" % vpp_ifname)
-                    self.logger.info("1> set interface l3 %s" % vpp_ifname)
+                    if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                        self.logger.info("1> set interface state %s down" % vpp_ifname)
                     self.prune_addresses(vpp_ifname, [])
-                    self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
+                    if vpp_iface.link_mtu != 9000:
+                        self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
                 continue
             addresses = []
             if 'addresses' in config_iface:
@@ -375,7 +376,9 @@ class Reconciler():
     def prune_addresses_set_interface_down(self):
         for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_vxlan_tunnels() + self.vpp.get_phys():
             if not ifname in interface.get_interfaces(self.cfg):
-                self.logger.info("1> set interface state %s down" % ifname)
+                iface = self.vpp.config['interface_names'][ifname]
+                if iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("1> set interface state %s down" % ifname)
                 self.prune_addresses(ifname, [])
 
         return True
