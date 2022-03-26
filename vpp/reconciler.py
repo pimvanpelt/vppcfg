@@ -558,7 +558,7 @@ class Reconciler():
     def prune_admin_state(self):
         """ Set admin-state down for all interfaces that are not in the config. """
         for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_bvis() + self.vpp.get_loopbacks():
-            if not ifname in interface.get_interfaces(self.cfg):
+            if not ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bvis(self.cfg):
                 vpp_iface = self.vpp.config['interface_names'][ifname]
 
                 if self.__tap_is_lcp(vpp_iface.sw_if_index):
@@ -832,10 +832,9 @@ class Reconciler():
                 if ifname.startswith("loop"):
                     if ifname in self.vpp.config['interface_names']:
                         vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
-                    config_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+                    vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
                     if 'mtu' in config_iface:
                         config_mtu = config_iface['mtu']
-                    vpp_ifname = config_ifname
                 elif ifname.startswith("bd"):
                     instance=int(ifname[2:])
                     bviname="bvi%d" % instance
@@ -850,9 +849,8 @@ class Reconciler():
                         vpp_mtu = 0
                     if ifname in self.vpp.config['interface_names']:
                         vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
-                    config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+                    vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
                     config_mtu = interface.get_mtu(self.cfg, ifname)
-                    vpp_ifname = config_ifname
 
                 if shrink and config_mtu < vpp_mtu:
                     self.logger.info("1> set interface mtu packet %d %s" % (config_mtu, vpp_ifname))
@@ -917,8 +915,54 @@ class Reconciler():
         return ret
 
     def sync_addresses(self):
-        return False
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+            config_addresses=[]
+            vpp_addresses=[]
+            if ifname.startswith("loop"):
+                vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+                if 'addresses' in config_iface:
+                    config_addresses = config_iface['addresses']
+            elif ifname.startswith("bd"):
+                config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
+                instance = int(ifname[2:])
+                vpp_ifname = "bvi%d" % instance
+                if 'addresses' in config_iface:
+                    config_addresses = config_iface['addresses']
+            else:
+                vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+                if 'addresses' in config_iface:
+                    config_addresses = config_iface['addresses']
+            if vpp_ifname in self.vpp.config['interface_names']:
+                sw_if_index = self.vpp.config['interface_names'][vpp_ifname].sw_if_index
+                if sw_if_index in self.vpp.config['interface_addresses']:
+                    vpp_addresses = [str(x) for x in self.vpp.config['interface_addresses'][sw_if_index]]
+            for a in config_addresses:
+                if a in vpp_addresses:
+                    continue
+                self.logger.info("1> set interface ip address %s %s" % (vpp_ifname, a))
+        return True
 
     def sync_admin_state(self):
-        return False
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+            if ifname.startswith("loop"):
+                vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+                config_admin_state = 1
+            elif ifname.startswith("bd"):
+                config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
+                instance = int(ifname[2:])
+                vpp_ifname = "bvi%d" % instance
+                config_admin_state = 1
+            else:
+                vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+                config_admin_state = 1
 
+            vpp_admin_state = 0
+            if vpp_ifname in self.vpp.config['interface_names']:
+                vpp_admin_state = self.vpp.config['interface_names'][vpp_ifname].flags & 1 # IF_STATUS_API_FLAG_ADMIN_UP
+            if config_admin_state == vpp_admin_state:
+                continue
+            if config_admin_state == 0:
+                self.logger.info("1> set interface state %s down" % (vpp_ifname))
+            else:
+                self.logger.info("1> set interface state %s up" % (vpp_ifname))
+        return True
