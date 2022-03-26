@@ -30,14 +30,25 @@ class Reconciler():
         self.vpp = VPPApi()
         self.cfg = cfg
 
-    def phys_exist(self, ifname_list):
-        """ Return True if all interfaces in the `ifname_list` exist as physical interface names
+    def phys_exist_in_vpp(self):
+        """ Return True if all PHYs in the config exist as physical interface names
         in VPP. Return False otherwise."""
 
         ret = True
-        for ifname in ifname_list:
+        for ifname in interface.get_phys(self.cfg):
             if not ifname in self.vpp.config['interface_names']:
                 self.logger.warning("Interface %s does not exist in VPP" % ifname)
+                ret = False
+        return ret
+
+    def phys_exist_in_config(self):
+        """ Return True if all interfaces in VPP exist as physical interface names
+        in the config. Return False otherwise."""
+
+        ret = True
+        for ifname in self.vpp.get_phys():
+            if not ifname in interface.get_interfaces(self.cfg):
+                self.logger.warning("Interface %s does not exist in the config" % ifname)
                 ret = False
         return ret
 

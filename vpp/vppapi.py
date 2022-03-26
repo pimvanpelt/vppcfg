@@ -236,7 +236,7 @@ class VPPApi():
         return bvis
 
     def get_phys(self):
-        phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].interface_dev_type=='dpdk' and self.config['interfaces'][x].sw_if_index == self.config['interfaces'][x].sup_sw_if_index]
+        phys = [self.config['interfaces'][x].interface_name for x in self.config['interfaces'] if self.config['interfaces'][x].sw_if_index == self.config['interfaces'][x].sup_sw_if_index and self.config['interfaces'][x].interface_dev_type not in ['virtio', 'BVI', 'Loopback', 'VXLAN', 'local', 'bond']]
         return phys
 
     def get_bondethernets(self):

@@ -18,7 +18,6 @@ import sys
 import yaml
 import logging
 from config import Validator
-import config.interface as interface
 from vpp.reconciler import Reconciler
 
 try:
@@ -63,9 +62,13 @@ def main():
     if not r.vpp_readconfig():
         sys.exit(-3)
 
-    if not r.phys_exist(interface.get_phys(cfg)):
+    if not r.phys_exist_in_vpp():
         logging.error("Not all PHYs in the config exist in VPP")
         sys.exit(-4)
+
+    if not r.phys_exist_in_config():
+        logging.error("Not all PHYs in VPP exist in the config")
+        sys.exit(-5)
 
     failed = False
     if not r.prune():
