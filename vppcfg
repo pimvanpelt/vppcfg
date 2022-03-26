@@ -60,26 +60,29 @@ def main():
         sys.exit(-2)
 
     r = Reconciler(cfg)
+    if not r.vpp_readconfig():
+        sys.exit(-3)
+
     if not r.phys_exist(interface.get_phys(cfg)):
         logging.error("Not all PHYs in the config exist in VPP")
-        sys.exit(-3)
+        sys.exit(-4)
 
     if not r.prune():
         if not args.force:
             logging.error("Reconciliation prune failure")
-            sys.exit(-4)
+            sys.exit(-10)
         logging.warning("Reconciliation prune failure, continuing due to --force")
 
     if not r.create():
         if not args.force:
             logging.error("Reconciliation create failure")
-            sys.exit(-5)
+            sys.exit(-20)
         logging.warning("Reconciliation create failure, continuing due to --force")
 
     if not r.sync():
         if not args.force:
             logging.error("Reconciliation sync failure")
-            sys.exit(-6)
+            sys.exit(-30)
         logging.warning("Reconciliation sync failure, continuing due to --force")
 
 

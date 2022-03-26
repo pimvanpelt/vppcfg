@@ -34,10 +34,6 @@ class Reconciler():
         """ Return True if all interfaces in the `ifname_list` exist as physical interface names
         in VPP. Return False otherwise."""
 
-        if not self.vpp.config_read and not self.vpp.readconfig():
-            self.logger.error("Could not read configuration from VPP")
-            return False
-
         ret = True
         for ifname in ifname_list:
             if not ifname in self.vpp.config['interface_names']:
@@ -45,14 +41,16 @@ class Reconciler():
                 ret = False
         return ret
 
+    def vpp_readconfig(self):
+        if not self.vpp.readconfig():
+            self.logger.error("Could not (re)read config from VPP")
+            return False
+        return True
+
     def prune(self):
         """ Remove all objects from VPP that do not occur in the config. For an indepth explanation
             of how and why this particular pruning order is chosen, see README.md section on
             Reconciling. """
-        if not self.vpp.config_read and not self.vpp.readconfig():
-            self.logger.error("Could not read configuration from VPP")
-            return False
-
         ret = True
         if not self.prune_admin_state():
             self.logger.warning("Could not set interfaces down in VPP")
@@ -575,10 +573,6 @@ class Reconciler():
         """ Create all objects in VPP that occur in the config but not in VPP. For an indepth
             explanation of how and why this particular pruning order is chosen, see README.md
             section on Reconciling. """
-        if not self.vpp.config_read and not self.vpp.readconfig():
-            self.logger.error("Could not read configuration from VPP")
-            return False
-
         ret = True
         if not self.create_loopbacks():
             self.logger.warning("Could not create Loopbacks in VPP")
@@ -704,10 +698,6 @@ class Reconciler():
         return True
 
     def sync(self):
-        if not self.vpp.readconfig():
-            self.logger.error("Could not (re)read config from VPP")
-            return False
-
         ret = True
         if not self.sync_bondethernets():
             self.logger.warning("Could not sync bondethernets in VPP")
