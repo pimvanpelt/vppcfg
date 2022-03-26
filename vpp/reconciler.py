@@ -303,6 +303,22 @@ class Reconciler():
 
         return True
 
+    def __tap_is_lcp(self, sw_if_index):
+        """ Returns True if the given sw_if_index is a TAP interface belonging to an LCP,
+            or False otherwise."""
+        if not sw_if_index in self.vpp.config['interfaces']:
+            return False
+
+        vpp_iface = self.vpp.config['interfaces'][sw_if_index]
+        if not vpp_iface.interface_dev_type=="virtio":
+            return False
+
+        match = False
+        for idx, lcp in self.vpp.config['lcps'].items():
+            if vpp_iface.sw_if_index == lcp.host_sw_if_index:
+                match = True
+        return match
+
     def prune_sub_interfaces(self):
         """ Remove interfaces from VPP if they are not in the config. Start with inner-most (QinQ/QinAD), then
             Dot1Q/Dot1AD."""
@@ -313,12 +329,7 @@ class Reconciler():
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
 
-                ## Skip TAP interfaces belonging to an LCP
-                skip = False
-                for idx, lcp in self.vpp.config['lcps'].items():
-                    if vpp_iface.sw_if_index == lcp.host_sw_if_index:
-                        skip = True
-                if skip:
+                if self.__tap_is_lcp(vpp_iface.sw_if_index):
                     continue
 
                 config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
@@ -550,17 +561,12 @@ class Reconciler():
         """ Set admin-state down for all interfaces that are not in the config. """
         for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_bvis() + self.vpp.get_loopbacks():
             if not ifname in interface.get_interfaces(self.cfg):
-                iface = self.vpp.config['interface_names'][ifname]
+                vpp_iface = self.vpp.config['interface_names'][ifname]
 
-                ## Skip TAP interfaces belonging to an LCP
-                skip = False
-                for idx, lcp in self.vpp.config['lcps'].items():
-                    if iface.sw_if_index == lcp.host_sw_if_index:
-                        skip = True
-                if skip:
+                if self.__tap_is_lcp(vpp_iface.sw_if_index):
                     continue
 
-                if iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
                     self.logger.info("1> set interface state %s down" % ifname)
 
         return True
@@ -741,21 +747,6 @@ class Reconciler():
                         bondmac_changed = True
                         bondmac = member_iface.l2_address
                     self.logger.info("1> bond add %s %s" % (vpp_ifname, member_iface.interface_name))
-                if member_iface.link_mtu != config_mtu:
-                    self.logger.info("2> set interface state %s down" % (member_iface.interface_name))
-                    self.logger.info("2> set interface mtu %d %s" % (config_mtu, member_iface.interface_name))
-                    self.logger.info("2> set interface state %s up" % (member_iface.interface_name))
-                elif not member_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
-                    self.logger.info("3> set interface state %s up" % (member_iface.interface_name))
-            if bond_iface.link_mtu < config_mtu:
-                self.logger.warning("%s has a Max Frame Size (%d) lower than desired MTU (%d), this is unsupported" %
-                        (vpp_ifname, bond_iface.link_mtu, config_mtu))
-
-            if bond_iface.mtu[0] != config_mtu:
-                ## NOTE(pim) - VPP does not allow the link_mtu to change on a BondEthernet, so it can be the
-                ## case that packet MTU > link_mtu if the desired MTU > 9000. This is because BondEthernets
-                ## are always created with link_mtu 9000.
-                self.logger.info("4> set interface mtu packet %d %s" % (config_mtu, bond_iface.interface_name))
 
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if bondmac_changed and 'lcp' in config_iface:
@@ -788,10 +779,98 @@ class Reconciler():
         return True
 
     def sync_l2xcs(self):
-        return False
+        for ifname in interface.get_l2xc_interfaces(self.cfg):
+            config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+            rx_iface = self.vpp.config['interface_names'][config_ifname]
+            tx_iface = self.vpp.config['interface_names'][config_iface['l2xc']]
+            l2xc_changed = False
+            if not rx_iface.sw_if_index in self.vpp.config['l2xcs']:
+                self.logger.info("1> set interface l2 xconnect %s %s" % (rx_iface.interface_name, tx_iface.interface_name))
+                l2xc_changed = True
+            elif not tx_iface.sw_if_index == self.vpp.config['l2xcs'][rx_iface.sw_if_index].tx_sw_if_index:
+                self.logger.info("2> set interface l2 xconnect %s %s" % (rx_iface.interface_name, tx_iface.interface_name))
+                l2xc_changed = True
+            if l2xc_changed and rx_iface.sub_number_of_tags > 0:
+                self.logger.info("3> set interface l2 tag-rewrite %s pop %d" % (rx_iface.interface_name, rx_iface.sub_number_of_tags))
+        return True
+
+    def sync_mtu_direction(self, shrink=True):
+        if shrink:
+            tag_list = [ 2, 1, 0 ]
+        else:
+            tag_list = [ 0, 1, 2 ]
+
+        for numtags in tag_list:
+            for idx, vpp_iface in self.vpp.config['interfaces'].items():
+                if vpp_iface.sub_number_of_tags != numtags:
+                    continue
+                if vpp_iface.interface_dev_type=='local':
+                    continue
+                if self.__tap_is_lcp(vpp_iface.sw_if_index):
+                    continue
+
+                if vpp_iface.interface_dev_type=='Loopback':
+                    config_ifname, config_iface = loopback.get_by_name(self.cfg, vpp_iface.interface_name)
+                elif vpp_iface.interface_dev_type=='BVI':
+                    config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
+                else:
+                    config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_iface.interface_name)
+                if not config_iface:
+                    self.logger.warning("Interface %s exists in VPP but not in config, this is dangerous" % vpp_iface.interface_name)
+                    continue
+
+                config_mtu = 1500
+                if 'mtu' in config_iface:
+                    config_mtu = config_iface['mtu']
+
+                if shrink and config_mtu < vpp_iface.mtu[0]:
+                    self.logger.info("shrink 1> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
+                elif not shrink and config_mtu > vpp_iface.mtu[0]:
+                    self.logger.info("grow 2> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
+
+        return True
+
+    def sync_link_mtu(self):
+        for idx, vpp_iface in self.vpp.config['interfaces'].items():
+            if vpp_iface.sub_number_of_tags != 0:
+                continue
+            if vpp_iface.interface_dev_type in ['local', 'Loopback', 'BVI', 'VXLAN', 'virtio']:
+                continue
+
+            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_iface.interface_name)
+            if not config_iface:
+                self.logger.warning("Interface %s exists in VPP but not in config, this is dangerous" % vpp_iface.interface_name)
+                continue
+            config_mtu = interface.get_mtu(self.cfg, vpp_iface.interface_name)
+
+            if vpp_iface.interface_dev_type=='bond' and vpp_iface.link_mtu < config_mtu:
+                self.logger.warning("%s has a Max Frame Size (%d) lower than desired MTU (%d), this is unsupported" %
+                        (vpp_iface.interface_name, vpp_iface.link_mtu, config_mtu))
+                continue
+
+            if interface.is_phy(self.cfg, vpp_iface.interface_name) and config_mtu != vpp_iface.link_mtu:
+                ## If the interface is up, temporarily down it in order to change the Max Frame Size
+                if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("2> set interface state %s down" % (vpp_iface.interface_name))
+
+                self.logger.info("2> set interface mtu %d %s" % (config_mtu, vpp_iface.interface_name))
+
+                if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("2> set interface state %s up" % (vpp_iface.interface_name))
+        return True
 
     def sync_mtu(self):
-        return False
+        ret = True
+        if not self.sync_link_mtu():
+            self.logger.warning("Could not sync interface Max Frame Size in VPP")
+            ret = False
+        if not self.sync_mtu_direction(shrink=True):
+            self.logger.warning("Could not sync shrinking interface MTU in VPP")
+            ret = False
+        if not self.sync_mtu_direction(shrink=False):
+            self.logger.warning("Could not sync growing interface MTU in VPP")
+            ret = False
+        return ret
 
     def sync_addresses(self):
         return False
