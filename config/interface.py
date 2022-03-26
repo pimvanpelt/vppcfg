@@ -480,8 +480,14 @@ def validate_interfaces(yaml):
 
                 sub_mtu = get_mtu(yaml, sub_ifname)
                 if sub_mtu > iface_mtu:
-                    msgs.append("sub-interface %s has MTU %d higher than parent MTU %d" % (sub_ifname, sub_iface['mtu'], iface_mtu))
+                    msgs.append("sub-interface %s has MTU %d higher than parent %s MTU %d" % (sub_ifname, sub_iface['mtu'], ifname, iface_mtu))
                     result = False
+                if is_qinx(yaml, sub_ifname):
+                    mid_ifname, mid_iface = get_qinx_parent_by_name(yaml, sub_ifname)
+                    mid_mtu = get_mtu(yaml, mid_ifname)
+                    if sub_mtu > mid_mtu:
+                        msgs.append("sub-interface %s has MTU %d higher than parent %s MTU %d" % (sub_ifname, sub_iface['mtu'], mid_ifname, mid_mtu))
+                        result = False
 
                 sub_lcp = get_lcp(yaml, sub_ifname)
                 if is_l2(yaml, sub_ifname) and sub_lcp:

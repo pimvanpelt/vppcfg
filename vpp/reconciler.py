@@ -824,9 +824,9 @@ class Reconciler():
                     config_mtu = config_iface['mtu']
 
                 if shrink and config_mtu < vpp_iface.mtu[0]:
-                    self.logger.info("shrink 1> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
+                    self.logger.info("1> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
                 elif not shrink and config_mtu > vpp_iface.mtu[0]:
-                    self.logger.info("grow 2> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
+                    self.logger.info("2> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
 
         return True
 

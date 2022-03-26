@@ -2,8 +2,10 @@ test:
   description: "MTU of sub-interfaces cannot be higher than their parent"
   errors:
     expected: 
-     - "sub-interface .* has MTU 9001 higher than parent MTU 9000"
-    count: 1
+     - "sub-interface .* has MTU 9001 higher than parent .* MTU 9000"
+     - "sub-interface .* has MTU 9002 higher than parent .* MTU 9001"
+     - "sub-interface .* has MTU 9002 higher than parent .* MTU 9000"
+    count: 3
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -11,3 +13,9 @@ interfaces:
     sub-interfaces:
       100:
         mtu: 9001
+      200:
+        encapsulation:
+          exact-match: True
+          inner-dot1q: 1234
+          dot1q: 100
+        mtu: 9002
