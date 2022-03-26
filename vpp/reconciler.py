@@ -766,11 +766,26 @@ class Reconciler():
                 ## is no API callback for MAC address changes). To ensure consistency, every time we
                 ## sync members, we ought to ensure the Linux device has the same MAC as its BondEthernet.
                 self.logger.info("5> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
-
         return True
 
     def sync_bridgedomains(self):
-        return False
+        for idx, bridge in self.vpp.config['bridgedomains'].items():
+            bridge_sw_if_index_list = [x.sw_if_index for x in bridge.sw_if_details]
+            config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%idx)
+            if 'lcp' in config_bridge_iface:
+                bviname = "bvi%d" % idx
+                bvi_iface = self.vpp.config['interface_names'][bviname]
+                if bvi_iface.sw_if_index != bridge.bvi_sw_if_index:
+                    self.logger.info("1> set interface l2 bridge bvi%d %d bvi" % (idx, idx))
+            if not 'interfaces' in config_bridge_iface:
+                continue
+            for member_ifname in config_bridge_iface['interfaces']:
+                member_iface = self.vpp.config['interface_names'][member_ifname]
+                if not member_iface.sw_if_index in bridge_sw_if_index_list:
+                    self.logger.info("2> set interface l2 bridge %s %d" % (member_ifname, idx))
+                    if member_iface.sub_number_of_tags > 0:
+                        self.logger.info("3> set interface l2 tag-rewrite %s pop %d" % (member_ifname, member_iface.sub_number_of_tags))
+        return True
 
     def sync_l2xcs(self):
         return False
