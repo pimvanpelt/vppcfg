@@ -721,67 +721,94 @@ class Reconciler():
         return ret
 
     def sync_bondethernets(self):
-        for idx, bond in self.vpp.config['bondethernets'].items():
-            vpp_ifname = bond.interface_name
-            config_bond_ifname, config_bond_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
+        for ifname in bondethernet.get_bondethernets(self.cfg):
+            if ifname in self.vpp.config['interface_names']:
+                vpp_bond_sw_if_index = self.vpp.config['interface_names'][ifname].sw_if_index
+                vpp_members = [self.vpp.config['interfaces'][x].interface_name for x in self.vpp.config['bondethernet_members'][vpp_bond_sw_if_index]]
+            else:
+                ## New BondEthernet
+                vpp_members = []
+
+            config_bond_ifname, config_bond_iface = bondethernet.get_by_name(self.cfg, ifname)
             if not 'interfaces' in config_bond_iface:
                 continue
-            bond_iface = self.vpp.config['interfaces'][bond.sw_if_index]
-            config_mtu = interface.get_mtu(self.cfg, config_bond_ifname)
-            bondmac = bond_iface.l2_address
-            bondmac_changed = False
+            config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+            bondmac = None
             for member_ifname in sorted(config_bond_iface['interfaces']):
+                member_ifname, member_iface = interface.get_by_name(self.cfg, member_ifname)
                 member_iface = self.vpp.config['interface_names'][member_ifname]
-                if not member_iface.sw_if_index in self.vpp.config['bondethernet_members'][bond.sw_if_index]:
-                    if bond.members == 0 and member_iface.l2_address != bondmac:
-                        bondmac_changed = True
+                if not member_ifname in vpp_members:
+                    if len(vpp_members) == 0:
                         bondmac = member_iface.l2_address
-                    self.logger.info("1> bond add %s %s" % (vpp_ifname, member_iface.interface_name))
-
-            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
-            if bondmac_changed and 'lcp' in config_iface:
+                    self.logger.info("1> bond add %s %s" % (config_bond_ifname, member_iface.interface_name))
+            if bondmac and 'lcp' in config_iface:
                 ## TODO(pim) - Ensure LCP has the same MAC as the BondEthernet
                 ## VPP, when creating a BondEthernet, will give it an ephemeral MAC. Then, when the
                 ## first member is enslaved, the MAC address changes to that of the first member.
                 ## However, LinuxCP does not propagate this change to the Linux side (because there
                 ## is no API callback for MAC address changes). To ensure consistency, every time we
                 ## sync members, we ought to ensure the Linux device has the same MAC as its BondEthernet.
-                self.logger.info("5> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
+                self.logger.info("2> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
         return True
 
     def sync_bridgedomains(self):
-        for idx, bridge in self.vpp.config['bridgedomains'].items():
-            bridge_sw_if_index_list = [x.sw_if_index for x in bridge.sw_if_details]
-            config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%idx)
+        for ifname in bridgedomain.get_bridgedomains(self.cfg):
+            instance = int(ifname[2:])
+            if instance in self.vpp.config['bridgedomains']:
+                vpp_bridge = self.vpp.config['bridgedomains'][instance]
+                bvi_sw_if_index = vpp_bridge.bvi_sw_if_index
+                bridge_sw_if_index_list = [x.sw_if_index for x in vpp_bridge.sw_if_details]
+                bridge_members = [self.vpp.config['interfaces'][x].interface_name for x in bridge_sw_if_index_list]
+            else:
+                ## New BridgeDomain
+                bvi_sw_if_index = -1
+                bridge_members = []
+
+            config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%instance)
             if 'lcp' in config_bridge_iface:
-                bviname = "bvi%d" % idx
-                bvi_iface = self.vpp.config['interface_names'][bviname]
-                if bvi_iface.sw_if_index != bridge.bvi_sw_if_index:
-                    self.logger.info("1> set interface l2 bridge bvi%d %d bvi" % (idx, idx))
+                bviname = "bvi%d" % instance
+                if not bviname in bridge_members:
+                    self.logger.info("1> set interface l2 bridge bvi%d %d bvi" % (instance, instance))
             if not 'interfaces' in config_bridge_iface:
                 continue
             for member_ifname in config_bridge_iface['interfaces']:
-                member_iface = self.vpp.config['interface_names'][member_ifname]
-                if not member_iface.sw_if_index in bridge_sw_if_index_list:
-                    self.logger.info("2> set interface l2 bridge %s %d" % (member_ifname, idx))
-                    if member_iface.sub_number_of_tags > 0:
-                        self.logger.info("3> set interface l2 tag-rewrite %s pop %d" % (member_ifname, member_iface.sub_number_of_tags))
+                member_ifname, member_iface = interface.get_by_name(self.cfg, member_ifname)
+                if not member_ifname in bridge_members:
+                    self.logger.info("2> set interface l2 bridge %s %d" % (member_ifname, instance))
+                    if interface.is_qinx(self.cfg, member_ifname):
+                        self.logger.info("3> set interface l2 tag-rewrite %s pop 2" % (member_ifname))
+                    elif interface.is_sub(self.cfg, member_ifname):
+                        self.logger.info("3> set interface l2 tag-rewrite %s pop 1" % (member_ifname))
         return True
 
     def sync_l2xcs(self):
         for ifname in interface.get_l2xc_interfaces(self.cfg):
-            config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
-            rx_iface = self.vpp.config['interface_names'][config_ifname]
-            tx_iface = self.vpp.config['interface_names'][config_iface['l2xc']]
+            config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, ifname)
+            config_tx_ifname, config_tx_iface = interface.get_by_name(self.cfg, config_rx_iface['l2xc'])
+            vpp_rx_iface = None
+            vpp_rx_iface = None
+            if config_rx_ifname in self.vpp.config['interface_names']:
+                vpp_rx_iface = self.vpp.config['interface_names'][config_rx_ifname]
+            if config_tx_ifname in self.vpp.config['interface_names']:
+                vpp_tx_iface = self.vpp.config['interface_names'][config_tx_ifname]
+
             l2xc_changed = False
-            if not rx_iface.sw_if_index in self.vpp.config['l2xcs']:
-                self.logger.info("1> set interface l2 xconnect %s %s" % (rx_iface.interface_name, tx_iface.interface_name))
+            if not vpp_rx_iface or not vpp_tx_iface:
+                self.logger.info("1> set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname))
                 l2xc_changed = True
-            elif not tx_iface.sw_if_index == self.vpp.config['l2xcs'][rx_iface.sw_if_index].tx_sw_if_index:
-                self.logger.info("2> set interface l2 xconnect %s %s" % (rx_iface.interface_name, tx_iface.interface_name))
+            elif not vpp_rx_iface.sw_if_index in self.vpp.config['l2xcs']:
+                self.logger.info("2> set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname))
                 l2xc_changed = True
-            if l2xc_changed and rx_iface.sub_number_of_tags > 0:
-                self.logger.info("3> set interface l2 tag-rewrite %s pop %d" % (rx_iface.interface_name, rx_iface.sub_number_of_tags))
+            elif not vpp_tx_iface.sw_if_index == self.vpp.config['l2xcs'][vpp_rx_iface.sw_if_index].tx_sw_if_index:
+                self.logger.info("3> set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname))
+                l2xc_changed = True
+            if l2xc_changed:
+                tags = 0
+                if interface.is_qinx(self.cfg, config_rx_ifname):
+                    tags = 2
+                elif interface.is_sub(self.cfg, config_rx_ifname):
+                    tags = 1
+                self.logger.info("4> set interface l2 tag-rewrite %s pop %d" % (config_rx_ifname, tags))
         return True
 
     def sync_mtu_direction(self, shrink=True):
@@ -791,36 +818,49 @@ class Reconciler():
             tag_list = [ 0, 1, 2 ]
 
         for numtags in tag_list:
-            for idx, vpp_iface in self.vpp.config['interfaces'].items():
-                if vpp_iface.sub_number_of_tags != numtags:
+            for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+                if numtags == 0 and interface.is_sub(self.cfg, ifname):
                     continue
-                if vpp_iface.interface_dev_type=='local':
+                if numtags == 1 and not interface.is_sub(self.cfg, ifname):
                     continue
-                if self.__tap_is_lcp(vpp_iface.sw_if_index):
+                if numtags == 1 and interface.is_qinx(self.cfg, ifname):
                     continue
-
-                if vpp_iface.interface_dev_type=='Loopback':
-                    config_ifname, config_iface = loopback.get_by_name(self.cfg, vpp_iface.interface_name)
-                elif vpp_iface.interface_dev_type=='BVI':
-                    config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
-                else:
-                    config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_iface.interface_name)
-                if not config_iface:
-                    self.logger.warning("Interface %s exists in VPP but not in config, this is dangerous" % vpp_iface.interface_name)
+                if numtags == 2 and not interface.is_qinx(self.cfg, ifname):
                     continue
-
                 config_mtu = 1500
-                if 'mtu' in config_iface:
-                    config_mtu = config_iface['mtu']
+                vpp_mtu = 9000
+                if ifname.startswith("loop"):
+                    if ifname in self.vpp.config['interface_names']:
+                        vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
+                    config_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+                    if 'mtu' in config_iface:
+                        config_mtu = config_iface['mtu']
+                    vpp_ifname = config_ifname
+                elif ifname.startswith("bd"):
+                    instance=int(ifname[2:])
+                    bviname="bvi%d" % instance
+                    if bviname in self.vpp.config['interface_names']:
+                        vpp_mtu = self.vpp.config['interface_names'][bviname].mtu[0]
+                    config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
+                    if 'mtu' in config_iface:
+                        config_mtu = config_iface['mtu']
+                    vpp_ifname = bviname
+                else:
+                    if numtags > 0:
+                        vpp_mtu = 0
+                    if ifname in self.vpp.config['interface_names']:
+                        vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
+                    config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+                    config_mtu = interface.get_mtu(self.cfg, ifname)
+                    vpp_ifname = config_ifname
 
-                if shrink and config_mtu < vpp_iface.mtu[0]:
-                    self.logger.info("1> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
-                elif not shrink and config_mtu > vpp_iface.mtu[0]:
-                    self.logger.info("2> set interface mtu packet %d %s" % (config_mtu, vpp_iface.interface_name))
-
+                if shrink and config_mtu < vpp_mtu:
+                    self.logger.info("1> set interface mtu packet %d %s" % (config_mtu, vpp_ifname))
+                elif not shrink and config_mtu > vpp_mtu:
+                    self.logger.info("2> set interface mtu packet %d %s" % (config_mtu, vpp_ifname))
         return True
 
-    def sync_link_mtu(self):
+    def sync_link_mtu_direction(self, shrink=True):
         for idx, vpp_iface in self.vpp.config['interfaces'].items():
             if vpp_iface.sub_number_of_tags != 0:
                 continue
@@ -831,6 +871,8 @@ class Reconciler():
             if not config_iface:
                 self.logger.warning("Interface %s exists in VPP but not in config, this is dangerous" % vpp_iface.interface_name)
                 continue
+            if not interface.is_phy(self.cfg, vpp_iface.interface_name):
+                continue
             config_mtu = interface.get_mtu(self.cfg, vpp_iface.interface_name)
 
             if vpp_iface.interface_dev_type=='bond' and vpp_iface.link_mtu < config_mtu:
@@ -838,27 +880,39 @@ class Reconciler():
                         (vpp_iface.interface_name, vpp_iface.link_mtu, config_mtu))
                 continue
 
-            if interface.is_phy(self.cfg, vpp_iface.interface_name) and config_mtu != vpp_iface.link_mtu:
+            if shrink and config_mtu < vpp_iface.link_mtu:
                 ## If the interface is up, temporarily down it in order to change the Max Frame Size
                 if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
-                    self.logger.info("2> set interface state %s down" % (vpp_iface.interface_name))
+                    self.logger.info("1> set interface state %s down" % (vpp_iface.interface_name))
 
-                self.logger.info("2> set interface mtu %d %s" % (config_mtu, vpp_iface.interface_name))
+                self.logger.info("1> set interface mtu %d %s" % (config_mtu, vpp_iface.interface_name))
 
                 if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
-                    self.logger.info("2> set interface state %s up" % (vpp_iface.interface_name))
+                    self.logger.info("1> set interface state %s up" % (vpp_iface.interface_name))
+            elif not shrink and config_mtu > vpp_iface.link_mtu:
+                ## If the interface is up, temporarily down it in order to change the Max Frame Size
+                if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("1> set interface state %s down" % (vpp_iface.interface_name))
+
+                self.logger.info("1> set interface mtu %d %s" % (config_mtu, vpp_iface.interface_name))
+
+                if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("1> set interface state %s up" % (vpp_iface.interface_name))
         return True
 
     def sync_mtu(self):
         ret = True
-        if not self.sync_link_mtu():
-            self.logger.warning("Could not sync interface Max Frame Size in VPP")
+        if not self.sync_link_mtu_direction(shrink=False):
+            self.logger.warning("Could not sync growing interface Max Frame Size in VPP")
             ret = False
         if not self.sync_mtu_direction(shrink=True):
             self.logger.warning("Could not sync shrinking interface MTU in VPP")
             ret = False
         if not self.sync_mtu_direction(shrink=False):
             self.logger.warning("Could not sync growing interface MTU in VPP")
+            ret = False
+        if not self.sync_link_mtu_direction(shrink=True):
+            self.logger.warning("Could not sync shrinking interface Max Frame Size in VPP")
             ret = False
         return ret
 
