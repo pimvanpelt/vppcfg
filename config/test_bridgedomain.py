@@ -74,3 +74,10 @@ class TestBridgeDomainMethods(unittest.TestCase):
     def test_get_bridgedomains(self):
         ifs = bridgedomain.get_bridgedomains(self.cfg)
         self.assertEqual(len(ifs), 3)
+
+    def test_get_bvis(self):
+        ifs = bridgedomain.get_bvis(self.cfg)
+        self.assertEqual(len(ifs), 2)
+        self.assertNotIn("bvi10", ifs)
+        self.assertIn("bvi11", ifs)
+        self.assertIn("bvi12", ifs)

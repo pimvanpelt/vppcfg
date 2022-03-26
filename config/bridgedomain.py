@@ -16,6 +16,17 @@ import config.interface as interface
 import config.lcp as lcp
 import config.address as address
 
+def get_bvis(yaml):
+    """ Return a list of all bridgedomains which have an LCP (ie bvi*). """
+    ret = []
+    if not 'bridgedomains' in yaml:
+        return ret
+    for ifname, iface in yaml['bridgedomains'].items():
+        if 'lcp' in iface:
+            instance = int(ifname[2:])
+            ret.append("bvi%d" % instance)
+    return ret
+
 def get_bridgedomains(yaml):
     """ Return a list of all bridgedomains. """
     ret = []
