@@ -740,13 +740,13 @@ class Reconciler():
                     if bond.members == 0 and member_iface.l2_address != bondmac:
                         bondmac_changed = True
                         bondmac = member_iface.l2_address
-                    self.logger.info("2> bond add %s %s" % (vpp_ifname, member_iface.interface_name))
+                    self.logger.info("1> bond add %s %s" % (vpp_ifname, member_iface.interface_name))
                 if member_iface.link_mtu != config_mtu:
-                    self.logger.info("1> set interface state %s down" % (member_iface.interface_name))
-                    self.logger.info("1> set interface mtu %d %s" % (config_mtu, member_iface.interface_name))
-
-                if not member_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("2> set interface state %s down" % (member_iface.interface_name))
+                    self.logger.info("2> set interface mtu %d %s" % (config_mtu, member_iface.interface_name))
                     self.logger.info("2> set interface state %s up" % (member_iface.interface_name))
+                elif not member_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("3> set interface state %s up" % (member_iface.interface_name))
             if bond_iface.link_mtu < config_mtu:
                 self.logger.warning("%s has a Max Frame Size (%d) lower than desired MTU (%d), this is unsupported" %
                         (vpp_ifname, bond_iface.link_mtu, config_mtu))
@@ -755,7 +755,7 @@ class Reconciler():
                 ## NOTE(pim) - VPP does not allow the link_mtu to change on a BondEthernet, so it can be the
                 ## case that packet MTU > link_mtu if the desired MTU > 9000. This is because BondEthernets
                 ## are always created with link_mtu 9000.
-                self.logger.info("3> set interface mtu packet %d %s" % (config_mtu, bond_iface.interface_name))
+                self.logger.info("4> set interface mtu packet %d %s" % (config_mtu, bond_iface.interface_name))
 
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if bondmac_changed and 'lcp' in config_iface:
@@ -765,7 +765,7 @@ class Reconciler():
                 ## However, LinuxCP does not propagate this change to the Linux side (because there
                 ## is no API callback for MAC address changes). To ensure consistency, every time we
                 ## sync members, we ought to ensure the Linux device has the same MAC as its BondEthernet.
-                self.logger.info("1> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
+                self.logger.info("5> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
 
         return True
 
