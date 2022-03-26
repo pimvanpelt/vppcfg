@@ -122,6 +122,10 @@ def validate_bridgedomains(yaml):
         bd_mtu = 1500
         if 'mtu' in iface:
             bd_mtu = iface['mtu']
+        instance = int(ifname[2:])
+        if instance == 0:
+            msgs.append("bridgedomain %s is reserved" % ifname)
+            result = False
 
         if 'addresses' in iface and not 'lcp' in iface:
             msgs.append("bridgedomain %s has an address but no LCP" % ifname)
