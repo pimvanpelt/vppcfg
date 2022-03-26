@@ -306,7 +306,15 @@ class Reconciler():
                 vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
-                ## TODO(pim) - if the sub-int is a TAP belonging to an LCP, it should be allowed
+
+                ## Skip TAP interfaces belonging to an LCP
+                skip = False
+                for idx, lcp in self.vpp.config['lcps'].items():
+                    if vpp_iface.sw_if_index == lcp.host_sw_if_index:
+                        skip = True
+                if skip:
+                    continue
+
                 config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
                 if not config_iface:
                     self.prune_addresses(vpp_ifname, [])
