@@ -263,14 +263,14 @@ class VPPApi():
         self.logger.info("*** QinX ***")
         subints = self.get_qinx_interfaces()
         for ifname in subints:
-            iface = self.config['interfaces_names'][ifname]
-            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, idx, self.get_encapsulation(iface)))
+            iface = self.config['interface_names'][ifname]
+            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
         
         self.logger.info("*** .1q/.1ad ***")
         subints = self.get_dot1x_interfaces()
         for ifname in subints:
             iface = self.config['interface_names'][ifname]
-            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, idx, self.get_encapsulation(iface)))
+            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
 
     def dump_bridgedomains(self):
         for bd_id, bridge in self.config['bridgedomains'].items():
