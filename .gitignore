@@ -1,4 +1,5 @@
 build/
 dist/
 hippo*.yaml
+*.swp
 __pycache__
