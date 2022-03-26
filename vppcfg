@@ -67,24 +67,33 @@ def main():
         logging.error("Not all PHYs in the config exist in VPP")
         sys.exit(-4)
 
+    failed = False
     if not r.prune():
         if not args.force:
             logging.error("Reconciliation prune failure")
             sys.exit(-10)
+        failed = True
         logging.warning("Reconciliation prune failure, continuing due to --force")
 
     if not r.create():
         if not args.force:
             logging.error("Reconciliation create failure")
             sys.exit(-20)
+        failed = True
         logging.warning("Reconciliation create failure, continuing due to --force")
 
     if not r.sync():
         if not args.force:
             logging.error("Reconciliation sync failure")
             sys.exit(-30)
+        failed = True
         logging.warning("Reconciliation sync failure, continuing due to --force")
 
+    if failed:
+        logging.error("Reconciliation failed")
+        sys.exit(-40)
 
+    logging.info("Reconciliation succeeded")
+    sys.exit(0)
 if __name__ == "__main__":
     main()
