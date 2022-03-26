@@ -19,7 +19,7 @@ class VPPApi():
         self.clientname = clientname
         self.vpp = None
         self.config = self.clearconfig()
-
+        self.config_read = False
 
     def connect(self):
         if self.connected:
@@ -60,6 +60,7 @@ class VPPApi():
         return True
 
     def clearconfig(self):
+        self.config_read = False
         return {"lcps": {}, "interface_names": {}, "interfaces": {}, "interface_addresses": {},
                 "bondethernets": {}, "bondethernet_members": {},
                 "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}}
@@ -133,12 +134,12 @@ class VPPApi():
         self.config['bondethernets'].pop(iface.sw_if_index, None)
         return True
 
-
     def readconfig(self):
         if not self.connected and not self.connect():
             self.logger.error("Could not connect to VPP")
             return False
 
+        self.config_read = False
         self.logger.debug("Retrieving LCPs")
         r = self.vpp.api.lcp_itf_pair_get()
         if isinstance(r, tuple) and r[0].retval == 0:
@@ -183,7 +184,8 @@ class VPPApi():
         for l2xc in r:
             self.config['l2xcs'][l2xc.rx_sw_if_index] = l2xc
 
-        return True
+        self.config_read = True
+        return self.config_read
 
     def get_encapsulation(self, iface):
         """ Return a string with the encapsulation of a subint """

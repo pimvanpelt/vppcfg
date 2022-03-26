@@ -30,12 +30,14 @@ class Reconciler():
         self.vpp = VPPApi()
         self.cfg = cfg
 
-    def readconfig(self):
-        return self.vpp.readconfig()
-
     def phys_exist(self, ifname_list):
         """ Return True if all interfaces in the `ifname_list` exist as physical interface names
         in VPP. Return False otherwise."""
+
+        if not self.vpp.config_read and not self.vpp.readconfig():
+            self.logger.error("Could not read configuration from VPP")
+            return False
+
         ret = True
         for ifname in ifname_list:
             if not ifname in self.vpp.config['interface_names']:
@@ -47,8 +49,12 @@ class Reconciler():
         """ Remove all objects from VPP that do not occur in the config. For an indepth explanation
             of how and why this particular pruning order is chosen, see README.md section on
             Reconciling. """
+        if not self.vpp.config_read and not self.vpp.readconfig():
+            self.logger.error("Could not read configuration from VPP")
+            return False
+
         ret = True
-        if not self.prune_interfaces_down():
+        if not self.prune_admin_state():
             self.logger.warning("Could not set interfaces down in VPP")
             ret = False
         if not self.prune_lcps():
@@ -338,7 +344,7 @@ class Reconciler():
             vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
-                ## Interfaces were sent DOWN in the prune_interfaces_down() step previously
+                ## Interfaces were sent DOWN in the prune_admin_state() step previously
                 self.prune_addresses(vpp_ifname, [])
                 if vpp_iface.link_mtu != 9000:
                     self.logger.info("1> set interface mtu 9000 %s" % vpp_ifname)
@@ -540,7 +546,7 @@ class Reconciler():
             self.vpp.remove_lcp(lcpname)
         return True
 
-    def prune_interfaces_down(self):
+    def prune_admin_state(self):
         """ Set admin-state down for all interfaces that are not in the config. """
         for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_bvis() + self.vpp.get_loopbacks():
             if not ifname in interface.get_interfaces(self.cfg):
@@ -563,6 +569,10 @@ class Reconciler():
         """ Create all objects in VPP that occur in the config but not in VPP. For an indepth
             explanation of how and why this particular pruning order is chosen, see README.md
             section on Reconciling. """
+        if not self.vpp.config_read and not self.vpp.readconfig():
+            self.logger.error("Could not read configuration from VPP")
+            return False
+
         ret = True
         if not self.create_loopbacks():
             self.logger.warning("Could not create Loopbacks in VPP")
@@ -688,4 +698,89 @@ class Reconciler():
         return True
 
     def sync(self):
+        if not self.vpp.readconfig():
+            self.logger.error("Could not (re)read config from VPP")
+            return False
+
+        ret = True
+        if not self.sync_bondethernets():
+            self.logger.warning("Could not sync bondethernets in VPP")
+            ret = False
+        if not self.sync_bridgedomains():
+            self.logger.warning("Could not sync bridgedomains in VPP")
+            ret = False
+        if not self.sync_l2xcs():
+            self.logger.warning("Could not sync L2 Cross Connects in VPP")
+            ret = False
+        if not self.sync_mtu():
+            self.logger.warning("Could not sync interface MTU in VPP")
+            ret = False
+        if not self.sync_addresses():
+            self.logger.warning("Could not sync interface addresses in VPP")
+            ret = False
+        if not self.sync_admin_state():
+            self.logger.warning("Could not sync interface adminstate in VPP")
+            ret = False
+
+        return ret
+
+    def sync_bondethernets(self):
+        for idx, bond in self.vpp.config['bondethernets'].items():
+            vpp_ifname = bond.interface_name
+            config_bond_ifname, config_bond_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
+            if not 'interfaces' in config_bond_iface:
+                continue
+            bond_iface = self.vpp.config['interfaces'][bond.sw_if_index]
+            config_mtu = interface.get_mtu(self.cfg, config_bond_ifname)
+            bondmac = bond_iface.l2_address
+            bondmac_changed = False
+            for member_ifname in sorted(config_bond_iface['interfaces']):
+                member_iface = self.vpp.config['interface_names'][member_ifname]
+                if not member_iface.sw_if_index in self.vpp.config['bondethernet_members'][bond.sw_if_index]:
+                    if bond.members == 0 and member_iface.l2_address != bondmac:
+                        bondmac_changed = True
+                        bondmac = member_iface.l2_address
+                    self.logger.info("2> bond add %s %s" % (vpp_ifname, member_iface.interface_name))
+                if member_iface.link_mtu != config_mtu:
+                    self.logger.info("1> set interface state %s down" % (member_iface.interface_name))
+                    self.logger.info("1> set interface mtu %d %s" % (config_mtu, member_iface.interface_name))
+
+                if not member_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                    self.logger.info("2> set interface state %s up" % (member_iface.interface_name))
+            if bond_iface.link_mtu < config_mtu:
+                self.logger.warning("%s has a Max Frame Size (%d) lower than desired MTU (%d), this is unsupported" %
+                        (vpp_ifname, bond_iface.link_mtu, config_mtu))
+
+            if bond_iface.mtu[0] != config_mtu:
+                ## NOTE(pim) - VPP does not allow the link_mtu to change on a BondEthernet, so it can be the
+                ## case that packet MTU > link_mtu if the desired MTU > 9000. This is because BondEthernets
+                ## are always created with link_mtu 9000.
+                self.logger.info("3> set interface mtu packet %d %s" % (config_mtu, bond_iface.interface_name))
+
+            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+            if bondmac_changed and 'lcp' in config_iface:
+                ## TODO(pim) - Ensure LCP has the same MAC as the BondEthernet
+                ## VPP, when creating a BondEthernet, will give it an ephemeral MAC. Then, when the
+                ## first member is enslaved, the MAC address changes to that of the first member.
+                ## However, LinuxCP does not propagate this change to the Linux side (because there
+                ## is no API callback for MAC address changes). To ensure consistency, every time we
+                ## sync members, we ought to ensure the Linux device has the same MAC as its BondEthernet.
+                self.logger.info("1> comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac)))
+
+        return True
+
+    def sync_bridgedomains(self):
         return False
+
+    def sync_l2xcs(self):
+        return False
+
+    def sync_mtu(self):
+        return False
+
+    def sync_addresses(self):
+        return False
+
+    def sync_admin_state(self):
+        return False
+
