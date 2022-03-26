@@ -66,8 +66,6 @@ class VPPApi():
 
     def remove_lcp(self, lcpname):
         """ Removes the LCP and TAP interface, identified by lcpname, from the config. """
-        self.logger.info("Removing %s" % lcpname)
-
         for idx, lcp in self.config['lcps'].items():
             if lcp.host_if_name == lcpname:
                 found = True
