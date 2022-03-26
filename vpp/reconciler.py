@@ -55,7 +55,7 @@ class Reconciler():
             self.logger.warning("Could not prune LCPs from VPP")
             ret = False
         if not self.prune_loopbacks():
-            self.logger.warning("Could not prune loopbacks from VPP")
+            self.logger.warning("Could not prune Loopbacks from VPP")
             ret = False
         if not self.prune_bridgedomains():
             self.logger.warning("Could not prune BridgeDomains from VPP")
@@ -67,7 +67,7 @@ class Reconciler():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
             ret = False
         if not self.prune_sub_interfaces():
-            self.logger.warning("Could not prune sub-interfaces from VPP")
+            self.logger.warning("Could not prune Sub Interfaces from VPP")
             ret = False
         if not self.prune_vxlan_tunnels():
             self.logger.warning("Could not prune VXLAN Tunnels from VPP")
@@ -306,6 +306,7 @@ class Reconciler():
                 vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
+                ## TODO(pim) - if the sub-int is a TAP belonging to an LCP, it should be allowed
                 config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
                 if not config_iface:
                     self.prune_addresses(vpp_ifname, [])
@@ -551,7 +552,132 @@ class Reconciler():
         return True
 
     def create(self):
-        return False
+        """ Create all objects in VPP that occur in the config but not in VPP. For an indepth
+            explanation of how and why this particular pruning order is chosen, see README.md
+            section on Reconciling. """
+        ret = True
+        if not self.create_loopbacks():
+            self.logger.warning("Could not create Loopbacks in VPP")
+            ret = False
+        if not self.create_bvis():
+            self.logger.warning("Could not create BVIs in VPP")
+            ret = False
+        if not self.create_bondethernets():
+            self.logger.warning("Could not create BondEthernets in VPP")
+            ret = False
+        if not self.create_vxlan_tunnels():
+            self.logger.warning("Could not create VXLAN Tunnels in VPP")
+            ret = False
+        if not self.create_sub_interfaces():
+            self.logger.warning("Could not create Sub Interfaces in VPP")
+            ret = False
+        if not self.create_bridgedomains():
+            self.logger.warning("Could not create BridgeDomains in VPP")
+            ret = False
+        if not self.create_lcps():
+            self.logger.warning("Could not create LCPs in VPP")
+            ret = False
+        return ret
+
+    def create_loopbacks(self):
+        for ifname in loopback.get_loopbacks(self.cfg):
+            if ifname in self.vpp.config['interface_names']:
+                continue
+            instance = int(ifname[4:])
+            self.logger.info("1> create loopback interface instance %d" % (instance))
+        return True
+
+    def create_bvis(self):
+        for ifname in bridgedomain.get_bridgedomains(self.cfg):
+            ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
+            instance = int(ifname[2:])
+            if not 'lcp' in iface:
+                continue
+            if 'bvi%d'%instance in self.vpp.config['interface_names']:
+                continue
+            self.logger.info("1> bvi create instance %d" % (instance))
+        return True
+
+    def create_bondethernets(self):
+        for ifname in bondethernet.get_bondethernets(self.cfg):
+            if ifname in self.vpp.config['interface_names']:
+                continue
+            ifname, iface = bondethernet.get_by_name(self.cfg, ifname)
+            instance = int(ifname[12:])
+            self.logger.info("1> create bond mode lacp load-balance l34 id %d" % (instance))
+        return True
+
+    def create_vxlan_tunnels(self):
+        for ifname in vxlan_tunnel.get_vxlan_tunnels(self.cfg):
+            if ifname in self.vpp.config['interface_names']:
+                continue
+            ifname, iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
+            instance = int(ifname[12:])
+            self.logger.info("1> create vxlan tunnel src %s dst %s instance %d vni %d decap-next l2" % (
+                iface['local'], iface['remote'], instance, iface['vni']))
+        return True
+
+    def create_sub_interfaces(self):
+        ## First create 1-tag (Dot1Q/Dot1AD), and then create 2-tag (Qin*) sub-interfaces
+        for do_qinx in [False, True]:
+            for ifname in interface.get_sub_interfaces(self.cfg):
+                if not do_qinx == interface.is_qinx(self.cfg, ifname):
+                    continue
+
+                ifname, iface = interface.get_by_name(self.cfg, ifname)
+                if ifname in self.vpp.config['interface_names']:
+                    continue
+
+                ## Assemble the encapsulation string
+                encap = interface.get_encapsulation(self.cfg, ifname)
+                if encap['dot1ad'] > 0:
+                    encapstr = "dot1ad %d" % encap['dot1ad']
+                else:
+                    encapstr = "dot1q %d" % encap['dot1q']
+                if do_qinx:
+                    encapstr += " inner-dot1q %d" % encap['inner-dot1q']
+                if encap['exact-match'] == True:
+                    encapstr += " exact-match"
+                parent, subid = ifname.split('.')
+                self.logger.info("1> create sub %s %d %s" % (parent, int(subid), encapstr))
+        return True
+
+    def create_bridgedomains(self):
+        for ifname in bridgedomain.get_bridgedomains(self.cfg):
+            ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
+            instance = int(ifname[2:])
+            if instance in self.vpp.config['bridgedomains']:
+                continue
+            self.logger.info("1> create bridge-domain %s" % (instance))
+        return True
+
+    def create_lcps(self):
+        lcpnames = [self.vpp.config['lcps'][x].host_if_name for x in self.vpp.config['lcps']]
+
+        ## First create untagged ... 
+        for ifname in interface.get_interfaces(self.cfg):
+            if interface.is_sub(self.cfg, ifname):
+                continue
+
+            ifname, iface = interface.get_by_name(self.cfg, ifname)
+            if not 'lcp' in iface:
+                continue
+            if iface['lcp'] in lcpnames:
+                continue
+            self.logger.info("1> lcp create %s host-if %s" % (ifname, iface['lcp']))
+
+        ## ... then 1-tag (Dot1Q/Dot1AD), and then create 2-tag (Qin*) LCPs
+        for do_qinx in [False, True]:
+            for ifname in interface.get_sub_interfaces(self.cfg):
+                if not do_qinx == interface.is_qinx(self.cfg, ifname):
+                    continue
+                ifname, iface = interface.get_by_name(self.cfg, ifname)
+                if not 'lcp' in iface:
+                    continue
+                if iface['lcp'] in lcpnames:
+                    continue
+                self.logger.info("1> lcp create %s host-if %s" % (ifname, iface['lcp']))
+        return True
 
     def sync(self):
         return False

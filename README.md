@@ -172,11 +172,10 @@ and finally all objects are synchronized with the configuration (IP addresses, M
 ### Creating
 
 1.  Loopbacks
-1.  BondEthernets
-1.  Dot1Q and Dot1AD sub-interfaces
-1.  Qin1Q and Qin1AD sub-interfaces
-1.  Tunnels
 1.  BVIs
+1.  BondEthernets
+1.  Tunnels
+1.  Sub Interfaces: First Dot1Q and Dot1AD (one tag), and then QinQ and QinAD (two tags)
 1.  Bridge Domains
 1.  LCP pairs for Tunnels (TUN type)
 1.  LCP pairs for PHYs, BondEthernets, Dot1Q/Dot1AD and finally QinQ/QinAD (TAP type)
