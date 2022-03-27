@@ -769,7 +769,7 @@ class Reconciler():
                 vpp_bridge = self.vpp.config['bridgedomains'][instance]
                 bvi_sw_if_index = vpp_bridge.bvi_sw_if_index
                 bridge_sw_if_index_list = [x.sw_if_index for x in vpp_bridge.sw_if_details]
-                bridge_members = [self.vpp.config['interfaces'][x].interface_name for x in bridge_sw_if_index_list]
+                bridge_members = [self.vpp.config['interfaces'][x].interface_name for x in bridge_sw_if_index_list if x in self.vpp.config['interfaces']]
             else:
                 ## New BridgeDomain
                 bvi_sw_if_index = -1
