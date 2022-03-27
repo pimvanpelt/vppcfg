@@ -31,6 +31,7 @@ interfaces:
     mtu: 3000
 
   BondEthernet0:
+    mtu: 3000
     description: "BE0 with two xconnected sub-ints"
     sub-interfaces:
       100:

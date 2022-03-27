@@ -25,9 +25,9 @@ interfaces:
         mtu: 2000
 
   GigabitEthernet3/0/0:
-    mtu: 9000
+    mtu: 3000
   GigabitEthernet3/0/1:
-    mtu: 9000
+    mtu: 3000
 
   GigabitEthernet4/0/0:
     mtu: 9000

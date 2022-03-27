@@ -63,10 +63,19 @@ def validate_bondethernets(yaml):
 
     for ifname, iface in yaml['bondethernets'].items():
         logger.debug("bondethernet %s: %s" % (ifname, iface))
+        bond_ifname, bond_iface = interface.get_by_name(yaml, ifname)
+        bond_mtu = 1500
+        if not bond_iface:
+            msgs.append("bondethernet %s does not exist in interfaces" % (ifname))
+            result = False
+        else:
+            bond_mtu = interface.get_mtu(yaml, bond_ifname)
+
         for member in iface['interfaces']:
             if (None, None) == interface.get_by_name(yaml, member):
                 msgs.append("bondethernet %s member %s does not exist" % (ifname, member))
                 result = False
+                continue
 
             if interface.has_sub(yaml, member):
                 msgs.append("bondethernet %s member %s has sub-interface(s)" % (ifname, member))
@@ -76,5 +85,9 @@ def validate_bondethernets(yaml):
                 result = False
             if interface.has_address(yaml, member):
                 msgs.append("bondethernet %s member %s has an address" % (ifname, member))
+                result = False
+            member_mtu = interface.get_mtu(yaml, member)
+            if  member_mtu != bond_mtu:
+                msgs.append("bondethernet %s member %s MTU %d does not match BondEthernet MTU %d" % (ifname, member, member_mtu, bond_mtu))
                 result = False
     return result, msgs

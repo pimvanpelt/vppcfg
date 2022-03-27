@@ -1,0 +1,20 @@
+test:
+  description: "A BondEthernet entry must also be an interface"
+  errors:
+    expected:
+     - "bondethernet .* does not exist in interfaces"
+    count: 1
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet2/0/0:
+    description: "LAG #2"
+  GigabitEthernet2/0/1:
+    description: "LAG #2"
+
+  # BondEthenet0:
+  #   description: "This entry should exist"
+  #   mtu: 1500

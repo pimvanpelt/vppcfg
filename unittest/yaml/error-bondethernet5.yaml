@@ -1,0 +1,22 @@
+test:
+  description: "Members of a BondEthernet must have the same MTU as their bond"
+  errors:
+    expected:
+     - "bondethernet .* member .* MTU 2500 does not match BondEthernet MTU 3000"
+     - "bondethernet .* member .* MTU 2000 does not match BondEthernet MTU 3000"
+    count: 2
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet2/0/0:
+    mtu: 2500
+    description: "LAG with default MTU, needs to be 3000"
+  GigabitEthernet2/0/1:
+    mtu: 2000
+    description: "LAG with default MTU, needs to be 3000"
+
+  BondEthernet0:
+    mtu: 3000
