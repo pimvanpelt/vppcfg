@@ -652,11 +652,14 @@ class Reconciler():
         lcpnames = [self.vpp.config['lcps'][x].host_if_name for x in self.vpp.config['lcps']]
 
         ## First create untagged ... 
-        for ifname in interface.get_interfaces(self.cfg):
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
             if interface.is_sub(self.cfg, ifname):
                 continue
 
-            ifname, iface = interface.get_by_name(self.cfg, ifname)
+            if ifname.startswith('loop'):
+                ifname, iface = loopback.get_by_name(self.cfg, ifname)
+            else:
+                ifname, iface = interface.get_by_name(self.cfg, ifname)
             if not 'lcp' in iface:
                 continue
             if iface['lcp'] in lcpnames:
