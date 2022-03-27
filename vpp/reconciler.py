@@ -184,7 +184,7 @@ class Reconciler():
                         if interface.is_sub(self.cfg, member_ifname):
                             self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
                         self.logger.info("1> set interface l3 %s" % member_ifname)
-                if 'bvi' in config_iface:
+                if 'bvi' in config_iface and bridge.bvi_sw_if_index in self.vpp.config['interfaces']:
                     bviname = self.vpp.config['interfaces'][bridge.bvi_sw_if_index].interface_name
                     if bviname != config_iface['bvi']:
                         self.logger.info("2> set interface l3 %s" % bviname)
