@@ -29,6 +29,4 @@ bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 2000
-    lcp: "bvi10"
-    addresses: [ 10.0.0.2/32, 2001:db8::2/128 ]
     interfaces: [ GigabitEthernet3/0/0 ]

@@ -75,9 +75,6 @@ class Reconciler():
         if not self.prune_bridgedomains():
             self.logger.warning("Could not prune BridgeDomains from VPP")
             ret = False
-        if not self.prune_bvis():
-            self.logger.warning("Could not prune BVIs from VPP")
-            ret = False
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
             ret = False
@@ -148,36 +145,6 @@ class Reconciler():
                         removed_interfaces.append(vpp_iface.interface_name)
                     continue
                 self.logger.debug("Loopback OK: %s" % (vpp_iface.interface_name))
-                addresses = []
-                if 'addresses' in config_iface:
-                    addresses = config_iface['addresses']
-                self.prune_addresses(vpp_iface.interface_name, addresses)
-
-        for ifname in removed_interfaces:
-            self.vpp.remove_interface(ifname)
-
-        return True
-
-    def prune_bvis(self):
-        """ Remove BVIs (bridge-domain virtual interfaces) from VPP, if they do not occur in the config. """
-        removed_interfaces=[]
-        for numtags in [ 2, 1, 0 ]:
-            for idx, vpp_iface in self.vpp.config['interfaces'].items():
-                if vpp_iface.interface_dev_type!='BVI':
-                    continue
-                if vpp_iface.sub_number_of_tags != numtags:
-                    continue
-                config_ifname, config_iface = bridgedomain.get_by_bvi_name(self.cfg, vpp_iface.interface_name)
-                if not config_iface:
-                    self.prune_addresses(vpp_iface.interface_name, [])
-                    if numtags == 0:
-                        self.logger.info("1> bvi delete %s" % vpp_iface.interface_name)
-                        removed_interfaces.append(vpp_iface.interface_name)
-                    else:
-                        self.logger.info("1> delete sub %s" % vpp_iface.interface_name)
-                        removed_interfaces.append(vpp_iface.interface_name)
-                    continue
-                self.logger.debug("BVI OK: %s" % (vpp_iface.interface_name))
                 addresses = []
                 if 'addresses' in config_iface:
                     addresses = config_iface['addresses']
@@ -418,7 +385,7 @@ class Reconciler():
 
     def prune_lcps(self):
         """ Remove LCPs which are not in the configuration, starting with QinQ/QinAD interfaces, then Dot1Q/Dot1AD,
-            and finally PHYs/BondEthernets/Tunnels/BVIs/Loopbacks. For QinX, special care is taken to ensure that
+            and finally PHYs/BondEthernets/Tunnels/Loopbacks. For QinX, special care is taken to ensure that
             their intermediary interface exists, and has the correct encalsulation. If the intermediary interface
             changed, the QinX LCP is removed. The same is true for Dot1Q/Dot1AD interfaces: if their encapsulation
             has changed, we will have to re-create the underlying sub-interface, so the LCP has to be removed.
@@ -544,7 +511,7 @@ class Reconciler():
 
             self.logger.debug("Dot1Q/Dot1AD LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
 
-        ## Remove LCPs for interfaces, bonds, tunnels, loops, bvis
+        ## Remove LCPs for interfaces, bonds, tunnels, loops
         for idx, lcp in lcps.items():
             vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
             if vpp_iface.sub_inner_vlan_id > 0 or vpp_iface.sub_outer_vlan_id > 0:
@@ -552,8 +519,6 @@ class Reconciler():
 
             if vpp_iface.interface_dev_type=='Loopback':
                 config_ifname, config_iface = loopback.get_by_lcp_name(self.cfg, lcp.host_if_name)
-            elif vpp_iface.interface_dev_type=='BVI':
-                config_ifname, config_iface = bridgedomain.get_by_lcp_name(self.cfg, lcp.host_if_name)
             else:
                 config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
 
@@ -575,8 +540,8 @@ class Reconciler():
 
     def prune_admin_state(self):
         """ Set admin-state down for all interfaces that are not in the config. """
-        for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_bvis() + self.vpp.get_loopbacks():
-            if not ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bvis(self.cfg):
+        for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_loopbacks():
+            if not ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
                 vpp_iface = self.vpp.config['interface_names'][ifname]
 
                 if self.__tap_is_lcp(vpp_iface.sw_if_index):
@@ -594,9 +559,6 @@ class Reconciler():
         ret = True
         if not self.create_loopbacks():
             self.logger.warning("Could not create Loopbacks in VPP")
-            ret = False
-        if not self.create_bvis():
-            self.logger.warning("Could not create BVIs in VPP")
             ret = False
         if not self.create_bondethernets():
             self.logger.warning("Could not create BondEthernets in VPP")
@@ -621,17 +583,6 @@ class Reconciler():
                 continue
             instance = int(ifname[4:])
             self.logger.info("1> create loopback interface instance %d" % (instance))
-        return True
-
-    def create_bvis(self):
-        for ifname in bridgedomain.get_bridgedomains(self.cfg):
-            ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
-            instance = int(ifname[2:])
-            if not 'lcp' in iface:
-                continue
-            if 'bvi%d'%instance in self.vpp.config['interface_names']:
-                continue
-            self.logger.info("1> bvi create instance %d" % (instance))
         return True
 
     def create_bondethernets(self):
@@ -783,10 +734,6 @@ class Reconciler():
                 bridge_members = []
 
             config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%instance)
-            if 'lcp' in config_bridge_iface:
-                bviname = "bvi%d" % instance
-                if not bviname in bridge_members:
-                    self.logger.info("1> set interface l2 bridge bvi%d %d bvi" % (instance, instance))
             if not 'interfaces' in config_bridge_iface:
                 continue
             for member_ifname in config_bridge_iface['interfaces']:
@@ -836,7 +783,7 @@ class Reconciler():
             tag_list = [ 0, 1, 2 ]
 
         for numtags in tag_list:
-            for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+            for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
                 if numtags == 0 and interface.is_sub(self.cfg, ifname):
                     continue
                 if numtags == 1 and not interface.is_sub(self.cfg, ifname):
@@ -853,15 +800,6 @@ class Reconciler():
                     vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
                     if 'mtu' in config_iface:
                         config_mtu = config_iface['mtu']
-                elif ifname.startswith("bd"):
-                    instance=int(ifname[2:])
-                    bviname="bvi%d" % instance
-                    if bviname in self.vpp.config['interface_names']:
-                        vpp_mtu = self.vpp.config['interface_names'][bviname].mtu[0]
-                    config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
-                    if 'mtu' in config_iface:
-                        config_mtu = config_iface['mtu']
-                    vpp_ifname = bviname
                 else:
                     if numtags > 0:
                         vpp_mtu = 0
@@ -880,7 +818,7 @@ class Reconciler():
         for idx, vpp_iface in self.vpp.config['interfaces'].items():
             if vpp_iface.sub_number_of_tags != 0:
                 continue
-            if vpp_iface.interface_dev_type in ['local', 'Loopback', 'BVI', 'VXLAN', 'virtio']:
+            if vpp_iface.interface_dev_type in ['local', 'Loopback', 'VXLAN', 'virtio']:
                 continue
 
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_iface.interface_name)
@@ -933,17 +871,11 @@ class Reconciler():
         return ret
 
     def sync_addresses(self):
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
             config_addresses=[]
             vpp_addresses=[]
             if ifname.startswith("loop"):
                 vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
-                if 'addresses' in config_iface:
-                    config_addresses = config_iface['addresses']
-            elif ifname.startswith("bd"):
-                config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
-                instance = int(ifname[2:])
-                vpp_ifname = "bvi%d" % instance
                 if 'addresses' in config_iface:
                     config_addresses = config_iface['addresses']
             else:
@@ -961,14 +893,9 @@ class Reconciler():
         return True
 
     def sync_admin_state(self):
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg) + bridgedomain.get_bridgedomains(self.cfg):
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
             if ifname.startswith("loop"):
                 vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
-                config_admin_state = 1
-            elif ifname.startswith("bd"):
-                config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, ifname)
-                instance = int(ifname[2:])
-                vpp_ifname = "bvi%d" % instance
                 config_admin_state = 1
             else:
                 vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)

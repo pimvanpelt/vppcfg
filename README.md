@@ -146,9 +146,6 @@ and finally all objects are synchronized with the configuration (IP addresses, M
     *   Remove all member interfaces (including BVIs) that are not in the config, return them to
         L3 mode
     *   Remove tag-rewrite options on removed member interfaces if they have encapsulation
-1.  Retrieve all BVIs from VPP
-    *   Remove all IP addresses that are not in the config
-    *   Remove those that do not exist in the config
 1.  For L2 Cross Connects from VPP
     *   For interfaces that do not exist in the config (either as source or target):
         *   Return the interface to L3 mode
@@ -172,7 +169,6 @@ and finally all objects are synchronized with the configuration (IP addresses, M
 ### Creating
 
 1.  Loopbacks
-1.  BVIs
 1.  BondEthernets
 1.  Tunnels
 1.  Sub Interfaces: First Dot1Q and Dot1AD (one tag), and then QinQ and QinAD (two tags)

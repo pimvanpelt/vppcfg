@@ -5,8 +5,7 @@ test:
       - "interface .* IP address .* conflicts with another"
       - "sub-interface .* IP address .* conflicts with another"
       - "loopback .* IP address .* conflicts with another"
-      - "bridgedomain .* IP address .* conflicts with another"
-    count: 18
+    count: 14
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -27,8 +26,6 @@ interfaces:
 
   GigabitEthernet1/0/2:
     lcp: e0-2
-    description: "These addresses overlap with bd1"
-    addresses: [ 192.0.2.18/29, 2001:db8:3::2/64 ]
 
   GigabitEthernet1/0/3:
     lcp: e0-3
@@ -54,11 +51,3 @@ loopbacks:
     description: "These addresses overlap with Gi1/0/1.101"
     lcp: "loop0"
     addresses: [ 192.0.2.9/29, 2001:db8:2::1/64 ]
-
-bridgedomains:
-  bd1:
-    description: "These addresses overlap with Gi1/0/2"
-    mtu: 2000
-    lcp: "bvi1"
-    addresses: [ 192.0.2.17/29, 2001:db8:3::1/64 ]
-    interfaces: [ GigabitEthernet3/0/0 ]

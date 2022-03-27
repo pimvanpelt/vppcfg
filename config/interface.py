@@ -256,7 +256,7 @@ def get_phys(yaml):
     """ Return a list of all toplevel (ie. non-sub) interfaces which are
     assumed to be physical network cards, eg TenGigabitEthernet1/0/0. Note
     that derived/created interfaces such as Tunnels, BondEthernets and
-    Loopbacks/BVIs are not returned """
+    Loopbacks are not returned """
     ret = []
     if not 'interfaces' in yaml:
         return ret
@@ -278,8 +278,6 @@ def is_phy(yaml, ifname):
     if bondethernet.is_bondethernet(yaml, ifname):
         return False
     if loopback.is_loopback(yaml, ifname):
-        return False
-    if bridgedomain.is_bvi(yaml, ifname):
         return False
     if vxlan_tunnel.is_vxlan_tunnel(yaml, ifname):
         return False

@@ -4,9 +4,8 @@ test:
     expected:
      - "interface .* does not have a unique LCP name"
      - "loopback .* does not have a unique LCP name"
-     - "bridgedomain .* does not have a unique LCP name"
      - "bridgedomain bd0 is reserved"
-    count: 4
+    count: 3
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -24,5 +23,4 @@ loopbacks:
 bridgedomains:
   bd0:
     description: "bd_id 0 in VPP is reserved"
-    lcp: "e1"
     interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]

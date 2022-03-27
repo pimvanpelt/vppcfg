@@ -44,13 +44,10 @@ bridgedomains:
     mtu: 3000
     interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1, BondEthernet0 ]
   bd11:
-    description: "Bridge Domain 11, both LCP and address"
+    description: "Bridge Domain 11, with sub-interfaces"
     mtu: 2000
     interfaces: [ GigabitEthernet2/0/0.100, GigabitEthernet2/0/1.100, BondEthernet0.100 ]
-    lcp: "bvi123456789012"
-    addresses: [ 192.0.2.1/29, 2001:db8::1/64 ]
   bd12:
     description: "Bridge Domain 12, invalid because it has Gi1/0/0 as well"
     mtu: 9000
     interfaces: [ GigabitEthernet4/0/0, GigabitEthernet1/0/0 ]
-    lcp: "bvi12"

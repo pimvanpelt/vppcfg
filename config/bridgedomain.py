@@ -16,16 +16,6 @@ import config.interface as interface
 import config.lcp as lcp
 import config.address as address
 
-def get_bvis(yaml):
-    """ Return a list of all bridgedomains which have an LCP (ie bvi*). """
-    ret = []
-    if not 'bridgedomains' in yaml:
-        return ret
-    for ifname, iface in yaml['bridgedomains'].items():
-        if 'lcp' in iface:
-            instance = int(ifname[2:])
-            ret.append("bvi%d" % instance)
-    return ret
 
 def get_bridgedomains(yaml):
     """ Return a list of all bridgedomains. """
@@ -35,33 +25,6 @@ def get_bridgedomains(yaml):
     for ifname, iface in yaml['bridgedomains'].items():
         ret.append(ifname)
     return ret
-
-
-def get_by_lcp_name(yaml, lcpname):
-    """ Returns the bridgedomain by a given lcp name, or None,None if it does not exist """
-    if not 'bridgedomains' in yaml:
-        return None,None
-    for ifname, iface in yaml['bridgedomains'].items():
-        if 'lcp' in iface and iface['lcp'] == lcpname:
-            return ifname, iface
-    return None,None
-
-
-def get_by_bvi_name(yaml, ifname):
-    """ Return the BridgeDomain by BVI interface name (bvi*), if it exists. Return None,None otherwise. """
-
-    if not 'bridgedomains' in yaml:
-        return None,None
-    if not ifname.startswith("bvi"):
-        return None,None
-    idx = ifname[3:]
-    if not idx.isnumeric():
-        return None,None
-
-    bridgename = "bd%d" % int(idx)
-    if bridgename in yaml['bridgedomains'] and 'lcp' in yaml['bridgedomains'][bridgename]:
-        return bridgename, yaml['bridgedomains'][bridgename]
-    return None, None
 
 
 def get_by_name(yaml, ifname):
@@ -78,19 +41,6 @@ def is_bridgedomain(yaml, ifname):
     """ Returns True if the name (bd*) is an existing bridgedomain. """
     ifname, iface = get_by_name(yaml, ifname)
     return not iface == None
-
-
-def is_bvi(yaml, ifname):
-    """ Returns True if the interface name (bvi*) is an existing BVI. """
-
-    bridgename, bridge = get_by_bvi_name(yaml, ifname)
-    if not bridge:
-        return False
-
-    ## If the BridgeDomain has an 'lcp', then it has a Bridge Virtual Interface
-    if 'lcp' in bridge:
-        return True
-    return False
 
 
 def get_bridge_interfaces(yaml):
@@ -138,18 +88,6 @@ def validate_bridgedomains(yaml):
             msgs.append("bridgedomain %s is reserved" % ifname)
             result = False
 
-        if 'addresses' in iface and not 'lcp' in iface:
-            msgs.append("bridgedomain %s has an address but no LCP" % ifname)
-            result = False
-        if 'lcp' in iface and not lcp.is_unique(yaml, iface['lcp']):
-            msgs.append("bridgedomain %s does not have a unique LCP name %s" % (ifname, iface['lcp']))
-            result = False          
-        if 'addresses' in iface:
-            for a in iface['addresses']:
-                if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("bridgedomain %s IP address %s conflicts with another" % (ifname, a))
-                    result = False
-
         if 'interfaces' in iface:
             for member in iface['interfaces']:
                 if (None, None) == interface.get_by_name(yaml, member):
@@ -160,7 +98,6 @@ def validate_bridgedomains(yaml):
                 if not is_bridge_interface_unique(yaml, member):
                     msgs.append("bridgedomain %s member %s is not unique" % (ifname, member))
                     result = False
-
                 if interface.has_lcp(yaml, member):
                     msgs.append("bridgedomain %s member %s has an LCP" % (ifname, member))
                     result = False

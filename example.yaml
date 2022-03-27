@@ -28,6 +28,9 @@ interfaces:
   GigabitEthernet3/0/0:
     description: "Infra: Bridge Domain 10"
 
+  GigabitEthernet3/0/1:
+    l2xc: BondEthernet0.204
+
   BondEthernet0:
     description: "Bond, James Bond!"
     mac: 00:01:02:03:04:05
@@ -52,6 +55,11 @@ interfaces:
         encapsulation:
           dot1ad: 1000
           inner-dot1q: 1000
+      204:
+        encapsulation:
+          dot1ad: 1001
+          inner-dot1q: 1001
+        l2xc: GigabitEthernet3/0/1
 
 loopbacks:
   loop0:
@@ -59,11 +67,11 @@ loopbacks:
     mtu: 9216
     lcp: "loop0"
     addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+  loop1:
+    description: "Another loop"
 
 bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 1500
-    lcp: "bvi10"
-    addresses: [ 192.0.2.9/29, 2001:db8:2::1/64 ]
     interfaces: [ BondEthernet0.203, GigabitEthernet3/0/0 ]
