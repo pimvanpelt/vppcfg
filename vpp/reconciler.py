@@ -770,7 +770,7 @@ class Reconciler():
             config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, ifname)
             config_tx_ifname, config_tx_iface = interface.get_by_name(self.cfg, config_rx_iface['l2xc'])
             vpp_rx_iface = None
-            vpp_rx_iface = None
+            vpp_tx_iface = None
             if config_rx_ifname in self.vpp.config['interface_names']:
                 vpp_rx_iface = self.vpp.config['interface_names'][config_rx_ifname]
             if config_tx_ifname in self.vpp.config['interface_names']:
