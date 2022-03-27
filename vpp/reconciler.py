@@ -329,8 +329,8 @@ class Reconciler():
         return match
 
     def prune_sub_interfaces(self):
-        """ Remove interfaces from VPP if they are not in the config. Start with inner-most (QinQ/QinAD), then
-            Dot1Q/Dot1AD."""
+        """ Remove interfaces from VPP if they are not in the config, or if their encapsulation is different.
+            Start with inner-most (QinQ/QinAD), then Dot1Q/Dot1AD."""
         removed_interfaces=[]
         for numtags in [ 2, 1 ]:
             for vpp_ifname in self.vpp.get_sub_interfaces():
@@ -345,6 +345,13 @@ class Reconciler():
                 if not config_iface:
                     self.prune_addresses(vpp_ifname, [])
                     self.logger.info("1> delete sub %s" % vpp_ifname)
+                    removed_interfaces.append(vpp_ifname)
+                    continue
+                config_encap = interface.get_encapsulation(self.cfg, vpp_ifname)
+                vpp_encap = self.__get_encapsulation(vpp_iface)
+                if config_encap != vpp_encap:
+                    self.prune_addresses(vpp_ifname, [])
+                    self.logger.info("2> delete sub %s" % vpp_ifname)
                     removed_interfaces.append(vpp_ifname)
                     continue
                 addresses = []
