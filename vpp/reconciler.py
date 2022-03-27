@@ -784,12 +784,12 @@ class Reconciler():
                 self.logger.info("3> set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname))
                 l2xc_changed = True
             if l2xc_changed:
-                tags = 0
                 if interface.is_qinx(self.cfg, config_rx_ifname):
-                    tags = 2
+                    self.logger.info("4> set interface l2 tag-rewrite %s pop 2" % (config_rx_ifname))
                 elif interface.is_sub(self.cfg, config_rx_ifname):
-                    tags = 1
-                self.logger.info("4> set interface l2 tag-rewrite %s pop %d" % (config_rx_ifname, tags))
+                    self.logger.info("5> set interface l2 tag-rewrite %s pop 1" % (config_rx_ifname))
+                else:
+                    self.logger.info("6> set interface l2 tag-rewrite %s disable" % (config_rx_ifname))
         return True
 
     def sync_mtu_direction(self, shrink=True):
