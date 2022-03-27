@@ -40,10 +40,16 @@ interfaces:
       100:
         mtu: 2000
 
+loopbacks:
+  loop0:
+    lcp: "bvi0"
+    addresses: [ 192.0.2.1/29, 2001:db8:1::1/64 ]
+
 bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 3000
+    bvi: loop0
     interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1, BondEthernet0 ]
   bd11:
     description: "Bridge Domain 11"

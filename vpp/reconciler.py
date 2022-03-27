@@ -69,11 +69,11 @@ class Reconciler():
         if not self.prune_lcps():
             self.logger.warning("Could not prune LCPs from VPP")
             ret = False
-        if not self.prune_loopbacks():
-            self.logger.warning("Could not prune Loopbacks from VPP")
-            ret = False
         if not self.prune_bridgedomains():
             self.logger.warning("Could not prune BridgeDomains from VPP")
+            ret = False
+        if not self.prune_loopbacks():
+            self.logger.warning("Could not prune Loopbacks from VPP")
             ret = False
         if not self.prune_l2xcs():
             self.logger.warning("Could not prune L2 Cross Connects from VPP")
@@ -165,11 +165,16 @@ class Reconciler():
             members = []
             if not config_iface:
                 for member in bridge.sw_if_details:
+                    if member.sw_if_index == bridge.bvi_sw_if_index:
+                        continue
                     member_iface = self.vpp.config['interfaces'][member.sw_if_index]
                     member_ifname = member_iface.interface_name
                     if member_iface.sub_id > 0:
                         self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
                     self.logger.info("1> set interface l3 %s" % member_ifname)
+                if bridge.bvi_sw_if_index in self.vpp.config['interfaces']:
+                    bviname = self.vpp.config['interfaces'][bridge.bvi_sw_if_index].interface_name
+                    self.logger.info("1> set interface l3 %s" % bviname)
                 self.logger.info("1> create bridge-domain %d del" % idx)
             else:
                 self.logger.debug("BridgeDomain OK: %s" % (bridgename))
@@ -179,6 +184,11 @@ class Reconciler():
                         if interface.is_sub(self.cfg, member_ifname):
                             self.logger.info("1> set interface l2 tag-rewrite %s disable" % member_ifname)
                         self.logger.info("1> set interface l3 %s" % member_ifname)
+                if 'bvi' in config_iface:
+                    bviname = self.vpp.config['interfaces'][bridge.bvi_sw_if_index].interface_name
+                    if bviname != config_iface['bvi']:
+                        self.logger.info("2> set interface l3 %s" % bviname)
+
         return True
 
     def prune_l2xcs(self):
@@ -736,6 +746,12 @@ class Reconciler():
             config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%instance)
             if not 'interfaces' in config_bridge_iface:
                 continue
+            if 'bvi' in config_bridge_iface:
+                bviname = config_bridge_iface['bvi']
+                if bviname in self.vpp.config['interface_names'] and self.vpp.config['interface_names'][bviname].sw_if_index == bvi_sw_if_index:
+                    continue
+                self.logger.info("1> set interface l2 bridge %s %d bvi" % (bviname, instance))
+
             for member_ifname in config_bridge_iface['interfaces']:
                 member_ifname, member_iface = interface.get_by_name(self.cfg, member_ifname)
                 if not member_ifname in bridge_members:

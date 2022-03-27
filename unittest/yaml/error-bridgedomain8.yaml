@@ -1,0 +1,11 @@
+test:
+  description: "BridgeDomain BVIs must exist"
+  errors:
+    expected:
+     - "bridgedomain .* BVI .* does not exist"
+    count: 1
+---
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    bvi: loop0

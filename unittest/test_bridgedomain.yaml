@@ -38,10 +38,17 @@ interfaces:
       100:
         mtu: 2000
 
+loopbacks:
+  loop0:
+    description: "BVI for bd10"
+  loop1:
+    description: "BVI for bd13 and bd14"
+
 bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 3000
+    bvi: loop0
     interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1, BondEthernet0 ]
   bd11:
     description: "Bridge Domain 11, with sub-interfaces"
@@ -51,3 +58,12 @@ bridgedomains:
     description: "Bridge Domain 12, invalid because it has Gi1/0/0 as well"
     mtu: 9000
     interfaces: [ GigabitEthernet4/0/0, GigabitEthernet1/0/0 ]
+  bd13:
+    description: "Bridge Domain 13 and 14 cannot have the same BVI"
+    bvi: loop1
+  bd14:
+    description: "Bridge Domain 13 and 14 cannot have the same BVI"
+    bvi: loop1
+  bd15:
+    description: "Bridge Domain 15 has a non-existant BVI"
+    bvi: loop2

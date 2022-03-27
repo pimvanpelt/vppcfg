@@ -13,6 +13,7 @@
 #
 import logging
 import config.interface as interface
+import config.loopback as loopback
 import config.lcp as lcp
 import config.address as address
 
@@ -69,6 +70,17 @@ def is_bridge_interface(yaml, ifname):
     return ifname in get_bridge_interfaces(yaml)
 
 
+def bvi_unique(yaml, bviname):
+    """ Returns True if the BVI identified by bviname is unique among all BridgeDomains. """
+    if not 'bridgedomains' in yaml:
+        return True
+    n = 0
+    for ifname, iface in yaml['bridgedomains'].items():
+        if 'bvi' in iface and iface['bvi'] == bviname:
+            n += 1
+    return n<2
+
+
 def validate_bridgedomains(yaml):
     result = True
     msgs = []
@@ -87,6 +99,14 @@ def validate_bridgedomains(yaml):
         if instance == 0:
             msgs.append("bridgedomain %s is reserved" % ifname)
             result = False
+        if 'bvi' in iface:
+            bviname = iface['bvi']
+            if (None,None) == loopback.get_by_name(yaml, bviname):
+                msgs.append("bridgedomain %s BVI %s does not exist" % (ifname, bviname))
+                result = False
+            if not bvi_unique(yaml, bviname):
+                msgs.append("bridgedomain %s BVI %s is not unique" % (ifname, bviname))
+                result = False
 
         if 'interfaces' in iface:
             for member in iface['interfaces']:

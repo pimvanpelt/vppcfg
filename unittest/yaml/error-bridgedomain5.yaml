@@ -1,0 +1,18 @@
+test:
+  description: "BridgeDomain BVIs must be unique"
+  errors:
+    expected:
+    - "bridgedomain .* BVI loop0 is not unique"
+    count: 2
+---
+loopbacks:
+  loop0:
+    description: "Cannot be BVI for both bd10 and bd11"
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    bvi: loop0
+  bd11:
+    description: "Bridge Domain 11"
+    bvi: loop0
