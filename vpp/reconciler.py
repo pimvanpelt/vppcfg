@@ -406,143 +406,86 @@ class Reconciler():
         lcps = self.vpp.config['lcps']
 
         removed_lcps = []
-        ## Remove LCPs for QinX interfaces
-        for idx, lcp in lcps.items():
-            vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
-            if vpp_iface.sub_inner_vlan_id == 0:
-                continue
-            config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
-            if not config_iface:
-                ## QinX doesn't exist in the config
-                self.logger.info("1> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_iface:
-                ## QinX doesn't have an LCP
-                self.logger.info("2> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            vpp_parent_idx = self.__parent_iface_by_encap(vpp_iface.sup_sw_if_index, vpp_iface.sub_outer_vlan_id, vpp_iface.sub_if_flags&8)
-            vpp_parent_iface = self.vpp.config['interfaces'][vpp_parent_idx]
-            parent_lcp = lcps[vpp_parent_iface.sw_if_index]
-            config_parent_ifname, config_parent_iface = interface.get_by_lcp_name(self.cfg, parent_lcp.host_if_name)
-            if not config_parent_iface:
-                ## QinX's parent doesn't exist in the config
-                self.logger.info("3> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_parent_iface:
-                ## QinX's parent doesn't have an LCP
-                self.logger.info("4> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if parent_lcp.host_if_name != config_parent_iface['lcp']:
-                ## QinX's parent LCP name mismatch
-                self.logger.info("5> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
+        for numtags in [ 2, 1, 0 ]:
+            ## Remove LCPs for QinX interfaces
+            for idx, lcp in lcps.items():
+                vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
+                if vpp_iface.sub_number_of_tags != numtags:
+                    continue
+                if vpp_iface.interface_dev_type=='Loopback':
+                    config_ifname, config_iface = loopback.get_by_lcp_name(self.cfg, lcp.host_if_name)
+                else:
+                    config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
+                if not config_iface:
+                    ## Interface doesn't exist in the config
+                    self.logger.info("1> lcp delete %s" % vpp_iface.interface_name)
+                    removed_lcps.append(lcp.host_if_name)
+                    continue
+                if not 'lcp' in config_iface:
+                    ## Interface doesn't have an LCP
+                    self.logger.info("2> lcp delete %s" % vpp_iface.interface_name)
+                    removed_lcps.append(lcp.host_if_name)
+                    continue
+                if vpp_iface.sub_number_of_tags == 2:
+                    vpp_parent_idx = self.__parent_iface_by_encap(vpp_iface.sup_sw_if_index, vpp_iface.sub_outer_vlan_id, vpp_iface.sub_if_flags&8)
+                    vpp_parent_iface = self.vpp.config['interfaces'][vpp_parent_idx]
+                    parent_lcp = lcps[vpp_parent_iface.sw_if_index]
+                    config_parent_ifname, config_parent_iface = interface.get_by_lcp_name(self.cfg, parent_lcp.host_if_name)
+                    if not config_parent_iface:
+                        ## QinX's parent doesn't exist in the config
+                        self.logger.info("3> lcp delete %s" % vpp_iface.interface_name)
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
+                    if not 'lcp' in config_parent_iface:
+                        ## QinX's parent doesn't have an LCP
+                        self.logger.info("4> lcp delete %s" % vpp_iface.interface_name)
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
+                    if parent_lcp.host_if_name != config_parent_iface['lcp']:
+                        ## QinX's parent LCP name mismatch
+                        self.logger.info("5> lcp delete %s" % vpp_iface.interface_name)
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
+                    config_parent_encap = interface.get_encapsulation(self.cfg, config_parent_ifname)
+                    vpp_parent_encap = self.__get_encapsulation(vpp_parent_iface)
+                    if config_parent_encap != vpp_parent_encap:
+                        ## QinX's parent encapsulation mismatch
+                        self.logger.info("9> lcp delete %s" % vpp_iface.interface_name)
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
 
-            phy_lcp = lcps[vpp_iface.sup_sw_if_index]
-            config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(self.cfg, phy_lcp.host_if_name)
-            if not config_phy_iface:
-                ## QinX's phy doesn't exist in the config
-                self.logger.info("6> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_phy_iface:
-                ## QinX's phy doesn't have an LCP
-                self.logger.info("6> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if phy_lcp.host_if_name != config_phy_iface['lcp']:
-                ## QinX's phy LCP name mismatch
-                self.logger.info("7> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
+                if vpp_iface.sub_number_of_tags > 1:
+                    config_encap = interface.get_encapsulation(self.cfg, config_ifname)
+                    vpp_encap = self.__get_encapsulation(vpp_iface)
+                    if config_encap != vpp_encap:
+                        ## Encapsulation mismatch
+                        self.logger.info("8> lcp delete %s" % vpp_iface.interface_name)
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
 
-            config_encap = interface.get_encapsulation(self.cfg, config_ifname)
-            vpp_encap = self.__get_encapsulation(vpp_iface)
-            config_parent_encap = interface.get_encapsulation(self.cfg, config_parent_ifname)
-            vpp_parent_encap = self.__get_encapsulation(vpp_parent_iface)
-            if config_encap != vpp_encap:
-                ## QinX's encapsulation mismatch
-                self.logger.info("8> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if config_parent_encap != vpp_parent_encap:
-                ## QinX's parent encapsulation mismatch
-                self.logger.info("9> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            self.logger.debug("QinX LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
+                if vpp_iface.interface_dev_type=='Loopback':
+                    ## Loopbacks will not have a PHY to check.
+                    continue
 
-        ## Remove LCPs for sub-interfaces
-        for idx, lcp in lcps.items():
-            vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
-            if vpp_iface.sub_inner_vlan_id > 0 or vpp_iface.sub_outer_vlan_id == 0:
-                continue
-            config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
-            if not config_iface:
-                ## Sub doesn't exist in the config
-                self.logger.info("11> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_iface:
-                ## Sub doesn't have an LCP
-                self.logger.info("12> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
+                phy_lcp = lcps[vpp_iface.sup_sw_if_index]
+                config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(self.cfg, phy_lcp.host_if_name)
+                if not config_phy_iface:
+                    ## Phy doesn't exist in the config
+                    self.logger.info("6> lcp delete %s" % vpp_iface.interface_name)
+                    removed_lcps.append(lcp.host_if_name)
+                    continue
+                if not 'lcp' in config_phy_iface:
+                    ## Phy doesn't have an LCP
+                    self.logger.info("6> lcp delete %s" % vpp_iface.interface_name)
+                    removed_lcps.append(lcp.host_if_name)
+                    continue
+                if phy_lcp.host_if_name != config_phy_iface['lcp']:
+                    ## Phy LCP name mismatch
+                    self.logger.info("7> lcp delete %s" % vpp_iface.interface_name)
+                    removed_lcps.append(lcp.host_if_name)
+                    continue
 
-            phy_lcp = lcps[vpp_iface.sup_sw_if_index]
-            config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(self.cfg, phy_lcp.host_if_name)
-            if not config_phy_iface:
-                ## Sub's phy doesn't exist in the config
-                self.logger.info("13> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_phy_iface:
-                ## Sub's phy doesn't have an LCP
-                self.logger.info("14> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if phy_lcp.host_if_name != config_phy_iface['lcp']:
-                ## Sub's phy LCP name mismatch
-                self.logger.info("15> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-
-            config_encap = interface.get_encapsulation(self.cfg, config_ifname)
-            vpp_encap = self.__get_encapsulation(vpp_iface)
-            if config_encap != vpp_encap:
-                ## Sub's encapsulation mismatch
-                self.logger.info("16> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-
-            self.logger.debug("Dot1Q/Dot1AD LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
-
-        ## Remove LCPs for interfaces, bonds, tunnels, loops
-        for idx, lcp in lcps.items():
-            vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
-            if vpp_iface.sub_inner_vlan_id > 0 or vpp_iface.sub_outer_vlan_id > 0:
-                continue
-
-            if vpp_iface.interface_dev_type=='Loopback':
-                config_ifname, config_iface = loopback.get_by_lcp_name(self.cfg, lcp.host_if_name)
-            else:
-                config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
-
-            if not config_iface:
-                ## Interface doesn't exist in the config
-                self.logger.info("21> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            if not 'lcp' in config_iface:
-                ## Interface doesn't have an LCP
-                self.logger.info("22> lcp delete %s" % vpp_iface.interface_name)
-                removed_lcps.append(lcp.host_if_name)
-                continue
-            self.logger.debug("LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
+                self.logger.debug("LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
 
         for lcpname in removed_lcps:
             self.vpp.remove_lcp(lcpname)
