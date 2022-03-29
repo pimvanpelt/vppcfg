@@ -56,6 +56,7 @@ class VPPApi():
         if not self.connected:
             return True
         self.vpp.disconnect()
+        self.logger.debug('Disconnected from VPP')
         self.connected = False
         return True
 
