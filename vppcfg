@@ -29,14 +29,21 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for VPP""")
     parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug, default False""")
-    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only log warnings/errors), default False""")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug logging, default False""")
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only warnings/errors), default False""")
     parser.add_argument('-f', '--force', dest='force', action='store_true', help="""Force progress despite warnings, default False""")
+    parser.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
+
+    subparsers = parser.add_subparsers(dest='command')
+    check_p = subparsers.add_parser('check')
+
+    plan_p = subparsers.add_parser('plan')
+    plan_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for VPP CLI commands, default stdout""")
+
+    apply_p = subparsers.add_parser('apply')
 
     args = parser.parse_args()
-
     level = logging.INFO
     if args.debug:
         level = logging.DEBUG
@@ -57,6 +64,9 @@ def main():
     if not v.valid_config(cfg):
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
+    logging.info("Configuration is valid")
+    if args.command=="check":
+        sys.exit(0)
 
     r = Reconciler(cfg)
     if not r.vpp_readconfig():
@@ -70,33 +80,40 @@ def main():
         logging.error("Not all PHYs in VPP exist in the config")
         sys.exit(-5)
 
+    if not r.lcps_exist_with_lcp_enabled():
+        logging.error("Linux Control Plane is needed, but neither lcpng nor linux-cp are available")
+        sys.exit(-6)
+
     failed = False
     if not r.prune():
         if not args.force:
-            logging.error("Reconciliation prune failure")
+            logging.error("Planning prune failure")
             sys.exit(-10)
         failed = True
-        logging.warning("Reconciliation prune failure, continuing due to --force")
+        logging.warning("Planning prune failure, continuing due to --force")
 
     if not r.create():
         if not args.force:
-            logging.error("Reconciliation create failure")
+            logging.error("Planning create failure")
             sys.exit(-20)
         failed = True
-        logging.warning("Reconciliation create failure, continuing due to --force")
+        logging.warning("Planning create failure, continuing due to --force")
 
     if not r.sync():
         if not args.force:
-            logging.error("Reconciliation sync failure")
+            logging.error("Planning sync failure")
             sys.exit(-30)
         failed = True
-        logging.warning("Reconciliation sync failure, continuing due to --force")
+        logging.warning("Planning sync failure, continuing due to --force")
 
     if failed:
-        logging.error("Reconciliation failed")
+        logging.error("Planning failed")
         sys.exit(-40)
 
-    logging.info("Reconciliation succeeded")
+    logging.info("Planning succeeded")
+    if args.command=="plan":
+        sys.exit(0)
+
     sys.exit(0)
 if __name__ == "__main__":
     main()

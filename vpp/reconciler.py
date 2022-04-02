@@ -36,6 +36,13 @@ class Reconciler():
     def __del__(self):
         self.vpp.disconnect()
 
+    def lcps_exist_with_lcp_enabled(self):
+        """ Returns False if there are LCPs defined in the configuration, but LinuxCP
+        functionality is not enabled in VPP. """
+        if not lcp.get_lcps(self.cfg):
+            return True
+        return self.vpp.lcp_enabled
+
     def phys_exist_in_vpp(self):
         """ Return True if all PHYs in the config exist as physical interface names
         in VPP. Return False otherwise."""

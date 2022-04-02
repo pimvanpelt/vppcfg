@@ -20,12 +20,14 @@ class VPPApi():
         self.vpp = None
         self.config = self.clearconfig()
         self.config_read = False
+        self.lcp_enabled = False
 
     def connect(self):
         if self.connected:
             return True
 
         vpp_json_dir = '/usr/share/vpp/api/'
+        ## vpp_json_dir = "/home/pim/src/vpp/build-root/build-vpp_debug-native/vpp/CMakeFiles/"
 
         # construct a list of all the json api files
         jsonfiles = []
@@ -141,12 +143,33 @@ class VPPApi():
             return False
 
         self.config_read = False
-        self.logger.debug("Retrieving LCPs")
-        r = self.vpp.api.lcp_itf_pair_get()
-        if isinstance(r, tuple) and r[0].retval == 0:
-            for lcp in r[1]:
-                self.config['lcps'][lcp.phy_sw_if_index] = lcp
-        
+
+        ## Workaround LCPng and linux-cp, in order.
+        self.lcp_enabled = False
+        if not self.lcp_enabled:
+            try:
+                self.logger.debug("Retrieving LCPs (lcpng)")
+                r = self.vpp.api.lcpng_itf_pair_get()
+                if isinstance(r, tuple) and r[0].retval == 0:
+                    for lcp in r[1]:
+                        self.config['lcps'][lcp.phy_sw_if_index] = lcp
+                self.lcp_enabled = True
+            except:
+                self.logger.warning("lcpng not found, trying linux-cp")
+        if not self.lcp_enabled:
+            try:
+                self.logger.debug("Retrieving LCPs (linux-cp)")
+                r = self.vpp.api.lcp_itf_pair_get()
+                if isinstance(r, tuple) and r[0].retval == 0:
+                    for lcp in r[1]:
+                        self.config['lcps'][lcp.phy_sw_if_index] = lcp
+                self.lcp_enabled = True
+            except:
+                pass
+
+        if not self.lcp_enabled:
+            self.logger.warning("lcpng nor linux-cp found, will not reconcile Linux Control Plane")
+
         self.logger.debug("Retrieving interfaces")
         r = self.vpp.api.sw_interface_dump()
         for iface in r:
