@@ -29,15 +29,20 @@ pyinstaller vppcfg  --onefile
 
 ```
 dist/vppcfg -h
-usage: vppcfg [-h] -c CONFIG [-s SCHEMA] [-d]
+usage: vppcfg [-h] [-s SCHEMA] [-d] [-q] [-f] -c CONFIG {check,plan,apply} ...
+
+positional arguments:
+  {check,plan,apply}
 
 optional arguments:
   -h, --help            show this help message and exit
-  -c CONFIG, --config CONFIG
-                        YAML configuration file for VPP
   -s SCHEMA, --schema SCHEMA
                         YAML schema validation file
-  -d, --debug           Enable debug, default False
+  -d, --debug           Enable debug logging, default False
+  -q, --quiet           Be quiet (only warnings/errors), default False
+  -f, --force           Force progress despite warnings, default False
+  -c CONFIG, --config CONFIG
+                        YAML configuration file for vppcfg
 ```
 
 ## Design
