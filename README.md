@@ -114,7 +114,7 @@ Fields:
     an error is repeated N times, and it's good practice to precisely establish how many errors
     should be expected. That said, this field can be empty or omitted.
 
-## Reconciling
+## Planning
 
 The second important task of this utility is to take the wellformed (validated) configuration and
 apply it to the VPP dataplane. The overall flow consists of three phases:
@@ -202,3 +202,19 @@ and finally all objects are synchronized with the configuration (IP addresses, M
         must be temporarily set admin-down to change that!)
 1.  Add IPv4/IPv6 addresses
 1.  Set admin state for all interfaces
+
+## Applying
+
+Finally, once the path planner does its work and orders the operations to reconcile the running dataplane
+into the desired configuration, we can apply the configuration. Currently not implemented, pending a bit
+of community feedback. 
+
+For now, the path planner works by reading the API configuration state exactly once (at startup), and then
+it figures out the CLI calls to print without needing to consult VPP again. This is super useful as it’s a
+non-intrusive way to inspect the changes before applying them, and it’s a property I’d like to carry forward.
+However, I don’t necessarily think that emitting the CLI statements is the best user experience, it’s more for
+the purposes of analysis that they can be useful. What I really want to do is emit API calls after the plan
+is created and reviewed/approved, directly reprogramming the VPP dataplane. However, the VPP API set needed
+to do this is not 100% baked yet. For example, I observed crashes when tinkering with BVIs and Loopbacks,
+and fixed a few obvious errors in the Linux CP API but there are still a few more issues to work through
+before I can set the next step with vppcfg.
