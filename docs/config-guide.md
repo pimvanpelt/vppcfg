@@ -223,7 +223,10 @@ allow the following field:
     *   ***exact-match***: A boolean, signalling the sub-interface should match on the exact number
         of tags specified. This is required for any L3 interface (carrying an IP address or LCP),
         but allowed to be False for L2 interfaces (ie. bridge-domain members or L2XC targets).
-    *   It is forbidden to specify both `dot1q` and `dot1ad` field.
+
+It's permitted to omit the `encapsulation` fields, in which case an exact-matching Dot1Q
+encapsulation with tag value equal to the `subid` will be configured. Obviously, it is forbidden
+to specify both `dot1q` and `dot1ad` fields at the same time.
 
 Examples:
 ```
