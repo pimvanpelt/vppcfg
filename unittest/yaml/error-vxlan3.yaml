@@ -1,0 +1,22 @@
+test:
+  description: "A VXLAN tunnel instance must be within [0,2G)"
+  errors:
+    expected:
+     - "vxlan_tunnel .* has instance .* which is too large"
+    count: 1
+---
+vxlan_tunnels:
+  vxlan_tunnel2147483647:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 100
+  vxlan_tunnel2147483648:
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 101
+
+interfaces:
+  vxlan_tunnel2147483647:
+    description: "Cool."
+  vxlan_tunnel2147483648:
+    description: "Not cool."

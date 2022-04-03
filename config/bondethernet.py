@@ -70,6 +70,10 @@ def validate_bondethernets(yaml):
             result = False
         else:
             bond_mtu = interface.get_mtu(yaml, bond_ifname)
+        instance = int(ifname[12:])
+        if instance > 4294967294:
+            msgs.append("bondethernet %s has instance %d which is too large" % (ifname, instance))
+            result = False
 
         for member in iface['interfaces']:
             if (None, None) == interface.get_by_name(yaml, member):

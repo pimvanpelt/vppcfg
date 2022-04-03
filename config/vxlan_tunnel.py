@@ -66,6 +66,11 @@ def validate_vxlan_tunnels(yaml):
 
     for ifname, iface in yaml['vxlan_tunnels'].items():
         logger.debug("vxlan_tunnel %s: %s" % (ifname, iface))
+        instance = int(ifname[12:])
+        if instance > 2147483647:
+            msgs.append("vxlan_tunnel %s has instance %d which is too large" % (ifname, instance))
+            result = False
+
         vni = iface['vni']
         if not vni_unique(yaml, vni):
             msgs.append("vxlan_tunnel %s VNI %d is not unique" % (ifname, vni))

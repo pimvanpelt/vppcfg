@@ -1,0 +1,29 @@
+test:
+  description: "BondEthernets must be between 0 and 4294967294"
+  errors:
+    expected:
+     - "bondethernet .* has instance .* which is too large"
+    count: 1
+---
+bondethernets:
+  BondEthernet4294967294:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+  BondEthernet4294967295:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 1500
+  GigabitEthernet1/0/1:
+    mtu: 1500
+
+  GigabitEthernet2/0/0:
+    mtu: 1500
+  GigabitEthernet2/0/1:
+    mtu: 1500
+
+  BondEthernet4294967294:
+    description: "Cool"
+
+  BondEthernet4294967295:
+    description: "Not cool"
