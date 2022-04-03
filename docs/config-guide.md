@@ -188,3 +188,78 @@ vxlan_tunnels:
 ```
 
 ### Interfaces
+
+Interfaces and their sub-interfaces are configured very similarly. Interface names MUST either
+exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `BondEthernetN` or
+`vxlan_tunnel0` device. The configuration allows the following fields:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***lcp***: A Linux Control Plane interface pair _LIP_. If specified, the interface will be
+    presented in Linux under this name. Its name may be at most 15 characters long, and match
+    the regular expression `[a-z]+[a-z0-9-]*`. In sub-interfaces, a _LIP_ may only be specified
+    if its direct parent has an _LIP_ as well. In the case of a QinQ or QinAD sub-interface, there
+    must exist an intermediary interface with the correct encapsulation, and it too must have a
+    _LIP_.
+*   ***mtu***: An integer value between [128,9216], noting the MTU of the interface. The MTU for
+    a PHY will be set as its Max Frame Size in addition to its packet MTU. Parents must always have
+    a larger MTU than any of their children (this is done to satisfy Linux Control Plane).
+*   ***addresses***: A list of between one and six IPv4 or IPv6 addresses including prefixlen
+    in CIDR format. VPP requires IP addresses to be unique in the entire dataplane, with one
+    notable exception: Multiple IP addresses in the same prefix/len can be added on one and the
+    same interface.
+*   ***l2xc***: A Layer2 Cross Connect interface name. An `l2xc` will be configured, after which
+    this interface cannot have any L3 configuration (IP addresses or LCP), and neither can the
+    target interface.
+
+Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
+to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further
+allow the following field:
+*   ***encapsulation***: An encapsulation for the sub-interface:
+    *   ***dot1q***: An outer Dot1Q tag, an integer between [1,4096).
+    *   ***dot1ad***: An outer Dot1AD tag, an integer between [1,4096).
+    *   ***inner-dot1q***: An inner Dot1Q tag, an integer between [1,4096).
+    *   ***exact-match***: A boolean, signalling the sub-interface should match on the exact number
+        of tags specified. This is required for any L3 interface (carrying an IP address or LCP),
+        but allowed to be False for L2 interfaces (ie. bridge-domain members or L2XC targets).
+    *   It is forbidden to specify both `dot1q` and `dot1ad` field.
+
+Examples:
+```
+interfaces:
+  HundredGigabitEthernet12/0/0:
+    lcp: "ice0"
+    mtu: 9000
+    addresses: [ 192.0.2.1/30, 2001:db8:1::1/64 ]
+    sub-interfaces:
+      1234:
+        mtu: 9000
+        lcp: "ice0.dot1q"
+        addresses: [ 192.0.2.5/30, 2001:db8:2::1/64 ]
+      1235:
+        mtu: 1500
+        lcp: "ice0.qinq"
+        addresses: [ 192.0.2.9/30, 2001:db8:3::1/64 ]
+        encapsulation:
+          dot1q: 1234
+          inner-dot1q: 1000
+          exact-match: True
+
+  BondEthernet0:
+    mtu: 9000
+    lcp: "bond0"
+    sub-interfaces:
+      100:
+        mtu: 2500
+        l2xc: BondEthernet0.200
+        encapsulation:
+           dot1q: 100
+           exact-match: False
+      200:
+        mtu: 2500
+        l2xc: BondEthernet0.100
+        encapsulation:
+           dot1q: 200
+           exact-match: False
+```
