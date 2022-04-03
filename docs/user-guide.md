@@ -37,10 +37,12 @@ the built-in default schema). Any violations will be shown in the ERROR log. A s
 run will look like this:
 
 ```
-$ ./vppcfg check -c example.yaml
+$ ./vppcfg check -c example.yaml && echo OK
 [INFO    ] root.main: Loading configfile example.yaml
 [INFO    ] vppcfg.config.valid_config: Configuration validated successfully
 [INFO    ] root.main: Configuration is valid
+OK
+
 $ echo $?
 0
 ```
@@ -55,13 +57,11 @@ interfaces:
     descr: "the proper field name is description"
     mtu: 127
 
-$ ./vppcfg check -c yamale-invalid.yaml 
+$ ./vppcfg check -c yamale-invalid.yaml && echo OK
 [INFO    ] root.main: Loading configfile yamale-invalid.yaml
 [ERROR   ] vppcfg.config.valid_config: yamale: interfaces.GigabitEthernet1/0/0.descr: Unexpected element
 [ERROR   ] vppcfg.config.valid_config: yamale: interfaces.GigabitEthernet1/0/0.mtu: 127 is less than 128
 [ERROR   ] root.main: Configuration is not valid, bailing
-$ echo $?
-254
 ```
 
 Some configurations may be syntactically correct but still can't be applied, because they
@@ -89,15 +89,14 @@ bridgedomains:
   bd1:
     mtu: 9000
     interfaces: [ GigabitEthernet3/0/1 ]
-$ ./vppcfg check -c semantic-invalid.yaml 
+
+$ ./vppcfg check -c semantic-invalid.yaml && echo OK
 [INFO    ] root.main: Loading configfile semantic-invalid.yaml
 [ERROR   ] vppcfg.config.valid_config: sub-interface GigabitEthernet3/0/0.100 has an address but its encapsulation is not exact-match
 [ERROR   ] vppcfg.config.valid_config: interface GigabitEthernet3/0/1 is in L2 mode but has an address
 [ERROR   ] vppcfg.config.valid_config: bridgedomain bd1 member GigabitEthernet3/0/1 has an address
 [ERROR   ] vppcfg.config.valid_config: bridgedomain bd1 member GigabitEthernet3/0/1 has MTU 1500, while bridge has 9000
 [ERROR   ] root.main: Configuration is not valid, bailing
-$ echo $?
-254
 ```
 
 In general, it's good practice to check the validity of a YAML file before attempting to
