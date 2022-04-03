@@ -502,12 +502,16 @@ def validate_interfaces(yaml):
                     elif not get_lcp(yaml, mid_ifname):
                         msgs.append("sub-interface %s is QinX and has LCP name %s but %s does not have an LCP" % (sub_ifname, sub_lcp, mid_ifname))
                         result = False
-                if sub_lcp and 'encapsulation' in sub_iface and 'exact-match' in sub_iface['encapsulation'] and not sub_iface['encapsulation']['exact-match']:
+
+                encap = get_encapsulation(yaml, sub_ifname)
+                if sub_lcp and (not encap or not encap['exact-match']):
                     msgs.append("sub-interface %s has LCP name %s but its encapsulation is not exact-match" % (sub_ifname, sub_lcp))
                     result = False
 
-
                 if has_address(yaml, sub_ifname):
+                    if not encap or not encap['exact-match']:
+                        msgs.append("sub-interface %s has an address but its encapsulation is not exact-match" % (sub_ifname))
+                        result = False
                     if is_l2(yaml, sub_ifname):
                         msgs.append("sub-interface %s is in L2 mode but has an address" % sub_ifname)
                         result = False
