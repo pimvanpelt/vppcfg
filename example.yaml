@@ -1,77 +1,88 @@
 bondethernets:
   BondEthernet0:
-    description: "Infra: xsw0.lab.ipng.ch LACP"
-    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
 
 interfaces:
-  GigabitEthernet1/0/0:
-    description: "Infra: nikhef-core-1.nl.switch.coloclue.net e1/34"
-    lcp: "e0-0"
-    addresses: [ 94.142.244.85/24, 2A02:898::146:1/64 ]
-    sub-interfaces:
-      100:
-        description: "Cust: hvn0.nlams0.ipng.ch"
-        lcp: "e0-0.100"
-        addresses: [ 94.142.241.185/29, 2a02:898:146::1/64 ]
-      101:
-        description: "Infra: L2 for FrysIX AS112"
-
-  GigabitEthernet1/0/1:
-    lcp: "e0-1"
-
-  GigabitEthernet2/0/0:
-    description: "Infra: LAG to xsw0"
-
-  GigabitEthernet2/0/1:
-    description: "Infra: LAG to xsw1"
-
   GigabitEthernet3/0/0:
-    description: "Infra: Bridge Domain 10"
-
+    mtu: 9000
+    description: "LAG #1"
   GigabitEthernet3/0/1:
-    l2xc: BondEthernet0.204
+    mtu: 9000
+    description: "LAG #2"
+
+  HundredGigabitEthernet12/0/0:
+    lcp: "ice12-0-0"
+    mtu: 9000
+    addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]
+    sub-interfaces:
+      1234:
+        mtu: 1200
+        lcp: "ice0.1234"
+        encapsulation:
+          dot1q: 1234
+          exact-match: True
+      1235:
+        mtu: 1100
+        lcp: "ice0.1234.1000"
+        encapsulation:
+          dot1q: 1234
+          inner-dot1q: 1000
+          exact-match: True
+
+  HundredGigabitEthernet12/0/1:
+    mtu: 2000
+    description: "Bridged"
 
   BondEthernet0:
-    description: "Bond, James Bond!"
-    mac: 00:01:02:03:04:05
+    mtu: 9000
     lcp: "bond0"
     sub-interfaces:
+      10:
+        lcp: "bond0.10"
+        mtu: 3000
+      100:
+        mtu: 2500
+        l2xc: BondEthernet0.200
+        encapsulation:
+           dot1q: 100
+           exact-match: False
       200:
-        lcp: "bond0.1000"
+        mtu: 2500
+        l2xc: BondEthernet0.100
         encapsulation:
-          dot1q: 1000
-          exact-match: True
-      201:
+           dot1q: 200
+           exact-match: False
+      500:
+        mtu: 2000
         encapsulation:
-          dot1ad: 1000
-      202:
-        lcp: "bond0.1000.1234"
+           dot1ad: 500
+           exact-match: False
+      501:
+        mtu: 2000
         encapsulation:
-          dot1q: 1000
-          inner-dot1q: 1234
-          exact-match: True
-        addresses: [ 192.168.1.1/24 ]
-      203:
-        encapsulation:
-          dot1ad: 1000
-          inner-dot1q: 1000
-      204:
-        encapsulation:
-          dot1ad: 1001
-          inner-dot1q: 1001
-        l2xc: GigabitEthernet3/0/1
+           dot1ad: 501
+           exact-match: False
+  vxlan_tunnel1:
+    mtu: 2000
 
 loopbacks:
   loop0:
-    description: "Core: example.ipng.ch"
-    mtu: 9216
-    lcp: "loop0"
-    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+    lcp: "lo0"
+    addresses: [ 10.0.0.1/32, 2001:db8::1/128 ]
   loop1:
-    description: "Another loop"
+    lcp: "bvi1"
+    addresses: [ 10.0.1.1/24, 2001:db8:1::1/64 ]
 
 bridgedomains:
-  bd10:
-    description: "Bridge Domain 10"
+  bd1:
+    mtu: 2000
+    bvi: loop1
+    interfaces: [ BondEthernet0.500, BondEthernet0.501, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
+  bd11:
     mtu: 1500
-    interfaces: [ BondEthernet0.203, GigabitEthernet3/0/0 ]
+
+vxlan_tunnels:
+  vxlan_tunnel1:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 101
