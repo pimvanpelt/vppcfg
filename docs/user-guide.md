@@ -104,7 +104,8 @@ $ vppcfg check -c semantic-invalid.yaml && echo OK
 
 In general, it's good practice to check the validity of a YAML file before attempting to
 offer it for reconciliation. `vppcfg` will make no guarantees in case its input is not
-fully valid!
+fully valid! For a full write up of the syntax and semantic validation, see
+[this post](https://ipng.ch/s/articles/2022/03/27/vppcfg-1.html).
 
 ### vppcfg dump
 
@@ -152,4 +153,69 @@ $ vppcfg dump
 
 ### vppcfg plan
 
+The purpose of the **plan** module, is to read a configuration file given by the `-c/--config`
+flag, ensure it is valid (see the **check** module for details), then connect to the running
+VPP instance, retrieve its dataplane configuration into an in-memory cache, and plan a path
+from the currently running dataplane configuration to the target configuration given in the
+YAML file.
+
+*Note*: The planner will read the VPP runtime state exactly once at startup, and it will not
+make any changes to the dataplane. This operation is safe to run.
+
+After it reads the YAML target config and the currently running dataplane config from VPP, it
+will plan a path to get into the desired target config. It does this in three phases:
+
+***Pruning***: First, vppcfg will ensure all objects do not have attributes which they should not
+(eg. IP addresses) and that objects are destroyed that are not needed (ie. have been removed from
+the target config). After this phase, I am certain that any object that exists in the dataplane,
+both (a) has the right to exist (because it’s in the target configuration), and (b) has the correct
+create-time (ie non syncable) attributes.
+
+***Creating***: Next, vppcfg will ensure that all objects that are not yet present (including the
+ones that it just removed because they were present but had incorrect attributes), get (re)created
+in the right order. After this phase, I am certain that all objects in the dataplane now (a) have
+the right to exist (because they are in the target configuration), (b) have the correct attributes,
+but newly, also that (c) all objects that are in the target configuration also got created and now
+exist in the dataplane.
+
+***Syncing***: Finally, all objects are synchronized with the target configuration (IP addresses,
+MTU etc), taking care to shrink children before their parents, and growing parents before their
+children (this is for the special case of any given sub-interface’s MTU having to be equal to or
+lower than their parent’s MTU).
+
+If no further flags are given, planning output is given to stdout. Optionally an output file
+can be specified by calling with the `-o/--output` flag. The contents of the output is
+a set of CLI commands that could be pasted into a `vppctl` shell in the order they are presented.
+Alternatively, the output file can be consumed by VPP by issuing `vppctl exec <filename>`, noting
+that the filename has to be an absolute path.
+
+Users are not encouraged to program VPP this way (see the **apply** module for that), however
+for the sake of completeness:
+
+```
+$ vppcfg plan -c example.yaml -o example.exec
+[INFO    ] root.main: Loading configfile example.yaml
+[INFO    ] vppcfg.config.valid_config: Configuration validated successfully
+[INFO    ] root.main: Configuration is valid
+[INFO    ] vppcfg.vppapi.connect: VPP version is 22.06-rc0~320-g8f60318ac
+[INFO    ] vppcfg.reconciler.write: Wrote 78 lines to example.exec
+[INFO    ] root.main: Planning succeeded
+
+$ vppctl exec ~/src/vppcfg/example.exec 
+
+$ vppcfg plan -c example.yaml
+[INFO    ] root.main: Loading configfile example.yaml
+[INFO    ] vppcfg.config.valid_config: Configuration validated successfully
+[INFO    ] root.main: Configuration is valid
+[INFO    ] vppcfg.vppapi.connect: VPP version is 22.06-rc0~320-g8f60318ac
+[INFO    ] vppcfg.reconciler.write: Wrote 0 lines to (stdout)
+[INFO    ] root.main: Planning succeeded
+```
+
+For an in-depth discussion on path-planning and how `vppcfg` operates, see
+[this post](https://ipng.ch/s/articles/2022/04/02/vppcfg-2.html).
+
 ### vppcfg apply
+
+Applying state is not (yet) implemented. Don't worry, it's not much work, but this is punted until
+developer community feedback is reviewed :-)
