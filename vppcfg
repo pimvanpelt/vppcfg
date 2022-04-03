@@ -40,6 +40,7 @@ def main():
     check_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
 
     dump_p = subparsers.add_parser('dump', help="dump current running VPP configuration (VPP readonly)")
+    dump_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for YAML config, default stdout""")
 
     plan_p = subparsers.add_parser('plan', help="plan changes from current VPP dataplane to target config (VPP readonly)")
     plan_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
@@ -68,7 +69,7 @@ def main():
         if not d.readconfig():
             logging.error("Could not retrieve config from VPP")
             sys.exit(-7)
-        d.dump()
+        d.write(args.outfile)
         sys.exit(0)
 
     try:

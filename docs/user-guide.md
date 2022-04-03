@@ -110,15 +110,20 @@ fully valid! For a full write up of the syntax and semantic validation, see
 ### vppcfg dump
 
 The purpose of the **dump** module is to connect to the VPP dataplane, and retrieve its
-state, printing most information found in the INFO logs. Although it does contact VPP, it
+state, emitting the configuration as a YAML file. Although it does contact VPP, it
 will perform *readonly* operations and never manipulate state in the dataplane, so it
 should be safe to run.
 
-There are no flags to the dump command. It will return 0 if the connection to VPP was
-established and its state successfully dumped to the logs, and non-zero otherwise.
+If the flag `-o/--output` is given, the resulting YAML is written to that filename, but
+if it is not given, the output will be written to stdout. It will return 0 if the connection
+to VPP was established and its state successfully dumped to the logs, and non-zero otherwise.
 
 Use of the **dump** command can be done even if the dataplane was configured outside of
-`vppcfg`, in other words, the following can be done:
+`vppcfg`, although some non-supported scenarios (for example, sub-interfaces on loopbacks)
+will be flagged as warnings. If warnings or errors are reported, the YAML file cannot be
+assumed safe. Conversely, if no warnings/errors are logged, the resulting YAML should be
+a good representation of the dataplane state, as far as `vppcfg` is concerned. A good way
+to confirm that is to subsequently run the output file back into `vppcfg check`.
 
 ```
 $ vppcfg dump || echo "Not a hoopy frood"
@@ -132,23 +137,47 @@ DBGvpp# set interface ip address GigabitEthernet3/0/0.100 2001:db8:1::1/64
 DBGvpp# create bridge-domain 10
 DBGvpp# set interface l2 bridge HundredGigabitEthernet12/0/0 10
 
-$ vppcfg dump
+$ vppcfg dump -o vpp.yaml
 [INFO    ] vppcfg.vppapi.connect: VPP version is 22.06-rc0~320-g8f60318ac
-[INFO    ] vppcfg.vppapi.dump_phys: GigabitEthernet3/0/0 idx=1
-[INFO    ] vppcfg.vppapi.dump_phys: GigabitEthernet3/0/1 idx=2
-[INFO    ] vppcfg.vppapi.dump_phys: HundredGigabitEthernet12/0/0 idx=3
-[INFO    ] vppcfg.vppapi.dump_phys: HundredGigabitEthernet12/0/1 idx=4
-[INFO    ] vppcfg.vppapi.dump_interfaces: local0 idx=0 type=local mac=00:00:00:00:00:00 mtu=0 flags=0
-[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/0 idx=1 type=dpdk mac=00:25:90:0c:05:00 mtu=9000 flags=2
-[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/1 idx=2 type=dpdk mac=00:25:90:0c:05:01 mtu=9000 flags=2
-[INFO    ] vppcfg.vppapi.dump_interfaces: HundredGigabitEthernet12/0/0 idx=3 type=dpdk mac=b4:96:91:b3:b1:10 mtu=8996 flags=0
-[INFO    ] vppcfg.vppapi.dump_interfaces: HundredGigabitEthernet12/0/1 idx=4 type=dpdk mac=b4:96:91:b3:b1:11 mtu=8996 flags=0
-[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/0.100 idx=5 type=dpdk mac=00:00:00:00:00:00 mtu=0 flags=2
-[INFO    ] vppcfg.vppapi.dump_interfaces:   Encapsulation: dot1q 100 exact-match
-[INFO    ] vppcfg.vppapi.dump_interfaces:   L3: 2001:db8:1::1/64
-[INFO    ] vppcfg.vppapi.dump_subints: GigabitEthernet3/0/0.100 tags=1 idx=5 encap=dot1q 100 exact-match
-[INFO    ] vppcfg.vppapi.dump_bridgedomains: BridgeDomain10
-[INFO    ] vppcfg.vppapi.dump_bridgedomains:   Members: HundredGigabitEthernet12/0/0
+[INFO    ] vppcfg.vppapi.write: Wrote YAML config to vpp.yaml
+
+$ cat vpp.yaml
+bondethernets: {}
+bridgedomains:
+  bd10:
+    description: ''
+    interfaces:
+    - HundredGigabitEthernet12/0/0
+    mtu: 8996
+interfaces:
+  GigabitEthernet3/0/0:
+    description: ''
+    mtu: 9000
+    sub-interfaces:
+      100:
+        addresses:
+        - 2001:db8:1::1/64
+        description: ''
+        encapsulation:
+          dot1q: 100
+          exact-match: true
+        mtu: 9000
+  GigabitEthernet3/0/1:
+    description: ''
+    mtu: 9000
+  HundredGigabitEthernet12/0/0:
+    description: ''
+    mtu: 8996
+  HundredGigabitEthernet12/0/1:
+    description: ''
+    mtu: 8996
+loopbacks: {}
+vxlan_tunnels: {}
+
+$ vppcfg check -c vpp.yaml
+[INFO    ] root.main: Loading configfile vpp.yaml
+[INFO    ] vppcfg.config.valid_config: Configuration validated successfully
+[INFO    ] root.main: Configuration is valid
 ```
 
 ### vppcfg plan

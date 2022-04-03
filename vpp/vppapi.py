@@ -5,9 +5,11 @@ interface metadata.
 
 from vpp_papi import VPPApiClient
 import os
+import sys
 import fnmatch
 import logging
 import socket
+import yaml
 
 class VPPApi():
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
@@ -211,18 +213,6 @@ class VPPApi():
         self.cache_read = True
         return self.cache_read
 
-    def get_encapsulation(self, iface):
-        """ Return a string with the encapsulation of a subint """
-        encap = "dot1q"
-        if iface.sub_if_flags & 8:
-            encap = "dot1ad"
-        encap += " %d" % iface.sub_outer_vlan_id
-        if iface.sub_inner_vlan_id> 0:
-            encap += " inner-dot1q %d" % iface.sub_inner_vlan_id
-        if iface.sub_if_flags & 16:
-            encap += " exact-match"
-        return encap
-
     def phys_exist(self, ifname_list):
         """ Return True if all interfaces in the `ifname_list` exist as physical interface names
         in VPP. Return False otherwise."""
@@ -271,73 +261,107 @@ class VPPApiDumper(VPPApi):
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
         VPPApi.__init__(self, address, clientname)
 
-    def dump(self):
-        self.dump_phys()
-        self.dump_interfaces()
-        self.dump_subints()
-        self.dump_bridgedomains()
+    def write(self, outfile):
+        if outfile and outfile == '-':
+            fh = sys.stdout
+            outfile = "(stdout)"
+        else:
+            fh = open(outfile, 'w')
 
-    def dump_phys(self):
-        phys = self.get_phys()
-        for ifname in phys:
-            iface = self.cache['interface_names'][ifname]
-            self.logger.info("%s idx=%d" % (iface.interface_name, iface.sw_if_index))
+        config = self.cache_to_config()
 
-    def dump_subints(self):
-        subints = self.get_qinx_interfaces()
-        for ifname in subints:
-            iface = self.cache['interface_names'][ifname]
-            self.logger.info("%s tags=2 idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
+        print(yaml.dump(config), file=fh)
 
-        subints = self.get_dot1x_interfaces()
-        for ifname in subints:
-            iface = self.cache['interface_names'][ifname]
-            self.logger.info("%s tags=1 idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
+        if fh is not sys.stdout:
+            fh.close()
+        self.logger.info("Wrote YAML config to %s" % (outfile))
 
-    def dump_bridgedomains(self):
-        for bd_id, bridge in self.cache['bridgedomains'].items():
-            self.logger.info("BridgeDomain%d" % (bridge.bd_id))
-            if bridge.bvi_sw_if_index > 0 and bridge.bvi_sw_if_index < 2**32-1 :
-                self.logger.info("  BVI: " + self.cache['interfaces'][bridge.bvi_sw_if_index].interface_name)
-        
+    def cache_to_config(self):
+        config = {"loopbacks": {}, "bondethernets": {}, "interfaces": {}, "bridgedomains": {}, "vxlan_tunnels": {} }
+        for idx, iface in self.cache['bondethernets'].items():
+            bond = {"description": ""}
+            if iface.sw_if_index in self.cache['bondethernet_members']:
+                bond['interfaces'] = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
+            config['bondethernets'][iface.interface_name] = bond
+
+        for numtags in [ 0, 1, 2 ]:
+            for idx, iface in self.cache['interfaces'].items():
+                if iface.sub_number_of_tags != numtags:
+                    continue
+
+                if iface.interface_dev_type=='Loopback':
+                    if iface.sub_id > 0:
+                        self.logger.warning("Refusing to export sub-interfaces of loopback devices (%s)" % iface.interface_name)
+                        continue
+                    loop = {"description": ""}
+                    loop['mtu'] = iface.mtu[0]
+                    if iface.sw_if_index in self.cache['lcps']:
+                        loop['lcp'] = self.cache['lcps'][iface.sw_if_index].host_if_name
+                    if iface.sw_if_index in self.cache['interface_addresses']:
+                        if len(self.cache['interface_addresses'][iface.sw_if_index]) > 0:
+                            loop['addresses'] = self.cache['interface_addresses'][iface.sw_if_index]
+                    config['loopbacks'][iface.interface_name] = loop
+                elif iface.interface_dev_type in ['bond', 'VXLAN', 'dpdk']:
+                    i = {"description": "" }
+                    if iface.sw_if_index in self.cache['lcps']:
+                        i['lcp'] = self.cache['lcps'][iface.sw_if_index].host_if_name
+                    if iface.sw_if_index in self.cache['interface_addresses']:
+                        if len(self.cache['interface_addresses'][iface.sw_if_index]) > 0:
+                            i['addresses'] = self.cache['interface_addresses'][iface.sw_if_index]
+                    if iface.sw_if_index in self.cache['l2xcs']:
+                        l2xc = self.cache['l2xcs'][iface.sw_if_index]
+                        i['l2xc'] = self.cache['interfaces'][l2xc.tx_sw_if_index].interface_name
+                    i['mtu'] = iface.mtu[0]
+                    if iface.sub_number_of_tags == 0:
+                        config['interfaces'][iface.interface_name] = i
+                        continue
+    
+                    encap = {}
+                    if iface.sub_if_flags&8:
+                        encap['dot1ad'] = iface.sub_outer_vlan_id
+                    else:
+                        encap['dot1q'] = iface.sub_outer_vlan_id
+                    if iface.sub_inner_vlan_id > 0:
+                        encap['inner-dot1q'] = iface.sub_inner_vlan_id
+                    encap['exact-match'] = bool(iface.sub_if_flags&16)
+                    i['encapsulation'] = encap
+
+                    sup_iface = self.cache['interfaces'][iface.sup_sw_if_index]
+                    if iface.mtu[0] > 0:
+                        i['mtu'] = iface.mtu[0]
+                    else:
+                        i['mtu'] = sup_iface.mtu[0]
+                    if not 'sub-interfaces' in config['interfaces'][sup_iface.interface_name]:
+                        config['interfaces'][sup_iface.interface_name]['sub-interfaces'] = {}
+                    config['interfaces'][sup_iface.interface_name]['sub-interfaces'][iface.sub_id] = i
+
+        for idx, iface in self.cache['vxlan_tunnels'].items():
+            vpp_iface = self.cache['interfaces'][iface.sw_if_index]
+            vxlan = { "description": "",
+                    "vni": int(iface.vni),
+                    "local": str(iface.src_address),
+                    "remote": str(iface.dst_address) }
+            config['vxlan_tunnels'][vpp_iface.interface_name] = vxlan
+
+        for idx, iface in self.cache['bridgedomains'].items():
+            # self.logger.info("%d: %s" % (idx, iface))
+            bridge_name = "bd%d" % idx
+            mtu = 1500
+            bridge = {"description": ""}
+            bvi = None
+            if iface.bvi_sw_if_index != 2**32-1:
+                bvi = self.cache['interfaces'][iface.bvi_sw_if_index]
+                mtu = bvi.mtu[0]
+                bridge['bvi'] = bvi.interface_name
             members = []
-            for member in bridge.sw_if_details:
+            for member in iface.sw_if_details:
+                if bvi and bvi.interface_name == self.cache['interfaces'][member.sw_if_index].interface_name == bvi.interface_name:
+                    continue
                 members.append(self.cache['interfaces'][member.sw_if_index].interface_name)
+                mtu = self.cache['interfaces'][member.sw_if_index].mtu[0]
             if len(members) > 0:
-                self.logger.info("  Members: " + ' '.join(members))
-        
-    def dump_interfaces(self):
-        for idx, iface in self.cache['interfaces'].items():
-            self.logger.info("%s idx=%d type=%s mac=%s mtu=%d flags=%d" % (iface.interface_name,
-                iface.sw_if_index, iface.interface_dev_type, iface.l2_address,
-                iface.mtu[0], iface.flags))
-        
-            if iface.interface_dev_type=='bond' and iface.sub_id == 0 and iface.sw_if_index in self.cache['bondethernet_members']:
-                members = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
-                self.logger.info("  Members: %s" % ' '.join(members))
-            if iface.interface_dev_type=="VXLAN":
-                vxlan = self.cache['vxlan_tunnels'][iface.sw_if_index]
-                self.logger.info("  VXLAN: %s:%d -> %s:%d VNI %d" % (vxlan.src_address, vxlan.src_port,
-                    vxlan.dst_address, vxlan.dst_port, vxlan.vni))
-        
-            if iface.sub_id > 0:
-                self.logger.info("  Encapsulation: %s" % (self.get_encapsulation(iface)))
-        
-            if iface.sw_if_index in self.cache['lcps']:
-                lcp = self.cache['lcps'][iface.sw_if_index]
-                tap_name = self.cache['interfaces'][lcp.host_sw_if_index].interface_name
-                tap_idx = lcp.host_sw_if_index
-                self.logger.info("  LCP: %s (tap=%s idx=%d netns=%s)" % (lcp.host_if_name, tap_name, tap_idx, lcp.namespace))
-        
-            if len(self.cache['interface_addresses'][iface.sw_if_index])>0:
-                self.logger.info("  L3: %s" % ' '.join(self.cache['interface_addresses'][iface.sw_if_index]))
-        
-            if iface.sw_if_index in self.cache['l2xcs']:
-                l2xc = self.cache['l2xcs'][iface.sw_if_index]
-                self.logger.info("  L2XC: %s" % self.cache['interfaces'][l2xc.tx_sw_if_index].interface_name)
-        
-            for bd_id, bridge in self.cache['bridgedomains'].items():
-                if bridge.bvi_sw_if_index == iface.sw_if_index:
-                    self.logger.info("  BVI: BridgeDomain%d" % (bd_id))
-        
-            pass
+                bridge['interfaces'] = members
+            bridge['mtu'] = mtu
+            config['bridgedomains'][bridge_name] = bridge
+
+        return config
