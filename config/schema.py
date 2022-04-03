@@ -1,6 +1,20 @@
-### NOTE(pim): This file is the source of truth for the Yamale schema validator.
-###            Make sure to copy this file into config/schema.py's yamale_schema
-###            when it is changed here.
+#
+# Copyright (c) 2022 Pim van Pelt
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+### NOTE(pim): The source of truth of this string lives in ../schema.yaml
+###            Make sure to include it here, verbatim, if it ever changes.
+yamale_schema = r"""
 interfaces: map(include('interface'),key=str(),required=False)
 bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'),required=False)
 loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
@@ -51,3 +65,4 @@ encapsulation:
   dot1ad: int(min=1,max=4095,required=False)
   inner-dot1q: int(min=1,max=4095,required=False)
   exact-match: bool(required=False)
+"""

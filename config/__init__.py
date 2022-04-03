@@ -30,6 +30,7 @@ from config.bondethernet import validate_bondethernets
 from config.interface import validate_interfaces
 from config.bridgedomain import validate_bridgedomains
 from config.vxlan_tunnel import validate_vxlan_tunnels
+from config.schema import yamale_schema
 
 from yamale.validators import DefaultValidators, Validator
 import ipaddress
@@ -73,23 +74,24 @@ class Validator(object):
         if not yaml:
             return ret_rv, ret_msgs
 
-        if self.schema:
-            try:
+        try:
+            validators = DefaultValidators.copy()
+            validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
+            if self.schema:
                 self.logger.debug("Validating against schema %s" % self.schema)
-                validators = DefaultValidators.copy()
-                validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
                 schema = yamale.make_schema(self.schema, validators=validators)
-                data = yamale.make_data(content=str(yaml))
-                yamale.validate(schema, data)
-                self.logger.debug("Schema correctly validated by yamale")
-            except ValueError as e:
-                ret_rv = False
-                for result in e.results:
-                    for error in result.errors:
-                        ret_msgs.extend(['yamale: %s' % error])
-                return ret_rv, ret_msgs
-        else:
-            self.logger.warning("Schema validation disabled")
+            else:
+                self.logger.debug("Validating against built-in schema")
+                schema = yamale.make_schema(content=yamale_schema, validators=validators)
+            data = yamale.make_data(content=str(yaml))
+            yamale.validate(schema, data)
+            self.logger.debug("Schema correctly validated by yamale")
+        except ValueError as e:
+            ret_rv = False
+            for result in e.results:
+                for error in result.errors:
+                    ret_msgs.extend(['yamale: %s' % error])
+            return ret_rv, ret_msgs
 
         self.logger.debug("Validating Semantics...")
 

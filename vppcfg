@@ -36,18 +36,18 @@ def main():
 
     subparsers = parser.add_subparsers(dest='command')
     check_p = subparsers.add_parser('check', help="check given YAML config for validity (no VPP)")
-    check_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    check_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
     check_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
 
     dump_p = subparsers.add_parser('dump', help="dump current running VPP configuration (VPP readonly)")
 
     plan_p = subparsers.add_parser('plan', help="plan changes from current VPP dataplane to target config (VPP readonly)")
-    plan_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    plan_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
     plan_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
     plan_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for VPP CLI commands, default stdout""")
 
     apply_p = subparsers.add_parser('apply', help="apply changes from current VPP dataplane to target config")
-    apply_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    apply_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
     apply_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
 
     args = parser.parse_args()
