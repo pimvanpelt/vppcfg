@@ -61,8 +61,9 @@ def validate_loopbacks(yaml):
 
     for ifname, iface in yaml['loopbacks'].items():
         logger.debug("loopback %s" % iface)
-        if 'addresses' in iface and not 'lcp' in iface:
-            msgs.append("loopback %s has an address but no LCP" % ifname)
+        instance = int(ifname[4:])
+        if instance > 4095:
+            msgs.append("loopback %s has instance %d which is too large" % (ifname, instance))
             result = False
         if 'lcp' in iface and not lcp.is_unique(yaml, iface['lcp']):
             msgs.append("loopback %s does not have a unique LCP name %s" % (ifname, iface['lcp']))

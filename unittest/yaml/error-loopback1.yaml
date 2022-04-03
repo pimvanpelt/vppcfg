@@ -1,12 +1,12 @@
 test:
-  description: "Cannot give an IP address to a loopback without LCP"
+  description: "Loopback instances must be between 0 and 4095"
   errors:
     expected:
-     - "loopback .* has an address but no LCP"
+     - "loopback .* has instance 4096 which is too large"
     count: 1
 ---
 loopbacks:
-  loop10:
-    description: "Loopback instance loop10, with address, but no LCP"
-    mtu: 9216
-    addresses: [ 192.0.2.1/29 ]
+  loop4095:
+    description: "Cool."
+  loop4096:
+    description: "Not cool."

@@ -99,6 +99,10 @@ def validate_bridgedomains(yaml):
         if instance == 0:
             msgs.append("bridgedomain %s is reserved" % ifname)
             result = False
+        elif instance > 16777215:
+            msgs.append("bridgedomain %s has instance %d which is too large" % (ifname, instance))
+            result = False
+
         if 'bvi' in iface:
             bviname = iface['bvi']
             if (None,None) == loopback.get_by_name(yaml, bviname):

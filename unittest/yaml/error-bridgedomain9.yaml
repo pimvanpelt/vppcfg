@@ -1,0 +1,15 @@
+test:
+  description: "BridgeDomain instance must be between 1 and 16M"
+  errors:
+    expected:
+     - "bridgedomain bd0 is reserved"
+     - "bridgedomain .* has instance .* which is too large"
+    count: 2
+---
+bridgedomains:
+  bd0:
+    description: "Reserved in VPP"
+  bd16777215:
+    description: "Cool."
+  bd16777216:
+    description: "Not cool."
