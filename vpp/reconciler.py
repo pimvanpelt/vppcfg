@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 # -*- coding: utf-8 -*-
+import sys
 import logging
 import config.loopback as loopback
 import config.interface as interface
@@ -103,10 +104,6 @@ class Reconciler():
         if not self.prune_phys():
             self.logger.warning("Could not prune PHYs from VPP")
             ret = False
-
-        for cli in self.cli['prune']:
-            print(cli)
-
         return ret
 
     def prune_addresses(self, ifname, address_list):
@@ -561,8 +558,6 @@ class Reconciler():
         if not self.create_lcps():
             self.logger.warning("Could not create LCPs in VPP")
             ret = False
-        for cli in self.cli['create']:
-            print(cli)
         return ret
 
     def create_loopbacks(self):
@@ -684,8 +679,6 @@ class Reconciler():
         if not self.sync_admin_state():
             self.logger.warning("Could not sync interface adminstate in VPP")
             ret = False
-        for cli in self.cli['sync']:
-            print(cli)
         return ret
 
     def sync_bondethernets(self):
@@ -937,3 +930,34 @@ class Reconciler():
             cli="set interface state %s %s" % (vpp_ifname, state)
             self.cli['sync'].append(cli);
         return True
+
+    def write(self, outfile, ok=False):
+        """ Emit the CLI contents to stdout (if outfile=='-') or a named file otherwise.
+            If the 'ok' flag is False, emit a warning at the top and bottom of the file.
+        """
+        # Assemble the intended output into a list
+        output = []
+        if not ok:
+            output.append("comment { vppcfg: Planning failed, be careful with this output! }")
+
+        for phase in [ "prune", "create", "sync" ]:
+            n = len(self.cli[phase])
+            if n > 0:
+                output.append("comment { vppcfg %s: %d CLI statement(s) follow }" % (phase, n))
+                output.extend(self.cli[phase])
+
+        if not ok:
+            output.append("comment { vppcfg: Planning failed, be careful with this output! }")
+
+        # Emit the output list to stdout or a file
+        if outfile and outfile == '-':
+            fh = sys.stdout
+            outfile = "(stdout)"
+        else:
+            fh = open(outfile, 'w')
+        if len(output) > 0:
+            print('\n'.join(output), file=fh)
+        if fh is not sys.stdout:
+            fh.close()
+
+        self.logger.info("Wrote %d lines to %s" % (len(output), outfile))

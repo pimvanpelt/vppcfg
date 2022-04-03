@@ -50,6 +50,8 @@ def main():
     if args.quiet:
         level = logging.WARNING
     logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
+    if not args.command:
+        args.command="check" ## Default check-only
 
     try:
         with open(args.config, "r") as f:
@@ -105,6 +107,8 @@ def main():
             sys.exit(-30)
         failed = True
         logging.warning("Planning sync failure, continuing due to --force")
+
+    r.write(args.outfile, ok=not failed)
 
     if failed:
         logging.error("Planning failed")
