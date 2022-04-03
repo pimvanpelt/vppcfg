@@ -111,6 +111,11 @@ number of tags they have, so a simple dot1q sub-interface will be configured as 
 a QinQ or QinAD sub-interface will be configured as `pop 2`. Conversely, when interfaces are
 removed from the bridge, their tag-rewriting will be disabled.
 
+*Caveat*: Currently, bridgedomains are always created with their default attributes in VPP, that
+is to say with learning and unicast forwarding turned on, unknown-unicast flooding enabled,
+and ARP terminating and aging turned off. In a future release, `vppcfg` will give more
+configuration options.
+
 Examples:
 ```
 bridgedomains:
@@ -138,7 +143,7 @@ Note that the configuration object here only specifies the link aggregation and 
 BondEthernets are expected to occur as well in the `interfaces` section, where their sub-interfaces
 and IP addresses and so on are specified.
 
-Caveat: Currently, BondEthernets are always created as `LACP` typed devices with a loadbalance
+*Caveat*: Currently, BondEthernets are always created as `LACP` typed devices with a loadbalance
 strategy of `l34`. In a future release of `vppcfg`, the type and strategy will be configurable.
 
 Examples:
