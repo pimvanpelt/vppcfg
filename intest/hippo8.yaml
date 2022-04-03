@@ -32,6 +32,15 @@ interfaces:
     l2xc: GigabitEthernet3/0/0.100
   vxlan_tunnel11:
     mtu: 3000
+    sub-interfaces:
+      100:
+        mtu: 1500
+      101:
+        mtu: 1500
+        encapsulation:
+          dot1q: 100
+          inner-dot1q: 200
+          exact-match: True
 
 loopbacks:
   loop11:
