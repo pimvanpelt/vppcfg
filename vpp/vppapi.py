@@ -270,7 +270,6 @@ class VPPApi():
 class VPPApiDumper(VPPApi):
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
         VPPApi.__init__(self, address, clientname)
-        self.readconfig()
 
     def dump(self):
         self.dump_phys()
@@ -328,7 +327,7 @@ class VPPApiDumper(VPPApi):
                 lcp = self.cache['lcps'][iface.sw_if_index]
                 tap_name = self.cache['interfaces'][lcp.host_sw_if_index].interface_name
                 tap_idx = lcp.host_sw_if_index
-                self.logger.info("  TAP: %s (tap=%s idx=%d)" % (lcp.host_if_name, tap_name, tap_idx))
+                self.logger.info("  LCP: %s (tap=%s idx=%d netns=%s)" % (lcp.host_if_name, tap_name, tap_idx, lcp.namespace))
         
             if len(self.cache['interface_addresses'][iface.sw_if_index])>0:
                 self.logger.info("  L3: %s" % ' '.join(self.cache['interface_addresses'][iface.sw_if_index]))

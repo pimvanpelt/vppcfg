@@ -108,6 +108,14 @@ fully valid!
 
 ### vppcfg dump
 
+The purpose of the **dump** module is to connect to the VPP dataplane, and retrieve its
+state, printing most information found in the INFO logs. Although it does contact VPP, it
+will perform *readonly* operations and never manipulate state in the dataplane, so it
+should be safe to run.
+
+There are no flags to the dump command. It will return 0 if the connection to VPP was
+established and its state successfully dumped to the logs, and non-zero otherwise.
+
 ### vppcfg plan
 
 ### vppcfg apply

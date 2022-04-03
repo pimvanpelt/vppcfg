@@ -65,6 +65,9 @@ def main():
 
     if args.command=="dump":
         d = VPPApiDumper()
+        if not d.readconfig():
+            logging.error("Could not retrieve config from VPP")
+            sys.exit(-7)
         d.dump()
         sys.exit(0)
 
