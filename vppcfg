@@ -108,7 +108,8 @@ def main():
         failed = True
         logging.warning("Planning sync failure, continuing due to --force")
 
-    r.write(args.outfile, ok=not failed)
+    if args.command=="plan":
+        r.write(args.outfile, ok=not failed)
 
     if failed:
         logging.error("Planning failed")
