@@ -116,6 +116,40 @@ should be safe to run.
 There are no flags to the dump command. It will return 0 if the connection to VPP was
 established and its state successfully dumped to the logs, and non-zero otherwise.
 
+Use of the **dump** command can be done even if the dataplane was configured outside of
+`vppcfg`, in other words, the following can be done:
+
+```
+$ vppcfg dump || echo "Not a hoopy frood"
+[ERROR   ] vppcfg.vppapi.readconfig: Could not connect to VPP
+[ERROR   ] root.main: Could not retrieve config from VPP
+Not a hoopy frood
+
+pim@hippo:~/src/vpp$ make run
+DBGvpp# create sub-interfaces GigabitEthernet3/0/0 100
+DBGvpp# set interface ip address GigabitEthernet3/0/0.100 2001:db8:1::1/64
+DBGvpp# create bridge-domain 10
+DBGvpp# set interface l2 bridge HundredGigabitEthernet12/0/0 10
+
+$ vppcfg dump
+[INFO    ] vppcfg.vppapi.connect: VPP version is 22.06-rc0~320-g8f60318ac
+[INFO    ] vppcfg.vppapi.dump_phys: GigabitEthernet3/0/0 idx=1
+[INFO    ] vppcfg.vppapi.dump_phys: GigabitEthernet3/0/1 idx=2
+[INFO    ] vppcfg.vppapi.dump_phys: HundredGigabitEthernet12/0/0 idx=3
+[INFO    ] vppcfg.vppapi.dump_phys: HundredGigabitEthernet12/0/1 idx=4
+[INFO    ] vppcfg.vppapi.dump_interfaces: local0 idx=0 type=local mac=00:00:00:00:00:00 mtu=0 flags=0
+[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/0 idx=1 type=dpdk mac=00:25:90:0c:05:00 mtu=9000 flags=2
+[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/1 idx=2 type=dpdk mac=00:25:90:0c:05:01 mtu=9000 flags=2
+[INFO    ] vppcfg.vppapi.dump_interfaces: HundredGigabitEthernet12/0/0 idx=3 type=dpdk mac=b4:96:91:b3:b1:10 mtu=8996 flags=0
+[INFO    ] vppcfg.vppapi.dump_interfaces: HundredGigabitEthernet12/0/1 idx=4 type=dpdk mac=b4:96:91:b3:b1:11 mtu=8996 flags=0
+[INFO    ] vppcfg.vppapi.dump_interfaces: GigabitEthernet3/0/0.100 idx=5 type=dpdk mac=00:00:00:00:00:00 mtu=0 flags=2
+[INFO    ] vppcfg.vppapi.dump_interfaces:   Encapsulation: dot1q 100 exact-match
+[INFO    ] vppcfg.vppapi.dump_interfaces:   L3: 2001:db8:1::1/64
+[INFO    ] vppcfg.vppapi.dump_subints: GigabitEthernet3/0/0.100 tags=1 idx=5 encap=dot1q 100 exact-match
+[INFO    ] vppcfg.vppapi.dump_bridgedomains: BridgeDomain10
+[INFO    ] vppcfg.vppapi.dump_bridgedomains:   Members: HundredGigabitEthernet12/0/0
+```
+
 ### vppcfg plan
 
 ### vppcfg apply
