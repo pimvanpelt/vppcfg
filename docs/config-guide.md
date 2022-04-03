@@ -51,13 +51,13 @@ For example, any loopback MUST be named `loopN`, and any bondethernet MUST be na
 (note here the camel case). A distinction is made between the object and the resulting interface:
 A BondEthernet occurs twice in the configuration. The first time, in the `bondethernets` section, the
 bond configuration is specified. That bond configuration yields an interface in VPP named BondEthernetN,
-which can then be manipulated as any other interface (eg. have IP addresses, Linux Control Plane
-names, sub-interfaces and so on). The same is true for VXLAN tunnels, the only currently supported
-tunnel type.
+which occurs in the `interfaces` section where it can then be manipulated like any other interface (eg.
+have IP addresses, Linux Control Plane names, sub-interfaces and so on). The same is true for VXLAN
+tunnels, the only currently supported tunnel type.
 
 ### Loopbacks
 
-Loopbacks are required to be named `loopN` where N is [0,4096). The configuration contains the
+Loopbacks are required to be named `loopN` where N in [0,4096). The configuration allows the
 following fields:
 
 *   ***description***: A string, no longer than 64 characters, and excluding the single quote '
@@ -73,18 +73,55 @@ following fields:
     notable exception: Multiple IP addresses in the same prefix/len can be added on one and the
     same interface.
 
+Although VPP would allow it, `vppcfg` does not allow for loopbacks to have sub-interfaces.
+
 Examples:
 ```
 loopbacks:
   loop0:
-    lcp: "lo0"
+    description: "loopback with default 1500 byte MTU"
+    lcp: lo0
     addresses: [ 10.0.0.1/32, 2001:db8::1/128 ]
   loop1:
-    lcp: "bvi1"
+    lcp: bvi1
+    mtu: 9000
     addresses: [ 10.0.1.1/24, 10.0.1.2/24, 2001:db8:1::1/64 ]
 ```
 
 ### Bridge Domains
+
+BridgeDomains are required to be named `bdN` where N in [1, 16777216). Note that bridgedomain
+`bd0` is reserved and cannot be used. The configuration allows the following fields:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***mtu***: An integer value between [128,9216], noting the (packet) MTU of the bridgedomain.
+    It will default to 1500 if not specified. All member interfaces, including the `BVI`, are
+    required to have the same MTU as their bridge.
+*   ***bvi***: An optional _bridge virtual interface_ (sometimes also referred to as an _IRB_)
+    which refers to an existing loopback interface by name (ie `loop0`).
+*   ***interfaces***: A list of zero or more interfaces or sub-interfaces that are bridge
+    members. If the bridge has a `BVI`, it MUST NOT appear in this list. Bridges are allowed to
+    exist with no member interfaces.
+
+Any member sub-interfaces that are added, will automatically be configured to tag-rewrite the
+number of tags they have, so a simple dot1q sub-interface will be configured as `pop 1`, while
+a QinQ or QinAD sub-interface will be configured as `pop 2`. Conversely, when interfaces are
+removed from the bridge, their tag-rewriting will be disabled.
+
+Examples:
+```
+bridgedomains:
+  bd10:
+    mtu: 2000
+    bvi: loop1
+    interfaces: [ BondEthernet0.500, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
+  bd11:
+    description: "No member interfaces, default 1500 byte MTU"
+```
+
+
 
 ### BondEthernets
 
