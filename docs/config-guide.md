@@ -14,6 +14,7 @@ types of validation:
     them may leave the dataplane in a non-recoverable state.
 
 For the curious, the Yamale syntax validation lives in [this schema](../schema.yaml).
+If you want to get started quickly and don't mind cargo-culting, take a look at [this example](../example.yaml).
 
 ### Basic structure
 
