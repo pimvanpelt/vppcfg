@@ -104,22 +104,6 @@ class Reconciler():
             self.logger.warning("Could not prune PHYs from VPP")
             ret = False
 
-        ## Report on what is left in the configuration after pruning.
-        self.logger.debug("After pruning, the following config is left:")
-        for idx, lcp in self.vpp.config['lcps'].items():
-            self.logger.debug("LCP[%d]: %s" % (idx, lcp))
-        for ifname, iface in self.vpp.config['interface_names'].items():
-            self.logger.debug("Interface[%s]: %s" % (ifname, iface))
-        for idx, iface in self.vpp.config['interfaces'].items():
-            self.logger.debug("Interface[%d]: %s" % (idx, iface))
-        for idx, iface in self.vpp.config['bondethernets'].items():
-            self.logger.debug("bondethernets[%d]: %s" % (idx, iface))
-        for idx, iface in self.vpp.config['bondethernet_members'].items():
-            self.logger.debug("bondethernet_members[%d]: %s" % (idx, iface))
-        for idx, iface in self.vpp.config['vxlan_tunnels'].items():
-            self.logger.debug("vxlan_tunnels[%d]: %s" % (idx, iface))
-        for idx, iface in self.vpp.config['l2xcs'].items():
-            self.logger.debug("l2xcs[%d]: %s" % (idx, iface))
         for cli in self.cli['prune']:
             print(cli)
 
