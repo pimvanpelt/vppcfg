@@ -50,7 +50,7 @@ class Reconciler():
 
         ret = True
         for ifname in interface.get_phys(self.cfg):
-            if not ifname in self.vpp.config['interface_names']:
+            if not ifname in self.vpp.cache['interface_names']:
                 self.logger.warning("Interface %s does not exist in VPP" % ifname)
                 ret = False
         return ret
@@ -110,9 +110,9 @@ class Reconciler():
         """ Remove all addresses from interface ifname, except those in address_list,
             which may be an empty list, in which case all addresses are removed.
         """
-        idx = self.vpp.config['interface_names'][ifname].sw_if_index
+        idx = self.vpp.cache['interface_names'][ifname].sw_if_index
         removed_addresses = []
-        for a in self.vpp.config['interface_addresses'][idx]:
+        for a in self.vpp.cache['interface_addresses'][idx]:
             if not a in address_list:
                 cli = "set interface ip address del %s %s" % (ifname, a)
                 self.cli['prune'].append(cli);
@@ -120,13 +120,13 @@ class Reconciler():
             else:
                 self.logger.debug("Address OK: %s %s" % (ifname, a))
         for a in removed_addresses:
-            self.vpp.config['interface_addresses'][idx].remove(a)
+            self.vpp.cache['interface_addresses'][idx].remove(a)
 
     def prune_loopbacks(self):
         """ Remove loopbacks from VPP, if they do not occur in the config. """
         removed_interfaces=[]
         for numtags in [ 2, 1, 0 ]:
-            for idx, vpp_iface in self.vpp.config['interfaces'].items():
+            for idx, vpp_iface in self.vpp.cache['interfaces'].items():
                 if vpp_iface.interface_dev_type!='Loopback':
                     continue
                 if vpp_iface.sub_number_of_tags != numtags:
@@ -150,7 +150,7 @@ class Reconciler():
                 self.prune_addresses(vpp_iface.interface_name, addresses)
 
         for ifname in removed_interfaces:
-            self.vpp.remove_interface(ifname)
+            self.vpp.cache_remove_interface(ifname)
 
         return True
 
@@ -158,7 +158,7 @@ class Reconciler():
     def prune_bridgedomains(self):
         """ Remove bridge-domains from VPP, if they do not occur in the config. If any interfaces are
             found in to-be removed bridge-domains, they are returned to L3 mode, and tag-rewrites removed. """
-        for idx, bridge in self.vpp.config['bridgedomains'].items():
+        for idx, bridge in self.vpp.cache['bridgedomains'].items():
             bridgename = "bd%d" % idx
             config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, bridgename)
             members = []
@@ -166,15 +166,15 @@ class Reconciler():
                 for member in bridge.sw_if_details:
                     if member.sw_if_index == bridge.bvi_sw_if_index:
                         continue
-                    member_iface = self.vpp.config['interfaces'][member.sw_if_index]
+                    member_iface = self.vpp.cache['interfaces'][member.sw_if_index]
                     member_ifname = member_iface.interface_name
                     if member_iface.sub_id > 0:
                         cli="set interface l2 tag-rewrite %s disable" % (member_ifname)
                         self.cli['prune'].append(cli);
                     cli="set interface l3 %s" % (member_ifname)
                     self.cli['prune'].append(cli);
-                if bridge.bvi_sw_if_index in self.vpp.config['interfaces']:
-                    bviname = self.vpp.config['interfaces'][bridge.bvi_sw_if_index].interface_name
+                if bridge.bvi_sw_if_index in self.vpp.cache['interfaces']:
+                    bviname = self.vpp.cache['interfaces'][bridge.bvi_sw_if_index].interface_name
                     cli="set interface l3 %s" % (bviname)
                     self.cli['prune'].append(cli);
                 cli="create bridge-domain %d del" % (idx)
@@ -182,15 +182,15 @@ class Reconciler():
             else:
                 self.logger.debug("BridgeDomain OK: %s" % (bridgename))
                 for member in bridge.sw_if_details:
-                    member_ifname = self.vpp.config['interfaces'][member.sw_if_index].interface_name
+                    member_ifname = self.vpp.cache['interfaces'][member.sw_if_index].interface_name
                     if 'members' in config_iface and member_ifname in config_iface['members']:
                         if interface.is_sub(self.cfg, member_ifname):
                             cli="set interface l2 tag-rewrite %s disable" % (member_ifname)
                             self.cli['prune'].append(cli);
                         cli="set interface l3 %s" % (member_ifname)
                         self.cli['prune'].append(cli);
-                if 'bvi' in config_iface and bridge.bvi_sw_if_index in self.vpp.config['interfaces']:
-                    bviname = self.vpp.config['interfaces'][bridge.bvi_sw_if_index].interface_name
+                if 'bvi' in config_iface and bridge.bvi_sw_if_index in self.vpp.cache['interfaces']:
+                    bviname = self.vpp.cache['interfaces'][bridge.bvi_sw_if_index].interface_name
                     if bviname != config_iface['bvi']:
                         cli="set interface l3 %s" % (bviname)
                         self.cli['prune'].append(cli);
@@ -202,11 +202,11 @@ class Reconciler():
             but are crossconnected to a different interface name, also remove them. Interfaces are put
             back into L3 mode, and their tag-rewrites removed. """
         removed_l2xcs=[]
-        for idx, l2xc in self.vpp.config['l2xcs'].items():
-            vpp_rx_ifname = self.vpp.config['interfaces'][l2xc.rx_sw_if_index].interface_name
+        for idx, l2xc in self.vpp.cache['l2xcs'].items():
+            vpp_rx_ifname = self.vpp.cache['interfaces'][l2xc.rx_sw_if_index].interface_name
             config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, vpp_rx_ifname)
             if not config_rx_ifname:
-                if self.vpp.config['interfaces'][l2xc.rx_sw_if_index].sub_id > 0:
+                if self.vpp.cache['interfaces'][l2xc.rx_sw_if_index].sub_id > 0:
                     cli="set interface l2 tag-rewrite %s disable" % (vpp_rx_ifname)
                     self.cli['prune'].append(cli);
                 cli="set interface l3 %s" % (vpp_rx_ifname)
@@ -222,7 +222,7 @@ class Reconciler():
                 self.cli['prune'].append(cli);
                 removed_l2xcs.append(vpp_rx_ifname)
                 continue
-            vpp_tx_ifname = self.vpp.config['interfaces'][l2xc.tx_sw_if_index].interface_name
+            vpp_tx_ifname = self.vpp.cache['interfaces'][l2xc.tx_sw_if_index].interface_name
             if vpp_tx_ifname != config_rx_iface['l2xc']:
                 if interface.is_sub(self.cfg, config_rx_ifname):
                     cli="set interface l2 tag-rewrite %s disable" % (vpp_rx_ifname)
@@ -233,7 +233,7 @@ class Reconciler():
                 continue
             self.logger.debug("L2XC OK: %s -> %s" % (vpp_rx_ifname, vpp_tx_ifname))
         for l2xc in removed_l2xcs:
-            self.vpp.remove_l2xc(l2xc)
+            self.vpp.cache_remove_l2xc(l2xc)
         return True
 
     def prune_bondethernets(self):
@@ -241,13 +241,13 @@ class Reconciler():
             remove those from the bond before removing the bond. """
         removed_interfaces=[]
         removed_bondethernet_members=[]
-        for idx, bond in self.vpp.config['bondethernets'].items():
+        for idx, bond in self.vpp.cache['bondethernets'].items():
             vpp_ifname = bond.interface_name
             config_ifname, config_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
                 self.prune_addresses(vpp_ifname, [])
-                for member in self.vpp.config['bondethernet_members'][idx]:
-                    member_ifname = self.vpp.config['interfaces'][member].interface_name
+                for member in self.vpp.cache['bondethernet_members'][idx]:
+                    member_ifname = self.vpp.cache['interfaces'][member].interface_name
                     cli="bond del %s" % (member_ifname)
                     self.cli['prune'].append(cli);
                     removed_bondethernet_members.append(member_ifname)
@@ -255,8 +255,8 @@ class Reconciler():
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
-            for member in self.vpp.config['bondethernet_members'][idx]:
-                member_ifname = self.vpp.config['interfaces'][member].interface_name
+            for member in self.vpp.cache['bondethernet_members'][idx]:
+                member_ifname = self.vpp.cache['interfaces'][member].interface_name
                 if 'interfaces' in config_iface and not member_ifname in config_iface['interfaces']:
                     cli="bond del %s" % (member_ifname)
                     self.cli['prune'].append(cli);
@@ -268,10 +268,10 @@ class Reconciler():
             self.logger.debug("BondEthernet OK: %s" % (vpp_ifname))
 
         for ifname in removed_bondethernet_members:
-            self.vpp.remove_bondethernet_member(ifname)
+            self.vpp.cache_remove_bondethernet_member(ifname)
 
         for ifname in removed_interfaces:
-            self.vpp.remove_interface(ifname)
+            self.vpp.cache_remove_interface(ifname)
 
         return True
 
@@ -279,8 +279,8 @@ class Reconciler():
         """ Remove all VXLAN Tunnels from VPP, if they are not in the config. If they are in the config
             but with differing attributes, remove them also. """
         removed_interfaces=[]
-        for idx, vpp_vxlan in self.vpp.config['vxlan_tunnels'].items():
-            vpp_ifname = self.vpp.config['interfaces'][idx].interface_name
+        for idx, vpp_vxlan in self.vpp.cache['vxlan_tunnels'].items():
+            vpp_ifname = self.vpp.cache['interfaces'][idx].interface_name
             config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
                 cli="create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
@@ -301,23 +301,23 @@ class Reconciler():
             self.logger.debug("VXLAN Tunnel OK: %s" % (vpp_ifname))
 
         for ifname in removed_interfaces:
-            self.vpp.remove_vxlan_tunnel(ifname)
-            self.vpp.remove_interface(ifname)
+            self.vpp.cache_remove_vxlan_tunnel(ifname)
+            self.vpp.cache_remove_interface(ifname)
 
         return True
 
     def __tap_is_lcp(self, sw_if_index):
         """ Returns True if the given sw_if_index is a TAP interface belonging to an LCP,
             or False otherwise."""
-        if not sw_if_index in self.vpp.config['interfaces']:
+        if not sw_if_index in self.vpp.cache['interfaces']:
             return False
 
-        vpp_iface = self.vpp.config['interfaces'][sw_if_index]
+        vpp_iface = self.vpp.cache['interfaces'][sw_if_index]
         if not vpp_iface.interface_dev_type=="virtio":
             return False
 
         match = False
-        for idx, lcp in self.vpp.config['lcps'].items():
+        for idx, lcp in self.vpp.cache['lcps'].items():
             if vpp_iface.sw_if_index == lcp.host_sw_if_index:
                 match = True
         return match
@@ -328,7 +328,7 @@ class Reconciler():
         removed_interfaces=[]
         for numtags in [ 2, 1 ]:
             for vpp_ifname in self.vpp.get_sub_interfaces():
-                vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
+                vpp_iface = self.vpp.cache['interface_names'][vpp_ifname]
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
 
@@ -357,14 +357,14 @@ class Reconciler():
                 self.logger.debug("Sub Interface OK: %s" % (vpp_ifname))
 
         for ifname in removed_interfaces:
-            self.vpp.remove_interface(ifname)
+            self.vpp.cache_remove_interface(ifname)
 
         return True
 
     def prune_phys(self):
         """ Set default MTU and remove IPs for PHYs that are not in the config. """
         for vpp_ifname in self.vpp.get_phys():
-            vpp_iface = self.vpp.config['interface_names'][vpp_ifname]
+            vpp_iface = self.vpp.cache['interface_names'][vpp_ifname]
             config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
                 ## Interfaces were sent DOWN in the prune_admin_state() step previously
@@ -384,7 +384,7 @@ class Reconciler():
         """ Returns the sw_if_index of an interface on a given super_sw_if_index with given dot1q/dot1ad outer and inner-dot1q=0,
             in other words the intermediary Dot1Q/Dot1AD belonging to a QinX interface. If the interface doesn't exist, None is
             returned. """
-        for idx, iface in self.vpp.config['interfaces'].items():
+        for idx, iface in self.vpp.cache['interfaces'].items():
             if iface.sup_sw_if_index != sup_sw_if_index:
                 continue
             if iface.sub_inner_vlan_id > 0:
@@ -423,12 +423,12 @@ class Reconciler():
             Order is important: destroying an LCP of a PHY will invalidate its Dot1Q/Dot1AD as well as their
             downstream children in Linux.
         """
-        lcps = self.vpp.config['lcps']
+        lcps = self.vpp.cache['lcps']
 
         removed_lcps = []
         for numtags in [ 2, 1, 0 ]:
             for idx, lcp in lcps.items():
-                vpp_iface = self.vpp.config['interfaces'][lcp.phy_sw_if_index]
+                vpp_iface = self.vpp.cache['interfaces'][lcp.phy_sw_if_index]
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
                 if vpp_iface.interface_dev_type=='Loopback':
@@ -449,7 +449,7 @@ class Reconciler():
                     continue
                 if vpp_iface.sub_number_of_tags == 2:
                     vpp_parent_idx = self.__parent_iface_by_encap(vpp_iface.sup_sw_if_index, vpp_iface.sub_outer_vlan_id, vpp_iface.sub_if_flags&8)
-                    vpp_parent_iface = self.vpp.config['interfaces'][vpp_parent_idx]
+                    vpp_parent_iface = self.vpp.cache['interfaces'][vpp_parent_idx]
                     parent_lcp = lcps[vpp_parent_iface.sw_if_index]
                     config_parent_ifname, config_parent_iface = interface.get_by_lcp_name(self.cfg, parent_lcp.host_if_name)
                     if not config_parent_iface:
@@ -517,14 +517,14 @@ class Reconciler():
                 self.logger.debug("LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
 
         for lcpname in removed_lcps:
-            self.vpp.remove_lcp(lcpname)
+            self.vpp.cache_remove_lcp(lcpname)
         return True
 
     def prune_admin_state(self):
         """ Set admin-state down for all interfaces that are not in the config. """
         for ifname in self.vpp.get_qinx_interfaces() + self.vpp.get_dot1x_interfaces() + self.vpp.get_bondethernets() + self.vpp.get_phys() + self.vpp.get_vxlan_tunnels() + self.vpp.get_loopbacks():
             if not ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
-                vpp_iface = self.vpp.config['interface_names'][ifname]
+                vpp_iface = self.vpp.cache['interface_names'][ifname]
 
                 if self.__tap_is_lcp(vpp_iface.sw_if_index):
                     continue
@@ -562,7 +562,7 @@ class Reconciler():
 
     def create_loopbacks(self):
         for ifname in loopback.get_loopbacks(self.cfg):
-            if ifname in self.vpp.config['interface_names']:
+            if ifname in self.vpp.cache['interface_names']:
                 continue
             instance = int(ifname[4:])
             cli="create loopback interface instance %d" % (instance)
@@ -571,7 +571,7 @@ class Reconciler():
 
     def create_bondethernets(self):
         for ifname in bondethernet.get_bondethernets(self.cfg):
-            if ifname in self.vpp.config['interface_names']:
+            if ifname in self.vpp.cache['interface_names']:
                 continue
             ifname, iface = bondethernet.get_by_name(self.cfg, ifname)
             instance = int(ifname[12:])
@@ -581,7 +581,7 @@ class Reconciler():
 
     def create_vxlan_tunnels(self):
         for ifname in vxlan_tunnel.get_vxlan_tunnels(self.cfg):
-            if ifname in self.vpp.config['interface_names']:
+            if ifname in self.vpp.cache['interface_names']:
                 continue
             ifname, iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
             instance = int(ifname[12:])
@@ -598,7 +598,7 @@ class Reconciler():
                     continue
 
                 ifname, iface = interface.get_by_name(self.cfg, ifname)
-                if ifname in self.vpp.config['interface_names']:
+                if ifname in self.vpp.cache['interface_names']:
                     continue
 
                 ## Assemble the encapsulation string
@@ -620,14 +620,14 @@ class Reconciler():
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
             ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
             instance = int(ifname[2:])
-            if instance in self.vpp.config['bridgedomains']:
+            if instance in self.vpp.cache['bridgedomains']:
                 continue
             cli="create bridge-domain %s" % (instance)
             self.cli['create'].append(cli);
         return True
 
     def create_lcps(self):
-        lcpnames = [self.vpp.config['lcps'][x].host_if_name for x in self.vpp.config['lcps']]
+        lcpnames = [self.vpp.cache['lcps'][x].host_if_name for x in self.vpp.cache['lcps']]
 
         ## First create untagged ... 
         for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
@@ -683,9 +683,9 @@ class Reconciler():
 
     def sync_bondethernets(self):
         for ifname in bondethernet.get_bondethernets(self.cfg):
-            if ifname in self.vpp.config['interface_names']:
-                vpp_bond_sw_if_index = self.vpp.config['interface_names'][ifname].sw_if_index
-                vpp_members = [self.vpp.config['interfaces'][x].interface_name for x in self.vpp.config['bondethernet_members'][vpp_bond_sw_if_index]]
+            if ifname in self.vpp.cache['interface_names']:
+                vpp_bond_sw_if_index = self.vpp.cache['interface_names'][ifname].sw_if_index
+                vpp_members = [self.vpp.cache['interfaces'][x].interface_name for x in self.vpp.cache['bondethernet_members'][vpp_bond_sw_if_index]]
             else:
                 ## New BondEthernet
                 vpp_members = []
@@ -697,7 +697,7 @@ class Reconciler():
             bondmac = None
             for member_ifname in sorted(config_bond_iface['interfaces']):
                 member_ifname, member_iface = interface.get_by_name(self.cfg, member_ifname)
-                member_iface = self.vpp.config['interface_names'][member_ifname]
+                member_iface = self.vpp.cache['interface_names'][member_ifname]
                 if not member_ifname in vpp_members:
                     if len(vpp_members) == 0:
                         bondmac = member_iface.l2_address
@@ -717,11 +717,11 @@ class Reconciler():
     def sync_bridgedomains(self):
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
             instance = int(ifname[2:])
-            if instance in self.vpp.config['bridgedomains']:
-                vpp_bridge = self.vpp.config['bridgedomains'][instance]
+            if instance in self.vpp.cache['bridgedomains']:
+                vpp_bridge = self.vpp.cache['bridgedomains'][instance]
                 bvi_sw_if_index = vpp_bridge.bvi_sw_if_index
                 bridge_sw_if_index_list = [x.sw_if_index for x in vpp_bridge.sw_if_details]
-                bridge_members = [self.vpp.config['interfaces'][x].interface_name for x in bridge_sw_if_index_list if x in self.vpp.config['interfaces']]
+                bridge_members = [self.vpp.cache['interfaces'][x].interface_name for x in bridge_sw_if_index_list if x in self.vpp.cache['interfaces']]
             else:
                 ## New BridgeDomain
                 bvi_sw_if_index = -1
@@ -732,7 +732,7 @@ class Reconciler():
                 continue
             if 'bvi' in config_bridge_iface:
                 bviname = config_bridge_iface['bvi']
-                if bviname in self.vpp.config['interface_names'] and self.vpp.config['interface_names'][bviname].sw_if_index == bvi_sw_if_index:
+                if bviname in self.vpp.cache['interface_names'] and self.vpp.cache['interface_names'][bviname].sw_if_index == bvi_sw_if_index:
                     continue
                 cli="set interface l2 bridge %s %d bvi" % (bviname, instance)
                 self.cli['sync'].append(cli);
@@ -757,21 +757,21 @@ class Reconciler():
             config_tx_ifname, config_tx_iface = interface.get_by_name(self.cfg, config_rx_iface['l2xc'])
             vpp_rx_iface = None
             vpp_tx_iface = None
-            if config_rx_ifname in self.vpp.config['interface_names']:
-                vpp_rx_iface = self.vpp.config['interface_names'][config_rx_ifname]
-            if config_tx_ifname in self.vpp.config['interface_names']:
-                vpp_tx_iface = self.vpp.config['interface_names'][config_tx_ifname]
+            if config_rx_ifname in self.vpp.cache['interface_names']:
+                vpp_rx_iface = self.vpp.cache['interface_names'][config_rx_ifname]
+            if config_tx_ifname in self.vpp.cache['interface_names']:
+                vpp_tx_iface = self.vpp.cache['interface_names'][config_tx_ifname]
 
             l2xc_changed = False
             if not vpp_rx_iface or not vpp_tx_iface:
                 cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
                 self.cli['sync'].append(cli);
                 l2xc_changed = True
-            elif not vpp_rx_iface.sw_if_index in self.vpp.config['l2xcs']:
+            elif not vpp_rx_iface.sw_if_index in self.vpp.cache['l2xcs']:
                 cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
                 self.cli['sync'].append(cli);
                 l2xc_changed = True
-            elif not vpp_tx_iface.sw_if_index == self.vpp.config['l2xcs'][vpp_rx_iface.sw_if_index].tx_sw_if_index:
+            elif not vpp_tx_iface.sw_if_index == self.vpp.cache['l2xcs'][vpp_rx_iface.sw_if_index].tx_sw_if_index:
                 cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
                 self.cli['sync'].append(cli);
                 l2xc_changed = True
@@ -804,16 +804,16 @@ class Reconciler():
                 config_mtu = 1500
                 vpp_mtu = 9000
                 if ifname.startswith("loop"):
-                    if ifname in self.vpp.config['interface_names']:
-                        vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
+                    if ifname in self.vpp.cache['interface_names']:
+                        vpp_mtu = self.vpp.cache['interface_names'][ifname].mtu[0]
                     vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
                     if 'mtu' in config_iface:
                         config_mtu = config_iface['mtu']
                 else:
                     if numtags > 0:
                         vpp_mtu = 0
-                    if ifname in self.vpp.config['interface_names']:
-                        vpp_mtu = self.vpp.config['interface_names'][ifname].mtu[0]
+                    if ifname in self.vpp.cache['interface_names']:
+                        vpp_mtu = self.vpp.cache['interface_names'][ifname].mtu[0]
                     vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
                     config_mtu = interface.get_mtu(self.cfg, ifname)
 
@@ -826,7 +826,7 @@ class Reconciler():
         return True
 
     def sync_link_mtu_direction(self, shrink=True):
-        for idx, vpp_iface in self.vpp.config['interfaces'].items():
+        for idx, vpp_iface in self.vpp.cache['interfaces'].items():
             if vpp_iface.sub_number_of_tags != 0:
                 continue
             if vpp_iface.interface_dev_type in ['local', 'Loopback', 'VXLAN', 'virtio']:
@@ -899,10 +899,10 @@ class Reconciler():
                 vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
                 if 'addresses' in config_iface:
                     config_addresses = config_iface['addresses']
-            if vpp_ifname in self.vpp.config['interface_names']:
-                sw_if_index = self.vpp.config['interface_names'][vpp_ifname].sw_if_index
-                if sw_if_index in self.vpp.config['interface_addresses']:
-                    vpp_addresses = [str(x) for x in self.vpp.config['interface_addresses'][sw_if_index]]
+            if vpp_ifname in self.vpp.cache['interface_names']:
+                sw_if_index = self.vpp.cache['interface_names'][vpp_ifname].sw_if_index
+                if sw_if_index in self.vpp.cache['interface_addresses']:
+                    vpp_addresses = [str(x) for x in self.vpp.cache['interface_addresses'][sw_if_index]]
             for a in config_addresses:
                 if a in vpp_addresses:
                     continue
@@ -920,8 +920,8 @@ class Reconciler():
                 config_admin_state = 1
 
             vpp_admin_state = 0
-            if vpp_ifname in self.vpp.config['interface_names']:
-                vpp_admin_state = self.vpp.config['interface_names'][vpp_ifname].flags & 1 # IF_STATUS_API_FLAG_ADMIN_UP
+            if vpp_ifname in self.vpp.cache['interface_names']:
+                vpp_admin_state = self.vpp.cache['interface_names'][vpp_ifname].flags & 1 # IF_STATUS_API_FLAG_ADMIN_UP
             if config_admin_state == vpp_admin_state:
                 continue
             state="up"
