@@ -1,0 +1,56 @@
+interfaces:
+  GigabitEthernet3/0/0:
+    mtu: 9216
+    sub-interfaces:
+      100:
+        mtu: 2000
+        l2xc: vxlan_tunnel10
+      101:
+        mtu: 3000
+  GigabitEthernet3/0/1:
+    description: Not Used
+  HundredGigabitEthernet12/0/0:
+    mtu: 9216
+    sub-interfaces:
+      100:
+        mtu: 3000
+      101:
+        mtu: 3000
+        encapsulation:
+          dot1q: 100
+          inner-dot1q: 200
+          exact-match: True
+  HundredGigabitEthernet12/0/1:
+    mtu: 9216
+    sub-interfaces:
+      100:
+        l2xc: HundredGigabitEthernet12/0/1.101
+      101:
+        l2xc: HundredGigabitEthernet12/0/1.100
+  vxlan_tunnel10:
+    mtu: 2000
+    l2xc: GigabitEthernet3/0/0.100
+  vxlan_tunnel11:
+    mtu: 3000
+
+loopbacks:
+  loop11:
+    lcp: "bvi11"
+    addresses: [ 2001:db8:1::1/64, 192.0.2.1/30 ]
+
+bridgedomains:
+  bd11:
+    description: "Bridge Domain 11"
+    mtu: 3000
+    interfaces: [ HundredGigabitEthernet12/0/0.101, GigabitEthernet3/0/0.101, vxlan_tunnel11 ]
+    bvi: loop11
+
+vxlan_tunnels:
+  vxlan_tunnel10:
+    local: 10.0.0.1
+    remote: 10.0.0.3
+    vni: 100
+  vxlan_tunnel11:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 101

@@ -1,0 +1,49 @@
+bondethernets:
+  BondEthernet1:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+  
+interfaces:
+  GigabitEthernet3/0/0:
+    mtu: 9000
+    description: LAG
+  GigabitEthernet3/0/1:
+    mtu: 9000
+    description: LAG
+  HundredGigabitEthernet12/0/0:
+    mtu: 2500
+  HundredGigabitEthernet12/0/1:
+    description: Not Used
+
+  BondEthernet1:
+    lcp: "bond1"
+    mtu: 9000
+    sub-interfaces:
+      200:
+        lcp: "bond1.1000"
+        encapsulation:
+          dot1q: 1000
+          exact-match: True
+        addresses: [ 192.168.0.1/24 ]
+      201:
+        mtu: 3000
+        encapsulation:
+          dot1ad: 1000
+      202:
+        lcp: "bond1.1000.1234"
+        encapsulation:
+          dot1q: 1000
+          inner-dot1q: 1234
+          exact-match: True
+        addresses: [ 192.168.1.1/24 ]
+      203:
+        mtu: 2500
+        encapsulation:
+          dot1ad: 1000
+          inner-dot1q: 1000
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 2500
+    interfaces: [ BondEthernet1.203, HundredGigabitEthernet12/0/0 ]
+

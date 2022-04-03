@@ -1,6 +1,5 @@
 build/
 dist/
-hippo*.yaml
-integration-test.sh
 *.swp
+*.out
 __pycache__

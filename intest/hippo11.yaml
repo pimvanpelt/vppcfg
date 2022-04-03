@@ -1,0 +1,44 @@
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+
+interfaces:
+  GigabitEthernet3/0/0:
+    mtu: 9000
+    description: "LAG #1"
+  GigabitEthernet3/0/1:
+    mtu: 9000
+    description: "LAG #2"
+
+  HundredGigabitEthernet12/0/0:
+    description: Not Used
+
+  HundredGigabitEthernet12/0/1:
+    description: Not Used
+
+  BondEthernet0:
+    mtu: 9000
+    lcp: "be0"
+    sub-interfaces:
+      200:
+        mtu: 2500
+        l2xc: BondEthernet0.100
+        encapsulation:
+           dot1q: 100
+           exact-match: False
+      100:
+        mtu: 2500
+        l2xc: BondEthernet0.200
+        encapsulation:
+           dot1q: 200
+           exact-match: False
+      501:
+        mtu: 2000
+        encapsulation:
+           dot1ad: 500
+           exact-match: False
+      500:
+        mtu: 2000
+        encapsulation:
+           dot1ad: 501
+           exact-match: False

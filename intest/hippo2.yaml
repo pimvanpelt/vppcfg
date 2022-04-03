@@ -1,0 +1,62 @@
+interfaces:
+  GigabitEthernet3/0/0:
+    sub-interfaces:
+      100:
+        description: "Sub-int"
+      101:
+        encapsulation:
+          dot1q: 100
+          inner-dot1q: 100
+          exact-match: true
+      200:
+        description: "Sub-int"
+        encapsulation:
+          dot1ad: 100
+          exact-match: true
+      201:
+        encapsulation:
+          dot1ad: 100
+          inner-dot1q: 100
+          exact-match: true
+
+  GigabitEthernet3/0/1:
+    sub-interfaces:
+      100:
+        description: "Sub-int"
+      200:
+        description: "Sub-int"
+        encapsulation:
+          dot1ad: 100
+          exact-match: true
+      201:
+        encapsulation:
+          dot1ad: 100
+          inner-dot1q: 100
+
+  HundredGigabitEthernet12/0/0:
+    sub-interfaces:
+      100:
+        description: "Sub-int"
+      200:
+        description: "Sub-int"
+        encapsulation:
+          dot1ad: 100
+          exact-match: true
+      201:
+        encapsulation:
+          dot1ad: 100
+          inner-dot1q: 100
+
+  HundredGigabitEthernet12/0/1:
+    sub-interfaces:
+      100:
+        description: "Sub-int"
+      101:
+        encapsulation:
+          dot1q: 100
+          inner-dot1q: 100
+      200:
+        description: "Sub-int"
+        encapsulation:
+          dot1ad: 100
+          exact-match: true
