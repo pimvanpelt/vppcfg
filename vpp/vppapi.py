@@ -233,12 +233,6 @@ class VPPApi():
                 ret = False
         return ret
 
-    def dump(self):
-        self.dump_interfaces()
-        self.dump_bridgedomains()
-        self.dump_phys()
-        self.dump_subints()
-
     def get_sub_interfaces(self):
         subints = [self.cache['interfaces'][x].interface_name for x in self.cache['interfaces'] if self.cache['interfaces'][x].sub_id>0 and self.cache['interfaces'][x].sub_number_of_tags > 0]
         return subints
@@ -273,6 +267,17 @@ class VPPApi():
                 return lcp
         return None
 
+class VPPApiDumper(VPPApi):
+    def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
+        VPPApi.__init__(self, address, clientname)
+        self.readconfig()
+
+    def dump(self):
+        self.dump_phys()
+        self.dump_interfaces()
+        self.dump_subints()
+        self.dump_bridgedomains()
+
     def dump_phys(self):
         phys = self.get_phys()
         for ifname in phys:
@@ -280,17 +285,15 @@ class VPPApi():
             self.logger.info("%s idx=%d" % (iface.interface_name, iface.sw_if_index))
 
     def dump_subints(self):
-        self.logger.info("*** QinX ***")
         subints = self.get_qinx_interfaces()
         for ifname in subints:
             iface = self.cache['interface_names'][ifname]
-            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
-        
-        self.logger.info("*** .1q/.1ad ***")
+            self.logger.info("%s tags=2 idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
+
         subints = self.get_dot1x_interfaces()
         for ifname in subints:
             iface = self.cache['interface_names'][ifname]
-            self.logger.info("%s idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
+            self.logger.info("%s tags=1 idx=%d encap=%s" % (iface.interface_name, iface.sw_if_index, self.get_encapsulation(iface)))
 
     def dump_bridgedomains(self):
         for bd_id, bridge in self.cache['bridgedomains'].items():

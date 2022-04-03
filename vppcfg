@@ -19,6 +19,7 @@ import yaml
 import logging
 from config import Validator
 from vpp.reconciler import Reconciler
+from vpp.vppapi import VPPApiDumper
 
 try:
     import argparse
@@ -29,29 +30,43 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""Enable debug logging, default False""")
-    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""Be quiet (only warnings/errors), default False""")
-    parser.add_argument('-f', '--force', dest='force', action='store_true', help="""Force progress despite warnings, default False""")
-    parser.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""enable debug logging, default False""")
+    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""be quiet (only warnings/errors), default False""")
+    parser.add_argument('-f', '--force', dest='force', action='store_true', help="""force progress despite warnings, default False""")
 
     subparsers = parser.add_subparsers(dest='command')
-    check_p = subparsers.add_parser('check')
+    check_p = subparsers.add_parser('check', help="check given YAML config for validity (no VPP)")
+    check_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    check_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
 
-    plan_p = subparsers.add_parser('plan')
+    dump_p = subparsers.add_parser('dump', help="dump current running VPP configuration (VPP readonly)")
+
+    plan_p = subparsers.add_parser('plan', help="plan changes from current VPP dataplane to target config (VPP readonly)")
+    plan_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    plan_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
     plan_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for VPP CLI commands, default stdout""")
 
-    apply_p = subparsers.add_parser('apply')
+    apply_p = subparsers.add_parser('apply', help="apply changes from current VPP dataplane to target config")
+    apply_p.add_argument('-s', '--schema', dest='schema', type=str, default='./schema.yaml', help="""YAML schema validation file""")
+    apply_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
 
     args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        print("\nPlease see vppcfg <command> -h   for per-command arguments")
+        sys.exit(0)
+
     level = logging.INFO
     if args.debug:
         level = logging.DEBUG
     if args.quiet:
         level = logging.WARNING
     logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
-    if not args.command:
-        args.command="check" ## Default check-only
+
+    if args.command=="dump":
+        d = VPPApiDumper()
+        d.dump()
+        sys.exit(0)
 
     try:
         with open(args.config, "r") as f:
