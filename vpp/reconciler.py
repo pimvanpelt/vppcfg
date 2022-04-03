@@ -283,6 +283,7 @@ class Reconciler():
             vpp_ifname = self.vpp.cache['interfaces'][idx].interface_name
             config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
+                self.prune_addresses(vpp_ifname, [])
                 cli="create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
                     vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni)
                 self.cli['prune'].append(cli);
@@ -294,10 +295,12 @@ class Reconciler():
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
-            addresses = []
-            if 'addresses' in config_iface:
-                addresses = config_iface['addresses']
-            self.prune_addresses(vpp_ifname, addresses)
+            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+            if config_iface:
+                addresses = []
+                if 'addresses' in config_iface:
+                    addresses = config_iface['addresses']
+                self.prune_addresses(vpp_ifname, addresses)
             self.logger.debug("VXLAN Tunnel OK: %s" % (vpp_ifname))
 
         for ifname in removed_interfaces:

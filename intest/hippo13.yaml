@@ -1,0 +1,101 @@
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+
+interfaces:
+  GigabitEthernet3/0/0:
+    mtu: 9000
+    description: "LAG #1"
+  GigabitEthernet3/0/1:
+    mtu: 9000
+    description: "LAG #2"
+
+  HundredGigabitEthernet12/0/0:
+    lcp: "ice0"
+    mtu: 9000
+    addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]
+    sub-interfaces:
+      1234:
+        mtu: 1500
+        lcp: "ice0.1234"
+        encapsulation:
+          dot1q: 1234
+          exact-match: True
+      1235:
+        mtu: 1500
+        lcp: "ice0.1234.1000"
+        encapsulation:
+          dot1q: 1234
+          inner-dot1q: 1000
+          exact-match: True
+
+  HundredGigabitEthernet12/0/1:
+    mtu: 2000
+    description: "Bridged"
+
+  BondEthernet0:
+    mtu: 9000
+    lcp: "bond0"
+    sub-interfaces:
+      10:
+        lcp: "bond0.10"
+        mtu: 3000
+      100:
+        mtu: 2500
+        l2xc: BondEthernet0.200
+        encapsulation:
+           dot1q: 100
+           exact-match: False
+      200:
+        mtu: 2500
+        l2xc: BondEthernet0.100
+        encapsulation:
+           dot1q: 200
+           exact-match: False
+      500:
+        mtu: 2000
+        encapsulation:
+           dot1ad: 500
+           exact-match: False
+      501:
+        mtu: 2000
+        encapsulation:
+           dot1ad: 501
+           exact-match: False
+  vxlan_tunnel0:
+    mtu: 1500
+    addresses: [ 192.0.2.1/29, 2001:db8:1:1::1/64 ]
+    lcp: "vxlan0"
+    sub-interfaces:
+      100:
+        lcp: "vxlan0.100"
+        addresses: [ 192.0.2.33/29, 2001:db8:1:2::1/64 ]
+
+  vxlan_tunnel1:
+    mtu: 2000
+
+loopbacks:
+  loop0:
+    lcp: "lo0"
+    addresses: [ 10.0.0.1/32, 2001:db8::1/128 ]
+  loop1:
+    lcp: "bvi1"
+    addresses: [ 10.0.1.1/24, 2001:db8:1::1/64 ]
+
+bridgedomains:
+  bd1:
+    mtu: 2000
+    bvi: loop1
+    interfaces: [ BondEthernet0.500, BondEthernet0.501, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
+  bd11:
+    mtu: 1500
+
+vxlan_tunnels:
+  vxlan_tunnel0:
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 100
+  vxlan_tunnel1:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 101

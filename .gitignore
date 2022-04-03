@@ -2,5 +2,5 @@ build/
 dist/
 *.swp
 *.out
-*.exec
+*exec
 __pycache__
