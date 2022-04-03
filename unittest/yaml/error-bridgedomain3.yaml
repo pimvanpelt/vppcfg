@@ -2,12 +2,10 @@ test:
   description: "Interfaces put into the bridge, can't be L3 (so cannot have an address)"
   errors:
     expected:
-     - "interface .* has an address but no LCP"
-     - "sub-interface .* has an address but .* does not have an LCP"
      - "bridgedomain .* member .* has an address"
      - "interface .* is in L2 mode but has an address"
      - "sub-interface .* is in L2 mode but has an address"
-    count: 9
+    count: 6
 ---
 interfaces:
   GigabitEthernet1/0/0:

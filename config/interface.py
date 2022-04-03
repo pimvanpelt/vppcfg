@@ -415,9 +415,6 @@ def validate_interfaces(yaml):
         iface_lcp = get_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
 
-        if iface_address and not iface_lcp:
-            msgs.append("interface %s has an address but no LCP" % ifname)
-            result = False
         if is_l2(yaml, ifname) and iface_lcp:
             msgs.append("interface %s is in L2 mode but has LCP name %s" % (ifname, iface_lcp))
             result = False
@@ -511,10 +508,6 @@ def validate_interfaces(yaml):
 
 
                 if has_address(yaml, sub_ifname):
-                    ## The sub_iface lcp is not required: it can be derived from the iface_lcp, which has to be set
-                    if not iface_lcp:
-                        msgs.append("sub-interface %s has an address but %s does not have an LCP" % (sub_ifname, ifname))
-                        result = False
                     if is_l2(yaml, sub_ifname):
                         msgs.append("sub-interface %s is in L2 mode but has an address" % sub_ifname)
                         result = False
