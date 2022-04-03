@@ -121,10 +121,33 @@ bridgedomains:
     description: "No member interfaces, default 1500 byte MTU"
 ```
 
-
-
 ### BondEthernets
 
-### Interfaces
+BondEthernets are required to be named `BondEthernetN` (note the camelcase) where N in
+[0,4294967294). The configuration allows the following fields:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***interfaces***: A list of zero or more interfaces that are bond members. The interfaces
+    must be PHYs, and in their `interface` configuration, members are allowed only to set the
+    MTU.
+
+Note that the configuration object here only specifies the link aggregation and its members.
+BondEthernets are expected to occur as well in the `interfaces` section, where their sub-interfaces
+and IP addresses and so on are specified.
+
+Caveat: Currently, BondEthernets are always created as `LACP` typed devices with a loadbalance
+strategy of `l34`. In a future release of `vppcfg`, the type and strategy will be configurable.
+
+Examples:
+```
+bondethernets:
+  BondEthernet0:
+    description: "Core: LACP to fsw0.lab.ipng.ch"
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+```
 
 ### VXLAN Tunnels
+
+### Interfaces
