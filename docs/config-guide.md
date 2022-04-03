@@ -156,4 +156,35 @@ bondethernets:
 
 ### VXLAN Tunnels
 
+VXLAN Tunnels are required to be named `vxlan_tunnelN` (note the underscore), where N in
+[0,2G). The configuration allows the following fields:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***local***: A required IPv4 or IPv6 address for our (source) side of the tunnel.
+*   ***remote***: A required IPv4 or IPv6 address for their (destination) side of the tunnel.
+*   ***vni***: A _Virtual Network Indentifier_, a required integer number between [1,16M).
+
+Local and Remote sides of the tunnel MUST have the same address family.
+
+*Caveat*: VXLAN tunnels are currently only possible as unicast (src/dst), with static source
+and destination ports (4789), and with a `decap-next` of L2. Also, VNIs must be globally unique.
+In a future release of `vppcfg`, these fields will be configurable, and VNI reuses will be
+allowed between different dst endpoints.
+
+Examples:
+```
+vxlan_tunnels:
+  vxlan_tunnel0:
+    description: "Some IPv6 VXLAN tunnel"
+    local: 2001:db8::1
+    remote: 2001:db8::2
+    vni: 100
+  vxlan_tunnel1:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 101
+```
+
 ### Interfaces
