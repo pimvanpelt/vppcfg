@@ -31,13 +31,16 @@ its syntax (using Yamale) and its semantics (using vppcfg's constraints based sy
 If the config file is valid, the return value will be 0. If any syntax errors or semantic
 constraint violations are found, the return value will be non-zero.
 
+*Note:* There will be no VPP interaction at all in this mode. It is safe to run on a
+machine that does not even have VPP installed.
+
 The configuration file (in YAML format) is given by a mandatory `-c/--config` flag, and
 optionally a Yamale schema file, given by the `-s/--schema` flag (which will default to
 the built-in default schema). Any violations will be shown in the ERROR log. A succesful
 run will look like this:
 
 ```
-$ ./vppcfg check -c example.yaml && echo OK
+$ vppcfg check -c example.yaml && echo OK
 [INFO    ] root.main: Loading configfile example.yaml
 [INFO    ] vppcfg.config.valid_config: Configuration validated successfully
 [INFO    ] root.main: Configuration is valid
@@ -57,7 +60,7 @@ interfaces:
     descr: "the proper field name is description"
     mtu: 127
 
-$ ./vppcfg check -c yamale-invalid.yaml && echo OK
+$ vppcfg check -c yamale-invalid.yaml && echo OK
 [INFO    ] root.main: Loading configfile yamale-invalid.yaml
 [ERROR   ] vppcfg.config.valid_config: yamale: interfaces.GigabitEthernet1/0/0.descr: Unexpected element
 [ERROR   ] vppcfg.config.valid_config: yamale: interfaces.GigabitEthernet1/0/0.mtu: 127 is less than 128
@@ -90,7 +93,7 @@ bridgedomains:
     mtu: 9000
     interfaces: [ GigabitEthernet3/0/1 ]
 
-$ ./vppcfg check -c semantic-invalid.yaml && echo OK
+$ vppcfg check -c semantic-invalid.yaml && echo OK
 [INFO    ] root.main: Loading configfile semantic-invalid.yaml
 [ERROR   ] vppcfg.config.valid_config: sub-interface GigabitEthernet3/0/0.100 has an address but its encapsulation is not exact-match
 [ERROR   ] vppcfg.config.valid_config: interface GigabitEthernet3/0/1 is in L2 mode but has an address
