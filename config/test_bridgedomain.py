@@ -49,3 +49,19 @@ class TestBridgeDomainMethods(unittest.TestCase):
     def test_get_bridgedomains(self):
         ifs = bridgedomain.get_bridgedomains(self.cfg)
         self.assertEqual(len(ifs), 6)
+
+    def test_get_settings(self):
+        settings = bridgedomain.get_settings(self.cfg, "bd1")
+        self.assertIsNone(settings)
+
+        settings = bridgedomain.get_settings(self.cfg, "bd10")
+        self.assertTrue(settings['learn'])
+        self.assertTrue(settings['unknown-unicast-flood'])
+        self.assertTrue(settings['unicast-flood'])
+        self.assertEqual(settings['mac-age-minutes'], 0)
+
+        settings = bridgedomain.get_settings(self.cfg, "bd11")
+        self.assertTrue(settings['learn'])
+        self.assertFalse(settings['unknown-unicast-flood'])
+        self.assertFalse(settings['unicast-flood'])
+        self.assertEqual(settings['mac-age-minutes'], 10)

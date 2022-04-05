@@ -81,6 +81,38 @@ def bvi_unique(yaml, bviname):
     return n<2
 
 
+def get_settings(yaml, ifname):
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return None
+
+    settings = {
+        'learn': True,
+        'unicast-flood': True,
+        'unknown-unicast-flood': True,
+        'unicast-forward': True,
+        'arp-termination': False,
+        'arp-unicast-forward': False,
+        'mac-age-minutes': 0,          ## 0 means disabled
+        }
+    if 'settings' in iface:
+        if 'learn' in iface['settings']:
+            settings['learn'] = iface['settings']['learn']
+        if 'unicast-flood' in iface['settings']:
+            settings['unicast-flood'] = iface['settings']['unicast-flood']
+        if 'unknown-unicast-flood' in iface['settings']:
+            settings['unknown-unicast-flood'] = iface['settings']['unknown-unicast-flood']
+        if 'unicast-forward' in iface['settings']:
+            settings['unicast-forward'] = iface['settings']['unicast-forward']
+        if 'arp-termination' in iface['settings']:
+            settings['arp-termination'] = iface['settings']['arp-termination']
+        if 'arp-unicast-forward' in iface['settings']:
+            settings['arp-unicast-forward'] = iface['settings']['arp-unicast-forward']
+        if 'mac-age-minutes' in iface['settings']:
+            settings['mac-age-minutes'] = int(iface['settings']['mac-age-minutes'])
+    return settings
+
+
 def validate_bridgedomains(yaml):
     result = True
     msgs = []

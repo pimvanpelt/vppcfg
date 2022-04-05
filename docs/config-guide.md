@@ -105,16 +105,23 @@ BridgeDomains are required to be named `bdN` where N in [1, 16777216). Note that
 *   ***interfaces***: A list of zero or more interfaces or sub-interfaces that are bridge
     members. If the bridge has a `BVI`, it MUST NOT appear in this list. Bridges are allowed to
     exist with no member interfaces.
+*   ***settings***: A map of bridge-domain settings to further manipulate its behavior:
+    *   ***learn***: A boolean that turns learning on/off. Default True.
+    *   ***unicast-flood***: A boolean that turns unicast flooding on/off. Default True.
+    *   ***unknown-unicast-flood***: A boolean that turns unknown unicast flooding on/off.
+        Default True.
+    *   ***unicast-forward***: A boolean that turns unicast forwarding on/off. Default True.
+    *   ***arp-termination***: A boolean that turns termination and response of ARP Requests
+        on/off. Default False.
+    *   ***arp-unicast-forward***: A boolean that turns L2 arp-unicast forwarding on/off.
+        Default False.
+    *   ***mac-age-minutes***: An integer between [0,256) that drives the ARP timeout on the
+        bridge in minutes, where 0 means do not age out, which is the default.
 
 Any member sub-interfaces that are added, will automatically be configured to tag-rewrite the
 number of tags they have, so a simple dot1q sub-interface will be configured as `pop 1`, while
 a QinQ or QinAD sub-interface will be configured as `pop 2`. Conversely, when interfaces are
 removed from the bridge, their tag-rewriting will be disabled.
-
-*Caveat*: Currently, bridgedomains are always created with their default attributes in VPP, that
-is to say with learning and unicast forwarding turned on, unknown-unicast flooding enabled,
-and ARP terminating and aging turned off. In a future release, `vppcfg` will give more
-configuration options.
 
 Examples:
 ```
@@ -124,8 +131,19 @@ bridgedomains:
     bvi: loop1
     interfaces: [ BondEthernet0.500, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
   bd11:
-    description: "No member interfaces, default 1500 byte MTU"
+    description: "No members, default 1500 byte MTU, with (default) settings"
+    settings:
+      learn: True
+      unicast-flood: True
+      unknown-unicast-flood: True
+      unicast-forward: True
+      arp-termination: False
+      arp-unicast-forward: False
+      mac-age-minutes: 0
 ```
+
+*Caveat*: The flooding of unknown-unicast can be turned on or off, but flooding to a specific interface
+(as opposed to all interfaces which is the default), is not supported.
 
 ### BondEthernets
 

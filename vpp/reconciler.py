@@ -623,9 +623,24 @@ class Reconciler():
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
             ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
             instance = int(ifname[2:])
+            settings = bridgedomain.get_settings(self.cfg, ifname)
             if instance in self.vpp.cache['bridgedomains']:
                 continue
             cli="create bridge-domain %s" % (instance)
+            if not settings['learn']:
+                cli += " learn 0"
+            if not settings['unicast-flood']:
+                cli += " flood 0"
+            if not settings['unknown-unicast-flood']:
+                cli += " uu-flood 0"
+            if not settings['unicast-forward']:
+                cli += " forward 0"
+            if settings['arp-termination']:
+                cli += " arp-term 1"
+            if settings['arp-unicast-forward']:
+                cli += " arp-ufwd 1"
+            if settings['mac-age-minutes'] > 0:
+                cli += " mac-age %d" % settings['mac-age-minutes']
             self.cli['create'].append(cli);
         return True
 
@@ -727,12 +742,48 @@ class Reconciler():
                 bridge_members = [self.vpp.cache['interfaces'][x].interface_name for x in bridge_sw_if_index_list if x in self.vpp.cache['interfaces']]
             else:
                 ## New BridgeDomain
+                vpp_bridge = None
                 bvi_sw_if_index = -1
                 bridge_members = []
 
             config_bridge_ifname, config_bridge_iface = bridgedomain.get_by_name(self.cfg, "bd%d"%instance)
-            if not 'interfaces' in config_bridge_iface:
-                continue
+            if vpp_bridge:
+                # Sync settings on existing bridge. create_bridgedomain() will have set them for new bridges.
+                settings = bridgedomain.get_settings(self.cfg, config_bridge_ifname)
+                if settings['learn'] != vpp_bridge.learn:
+                    cli="set bridge-domain learn %d" % (instance)
+                    if not settings['learn']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['unicast-forward'] != vpp_bridge.forward:
+                    cli="set bridge-domain forward %d" % (instance)
+                    if not settings['unicast-forward']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['unicast-flood'] != vpp_bridge.flood:
+                    cli="set bridge-domain flood %d" % (instance)
+                    if not settings['unicast-flood']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['unknown-unicast-flood'] != vpp_bridge.uu_flood:
+                    cli="set bridge-domain uu-flood %d" % (instance)
+                    if not settings['unknown-unicast-flood']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['arp-termination'] != vpp_bridge.arp_term:
+                    cli="set bridge-domain arp term %d" % (instance)
+                    if not settings['arp-termination']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['arp-unicast-forward'] != vpp_bridge.arp_ufwd:
+                    cli="set bridge-domain arp-ufwd %d" % (instance)
+                    if not settings['arp-unicast-forward']:
+                        cli += " disable"
+                    self.cli['sync'].append(cli);
+                if settings['mac-age-minutes'] != vpp_bridge.mac_age:
+                    cli="set bridge-domain mac-age %d %d" % (instance, settings['mac-age-minutes'])
+                    self.cli['sync'].append(cli);
+
             if 'bvi' in config_bridge_iface:
                 bviname = config_bridge_iface['bvi']
                 if bviname in self.vpp.cache['interface_names'] and self.vpp.cache['interface_names'][bviname].sw_if_index == bvi_sw_if_index:
@@ -740,6 +791,8 @@ class Reconciler():
                 cli="set interface l2 bridge %s %d bvi" % (bviname, instance)
                 self.cli['sync'].append(cli);
 
+            if not 'interfaces' in config_bridge_iface:
+                continue
             for member_ifname in config_bridge_iface['interfaces']:
                 member_ifname, member_iface = interface.get_by_name(self.cfg, member_ifname)
                 if not member_ifname in bridge_members:

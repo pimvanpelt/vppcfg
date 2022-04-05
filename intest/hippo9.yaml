@@ -75,6 +75,9 @@ bridgedomains:
     mtu: 2000
     bvi: loop2
     interfaces: [ BondEthernet0.500, BondEthernet0.501 ]
+    settings:
+      mac-age-minutes: 10
+      learn: False
   bd11:
     mtu: 1500
 
