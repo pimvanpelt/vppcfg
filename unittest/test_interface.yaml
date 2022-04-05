@@ -10,9 +10,9 @@ interfaces:
         description: "This sub-int is invalid because it has no outer dot1q and dot1ad"
         encapsulation:
           inner-dot1q: 1000
-
       102:
         description: "This sub-int is has the same encap as 103"
+        state: down
       103:
         description: "This sub-int is has the same encap as 102"
         encapsulation:
@@ -59,6 +59,7 @@ interfaces:
   GigabitEthernet2/0/0:
     description: "This interface has no sub-ints"
     lcp: "e2"
+    state: down
 
   GigabitEthernet3/0/0:
     l2xc: GigabitEthernet3/0/1

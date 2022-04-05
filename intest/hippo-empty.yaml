@@ -1,13 +1,17 @@
 interfaces:
   GigabitEthernet3/0/0:
     mtu: 1500
+    state: down
     description: Not Used
   GigabitEthernet3/0/1:
     mtu: 1500
+    state: down
     description: Not Used
   HundredGigabitEthernet12/0/0:
     mtu: 1500
+    state: down
     description: Not Used
   HundredGigabitEthernet12/0/1:
     mtu: 1500
+    state: down
     description: Not Used

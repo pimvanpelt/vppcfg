@@ -37,6 +37,7 @@ interface:
   addresses: list(ip_interface(),min=1,max=6,required=False)
   sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
   l2xc: str(required=False)
+  state: enum('up', 'down', required=False)
 ---
 sub-interface:
   description: str(exclude='\'"',len=64,required=False)
@@ -45,6 +46,7 @@ sub-interface:
   addresses: list(ip_interface(),required=False)
   encapsulation: include('encapsulation',required=False)
   l2xc: str(required=False)
+  state: enum('up', 'down', required=False)
 ---
 encapsulation:
   dot1q: int(min=1,max=4095,required=False)

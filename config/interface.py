@@ -396,6 +396,17 @@ def get_mtu(yaml, ifname):
     return 1500
 
 
+def get_admin_state(yaml, ifname):
+    """ Return True if the interface admin state should be 'up'. Return False
+        if it does not exist, or if it's set to 'down'. """
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return False
+    if not 'state' in iface:
+        return True
+    return iface['state'] == 'up'
+
+
 def validate_interfaces(yaml):
     result = True
     msgs = []
@@ -410,6 +421,8 @@ def validate_interfaces(yaml):
         if ifname.startswith("BondEthernet") and (None,None) == bondethernet.get_by_name(yaml, ifname):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
+        if not 'state' in iface:
+            iface['state'] = 'up'
 
         iface_mtu = get_mtu(yaml, ifname)
         iface_lcp = get_lcp(yaml, ifname)
@@ -472,6 +485,12 @@ def validate_interfaces(yaml):
                     msgs.append("sub-interface %s has no config" % (sub_ifname))
                     result = False
                     continue
+
+                if not 'state' in sub_iface:
+                    sub_iface['state'] = 'up'
+                if sub_iface['state'] == 'up' and iface['state'] == 'down':
+                    msgs.append("sub-interface %s cannot be up if parent %s is down" % (sub_ifname, ifname))
+                    result = False
 
                 sub_mtu = get_mtu(yaml, sub_ifname)
                 if sub_mtu > iface_mtu:

@@ -201,3 +201,10 @@ class TestInterfaceMethods(unittest.TestCase):
     def test_is_phy(self):
         self.assertTrue(interface.is_phy(self.cfg, "GigabitEthernet1/0/0"))
         self.assertFalse(interface.is_phy(self.cfg, "GigabitEthernet1/0/0.100"))
+
+    def test_get_admin_state(self):
+        self.assertFalse(interface.get_admin_state(self.cfg, "notexist"))
+        self.assertFalse(interface.get_admin_state(self.cfg, "GigabitEthernet2/0/0"))
+        self.assertTrue(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0"))
+        self.assertTrue(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.101"))
+        self.assertFalse(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.102"))

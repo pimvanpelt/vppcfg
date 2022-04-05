@@ -1,0 +1,17 @@
+test:
+  description: "A sub-interface cannot be up if its parent is down."
+  errors:
+    expected:
+     - "sub-interface .* cannot be up if parent .* is down"
+    count: 1
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    state: down
+    lcp: "e1"
+    sub-interfaces:
+      100:
+        state: up
+        encapsulation:
+          dot1q: 100
+          exact-match: false

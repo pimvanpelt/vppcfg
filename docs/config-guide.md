@@ -212,6 +212,8 @@ exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `Bo
 *   ***l2xc***: A Layer2 Cross Connect interface name. An `l2xc` will be configured, after which
     this interface cannot have any L3 configuration (IP addresses or LCP), and neither can the
     target interface.
+*   ***state***: An optional string that configures the link admin state, either `up` or `down`.
+    If it is not specified, the link is considered admin 'up'.
 
 Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
 to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further

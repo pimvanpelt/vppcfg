@@ -920,7 +920,7 @@ class Reconciler():
                 config_admin_state = 1
             else:
                 vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
-                config_admin_state = 1
+                config_admin_state = interface.get_admin_state(self.cfg, ifname)
 
             vpp_admin_state = 0
             if vpp_ifname in self.vpp.cache['interface_names']:

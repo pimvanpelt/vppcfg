@@ -316,6 +316,9 @@ class VPPApiDumper(VPPApi):
                     if iface.sw_if_index in self.cache['l2xcs']:
                         l2xc = self.cache['l2xcs'][iface.sw_if_index]
                         i['l2xc'] = self.cache['interfaces'][l2xc.tx_sw_if_index].interface_name
+                    if not self.cache['interfaces'][idx].flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
+                        i['state'] = 'down'
+
                     i['mtu'] = iface.mtu[0]
                     if iface.sub_number_of_tags == 0:
                         config['interfaces'][iface.interface_name] = i
