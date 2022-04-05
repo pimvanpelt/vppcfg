@@ -10,6 +10,7 @@ import fnmatch
 import logging
 import socket
 import yaml
+import config.bondethernet as bondethernet
 
 class VPPApi():
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
@@ -275,6 +276,10 @@ class VPPApiDumper(VPPApi):
             bond = {"description": ""}
             if iface.sw_if_index in self.cache['bondethernet_members']:
                 bond['interfaces'] = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
+            mode = bondethernet.int_to_mode(iface.mode)
+            bond['mode'] = mode
+            if mode in ['xor', 'lacp']:
+                bond['load-balance'] = bondethernet.int_to_lb(iface.lb)
             config['bondethernets'][iface.interface_name] = bond
 
         for numtags in [ 0, 1, 2 ]:
@@ -344,6 +349,16 @@ class VPPApiDumper(VPPApi):
             bridge_name = "bd%d" % idx
             mtu = 1500
             bridge = {"description": ""}
+            settings = {}
+            settings['learn'] = iface.learn
+            settings['unicast-flood'] = iface.flood
+            settings['unknown-unicast-flood'] = iface.uu_flood
+            settings['unicast-forward'] = iface.forward
+            settings['arp-termination'] = iface.arp_term
+            settings['arp-unicast-forward'] = iface.arp_ufwd
+            settings['mac-age-minutes'] = int(iface.mac_age)
+            bridge['settings'] = settings
+
             bvi = None
             if iface.bvi_sw_if_index != 2**32-1:
                 bvi = self.cache['interfaces'][iface.bvi_sw_if_index]

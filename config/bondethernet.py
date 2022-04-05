@@ -81,6 +81,20 @@ def mode_to_int(mode):
     return -1
 
 
+def int_to_mode(mode):
+    """ Returns the string representation in VPP of a given bondethernet mode,
+        or "" if 'mode' is not a valid id.
+
+        See src/vnet/bonding/bond.api and schema.yaml for valid pairs. """
+
+    ret = { 1: 'round-robin', 2: 'active-backup', 3: 'xor', 4: 'broadcast', 5: 'lacp' }
+    try:
+        return ret[mode]
+    except:
+        pass
+    return ""
+
+
 def get_lb(yaml, ifname):
     """ Return the loadbalance strategy of the BondEthernet as a string. Only
         'xor' and 'lacp' modes have loadbalance strategies, so return None if
@@ -114,6 +128,21 @@ def lb_to_int(lb):
     except:
         pass
     return -1
+
+
+def int_to_lb(lb):
+    """ Returns the string representation in VPP of a given load-balance strategy,
+        or "" if 'lb' is not a valid int.
+
+        See src/vnet/bonding/bond.api and schema.yaml for valid pairs, although
+        bond.api defined more than we use in vppcfg. """
+
+    ret = { 0: 'l2', 1: 'l34', 2: 'l23', 3: 'round-robin', 4: 'broadcast', 5: 'active-backup' }
+    try:
+        return ret[lb]
+    except:
+        pass
+    return ""
 
 
 def validate_bondethernets(yaml):
