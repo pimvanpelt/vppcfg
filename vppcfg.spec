@@ -4,10 +4,12 @@
 block_cipher = None
 
 
+added_files = [ ( 'schema.yaml', '.') ]
+
 a = Analysis(['vppcfg'],
              pathex=['/home/pim/src/vppcfg'],
              binaries=[],
-             datas=[],
+             datas=added_files,
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},

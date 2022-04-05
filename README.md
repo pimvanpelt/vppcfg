@@ -22,7 +22,7 @@ sudo pip3 install pyinstaller
 ./tests.py -d -t unittest/yaml/*.yaml
 
 ## Build the tool
-pyinstaller vppcfg  --onefile
+pyinstaller vppcfg.spec --onefile
 dist/vppcfg -h
 ```
 

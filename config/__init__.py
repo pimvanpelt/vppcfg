@@ -20,6 +20,9 @@ from __future__ import (
 )
 
 import logging
+import ipaddress
+import os.path
+import sys
 try:
     import yamale
 except ImportError:
@@ -30,10 +33,8 @@ from config.bondethernet import validate_bondethernets
 from config.interface import validate_interfaces
 from config.bridgedomain import validate_bridgedomains
 from config.vxlan_tunnel import validate_vxlan_tunnels
-from config.schema import yamale_schema
 
 from yamale.validators import DefaultValidators, Validator
-import ipaddress
 
 class IPInterfaceWithPrefixLength(Validator):
     """ Custom IPAddress config - takes IP/prefixlen as input:
@@ -74,15 +75,25 @@ class Validator(object):
         if not yaml:
             return ret_rv, ret_msgs
 
+        validators = DefaultValidators.copy()
+        validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
+        if self.schema:
+            fn = self.schema
+            self.logger.debug("Validating against --schema %s" % fn)
+        elif hasattr(sys, "_MEIPASS"):
+            ## See vppcfg.spec data_files that includes schema.yaml into the bundle
+            self.logger.debug("Validating against built-in schema")
+            fn = os.path.join(sys._MEIPASS, "schema.yaml")
+        else:
+            fn = "./schema.yaml"
+            self.logger.debug("Validating against fallthrough default schema %s" % fn)
+
+        if not os.path.isfile(fn):
+            self.logger.error("Cannot file schema file: %s" % fn)
+            return False, ret_msgs
+
         try:
-            validators = DefaultValidators.copy()
-            validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
-            if self.schema:
-                self.logger.debug("Validating against schema %s" % self.schema)
-                schema = yamale.make_schema(self.schema, validators=validators)
-            else:
-                self.logger.debug("Validating against built-in schema")
-                schema = yamale.make_schema(content=yamale_schema, validators=validators)
+            schema = yamale.make_schema(fn, validators=validators)
             data = yamale.make_data(content=str(yaml))
             yamale.validate(schema, data)
             self.logger.debug("Schema correctly validated by yamale")

@@ -1,6 +1,3 @@
-### NOTE(pim): This file is the source of truth for the Yamale schema validator.
-###            Make sure to copy this file into config/schema.py's yamale_schema
-###            when it is changed here.
 interfaces: map(include('interface'),key=str(),required=False)
 bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+'),required=False)
 loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
