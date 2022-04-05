@@ -171,6 +171,9 @@ def validate_bondethernets(yaml):
             msgs.append("bondethernet %s can only have load-balance if in mode XOR or LACP" % (ifname))
             result = False
 
+        if not 'interfaces' in iface:
+            continue
+
         for member in iface['interfaces']:
             if (None, None) == interface.get_by_name(yaml, member):
                 msgs.append("bondethernet %s member %s does not exist" % (ifname, member))

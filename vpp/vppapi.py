@@ -275,7 +275,10 @@ class VPPApiDumper(VPPApi):
         for idx, iface in self.cache['bondethernets'].items():
             bond = {"description": ""}
             if iface.sw_if_index in self.cache['bondethernet_members']:
-                bond['interfaces'] = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
+                members = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
+                if len(members) > 0:
+                    bond['interfaces'] = members
+
             mode = bondethernet.int_to_mode(iface.mode)
             bond['mode'] = mode
             if mode in ['xor', 'lacp']:
