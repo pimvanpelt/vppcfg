@@ -3,7 +3,8 @@ test:
   errors:
     expected:
      - "bridgedomain .* member .* has MTU (2000|3000|500), while bridge has 1500"
-    count: 3
+     - "bridgedomain .* BVI .* has MTU 9000, while bridge has 1500"
+    count: 4
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -14,8 +15,13 @@ interfaces:
       101:
         mtu: 500
 
+loopbacks:
+  loop1:
+    mtu: 9000
+
 bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 1500
+    bvi: loop1
     interfaces: [ GigabitEthernet1/0/0, GigabitEthernet2/0/0, GigabitEthernet2/0/0.101 ]

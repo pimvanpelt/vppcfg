@@ -137,11 +137,20 @@ def validate_bridgedomains(yaml):
 
         if 'bvi' in iface:
             bviname = iface['bvi']
-            if (None,None) == loopback.get_by_name(yaml, bviname):
-                msgs.append("bridgedomain %s BVI %s does not exist" % (ifname, bviname))
+            bvi_ifname, bvi_iface = loopback.get_by_name(yaml,iface['bvi'])
+            if not bvi_unique(yaml, bvi_ifname):
+                msgs.append("bridgedomain %s BVI %s is not unique" % (ifname, bvi_ifname))
                 result = False
-            if not bvi_unique(yaml, bviname):
-                msgs.append("bridgedomain %s BVI %s is not unique" % (ifname, bviname))
+            if not bvi_iface:
+                msgs.append("bridgedomain %s BVI %s does not exist" % (ifname, bvi_ifname))
+                result = False
+                continue
+
+            bvi_mtu = 1500
+            if 'mtu' in bvi_iface:
+                bvi_mtu = bvi_iface['mtu']
+            if bvi_mtu != bd_mtu:
+                msgs.append("bridgedomain %s BVI %s has MTU %d, while bridge has %d" % (ifname, bvi_ifname, bvi_mtu, bd_mtu))
                 result = False
 
         if 'interfaces' in iface:
