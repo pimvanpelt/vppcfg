@@ -148,24 +148,9 @@ class VPPApi():
 
         ## Workaround LCPng and linux-cp, in order.
         self.lcp_enabled = False
-        if not self.lcp_enabled:
-            try:
-                self.logger.debug("Retrieving LCPs (lcpng)")
-                r = self.vpp.api.lcpng_itf_pair_get()
-                self.lcp_enabled = True
-            except:
-                self.logger.warning("lcpng not found, trying linux-cp")
-        if not self.lcp_enabled:
-            try:
-                self.logger.debug("Retrieving LCPs (linux-cp)")
-                r = self.vpp.api.lcp_itf_pair_get()
-                self.lcp_enabled = True
-            except:
-                pass
-
-        if not self.lcp_enabled:
-            self.logger.warning("lcpng nor linux-cp found, will not reconcile Linux Control Plane")
-        else:
+        try:
+            self.logger.debug("Retrieving LCPs")
+            r = self.vpp.api.lcp_itf_pair_get()
             if isinstance(r, tuple) and r[0].retval == 0:
                 for lcp in r[1]:
                     if lcp.phy_sw_if_index > 65535 or lcp.host_sw_if_index > 65535:
@@ -176,6 +161,9 @@ class VPPApi():
                         lcp = lcp._replace(vif_index=socket.ntohl(lcp.vif_index))
                         self.logger.warning("LCP workaround for endianness issue on %s" % lcp.host_if_name)
                     self.cache['lcps'][lcp.phy_sw_if_index] = lcp
+                self.lcp_enabled = True
+        except:
+            self.logger.warning("linux-cp not found, will not reconcile Linux Control Plane")
 
         self.logger.debug("Retrieving interfaces")
         r = self.vpp.api.sw_interface_dump()

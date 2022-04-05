@@ -102,7 +102,7 @@ def main():
         sys.exit(-5)
 
     if not r.lcps_exist_with_lcp_enabled():
-        logging.error("Linux Control Plane is needed, but neither lcpng nor linux-cp are available")
+        logging.error("Linux Control Plane is needed, but linux-cp API is not available")
         sys.exit(-6)
 
     failed = False
