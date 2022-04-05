@@ -52,6 +52,70 @@ def is_bond_member(yaml, ifname):
     return False
 
 
+def get_mode(yaml, ifname):
+    """ Return the mode of the BondEthernet as a string, defaulting to 'lacp'
+        if no mode is given. Return None if the bond interface doesn't exist.
+
+        Return values: 'round-robin','active-backup','broadcast','lacp','xor'
+        """
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return None
+
+    if not 'mode' in iface:
+        return 'lacp'
+    return iface['mode']
+
+
+def mode_to_int(mode):
+    """ Returns the integer representation in VPP of a given bondethernet mode,
+        or -1 if 'mode' is not a valid string.
+
+        See src/vnet/bonding/bond.api and schema.yaml for valid pairs. """
+
+    ret = { 'round-robin': 1, 'active-backup': 2, 'xor': 3, 'broadcast': 4, 'lacp': 5 }
+    try:
+        return ret[mode]
+    except:
+        pass
+    return -1
+
+
+def get_lb(yaml, ifname):
+    """ Return the loadbalance strategy of the BondEthernet as a string. Only
+        'xor' and 'lacp' modes have loadbalance strategies, so return None if
+        those modes are not used.
+
+        Return values: 'l2', 'l23', 'l34', with 'l34' being the default if
+        the bond is in xor/lacp mode without a load-balance strategy set
+        explicitly."""
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return None
+    mode = get_mode(yaml, ifname)
+    if not mode in ['xor','lacp']:
+        return None
+
+    if not 'load-balance' in iface:
+        return 'l34'
+    return iface['load-balance']
+
+
+def lb_to_int(lb):
+    """ Returns the integer representation in VPP of a given load-balance strategy,
+        or -1 if 'lb' is not a valid string.
+
+        See src/vnet/bonding/bond.api and schema.yaml for valid pairs, although
+        bond.api defined more than we use in vppcfg. """
+
+    ret = { 'l2': 0, 'l34': 1, 'l23': 2, 'round-robin': 3, 'broadcast': 4, 'active-backup': 5 }
+    try:
+        return ret[lb]
+    except:
+        pass
+    return -1
+
+
 def validate_bondethernets(yaml):
     result = True
     msgs = []
@@ -73,6 +137,9 @@ def validate_bondethernets(yaml):
         instance = int(ifname[12:])
         if instance > 4294967294:
             msgs.append("bondethernet %s has instance %d which is too large" % (ifname, instance))
+            result = False
+        if not get_mode(yaml, bond_ifname) in ['xor','lacp'] and 'load-balance' in iface:
+            msgs.append("bondethernet %s can only have load-balance if in mode XOR or LACP" % (ifname))
             result = False
 
         for member in iface['interfaces']:

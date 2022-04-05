@@ -156,20 +156,28 @@ BondEthernets are required to be named `BondEthernetN` (note the camelcase) wher
 *   ***interfaces***: A list of zero or more interfaces that are bond members. The interfaces
     must be PHYs, and in their `interface` configuration, members are allowed only to set the
     MTU.
+*   ***mode***: A mode to run the LAG in. Can be one of 'round-robin', 'active-backup', 'xor',
+    'broadcast' or 'lacp'. The default is LACP.
+*   ***load-balance***: A loadbalancing strategy to use, if the mode is either XOR or LACP.
+    Can be one of 'l2', 'l23', or 'l34'. The default is l34, which hashes on the source and
+    destination IPs and ports.
 
 Note that the configuration object here only specifies the link aggregation and its members.
 BondEthernets are expected to occur as well in the `interfaces` section, where their sub-interfaces
 and IP addresses and so on are specified.
-
-*Caveat*: Currently, BondEthernets are always created as `LACP` typed devices with a loadbalance
-strategy of `l34`. In a future release of `vppcfg`, the type and strategy will be configurable.
 
 Examples:
 ```
 bondethernets:
   BondEthernet0:
     description: "Core: LACP to fsw0.lab.ipng.ch"
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+    mode: lacp
+    load-balance: l2
+  BondEthernet1:
+    description: "Core: RR LAG"
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mode: round-robin
 ```
 
 ### VXLAN Tunnels

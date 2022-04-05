@@ -1,6 +1,8 @@
 bondethernets:
   BondEthernet0:
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mode: lacp
+    load-balance: l2
 
 interfaces:
   GigabitEthernet3/0/0:

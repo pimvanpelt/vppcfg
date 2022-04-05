@@ -236,6 +236,33 @@ class Reconciler():
             self.vpp.cache_remove_l2xc(l2xc)
         return True
 
+    def __bond_has_diff(self, ifname):
+        """ Returns True if the given ifname (BondEthernet0) have different attributes,
+            or if either does not exist.
+
+            Returns False if they are identical.
+            """
+        if not ifname in self.vpp.cache['interface_names']:
+            return True
+
+        vpp_iface = self.vpp.cache['interface_names'][ifname]
+        if not vpp_iface.sw_if_index in self.vpp.cache['bondethernets']:
+            return True
+
+        config_ifname, config_iface = bondethernet.get_by_name(self.cfg, ifname)
+        if not config_iface:
+            return True
+
+        vpp_bond = self.vpp.cache['bondethernets'][vpp_iface.sw_if_index]
+        mode = bondethernet.mode_to_int(bondethernet.get_mode(self.cfg, config_ifname))
+        if mode != vpp_bond.mode:
+            return True
+        lb = bondethernet.lb_to_int(bondethernet.get_lb(self.cfg, config_ifname))
+        if lb != vpp_bond.lb:
+            return True
+
+        return False
+
     def prune_bondethernets(self):
         """ Remove all BondEthernets from VPP, if they are not in the config. If the bond has members,
             remove those from the bond before removing the bond. """
@@ -244,7 +271,8 @@ class Reconciler():
         for idx, bond in self.vpp.cache['bondethernets'].items():
             vpp_ifname = bond.interface_name
             config_ifname, config_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
-            if not config_iface:
+
+            if self.__bond_has_diff(vpp_ifname):
                 self.prune_addresses(vpp_ifname, [])
                 for member in self.vpp.cache['bondethernet_members'][idx]:
                     member_ifname = self.vpp.cache['interfaces'][member].interface_name
@@ -255,6 +283,7 @@ class Reconciler():
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
+
             for member in self.vpp.cache['bondethernet_members'][idx]:
                 member_ifname = self.vpp.cache['interfaces'][member].interface_name
                 if 'interfaces' in config_iface and not member_ifname in config_iface['interfaces']:
@@ -326,7 +355,8 @@ class Reconciler():
         return match
 
     def prune_sub_interfaces(self):
-        """ Remove interfaces from VPP if they are not in the config, or if their encapsulation is different.
+        """ Remove interfaces from VPP if they are not in the config, if their encapsulation is different,
+            or if the BondEthernet they reside on is different.
             Start with inner-most (QinQ/QinAD), then Dot1Q/Dot1AD."""
         removed_interfaces=[]
         for numtags in [ 2, 1 ]:
@@ -338,21 +368,27 @@ class Reconciler():
                 if self.__tap_is_lcp(vpp_iface.sw_if_index):
                     continue
 
+                prune=False
                 config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
                 if not config_iface:
-                    self.prune_addresses(vpp_ifname, [])
-                    cli="delete sub %s" % (vpp_ifname)
-                    self.cli['prune'].append(cli);
-                    removed_interfaces.append(vpp_ifname)
-                    continue
+                    prune = True
+                elif vpp_iface.interface_dev_type=='bond' and vpp_iface.sub_number_of_tags > 0:
+                    config_parent_ifname, config_parent_iface = interface.get_parent_by_name(self.cfg, vpp_ifname)
+                    if self.__bond_has_diff(config_parent_ifname):
+                        prune = True
+
                 config_encap = interface.get_encapsulation(self.cfg, vpp_ifname)
                 vpp_encap = self.__get_encapsulation(vpp_iface)
                 if config_encap != vpp_encap:
+                    prune = True
+
+                if prune:
                     self.prune_addresses(vpp_ifname, [])
                     cli="delete sub %s" % (vpp_ifname)
                     self.cli['prune'].append(cli);
                     removed_interfaces.append(vpp_ifname)
                     continue
+
                 addresses = []
                 if 'addresses' in config_iface:
                     addresses = config_iface['addresses']
@@ -482,7 +518,7 @@ class Reconciler():
                         removed_lcps.append(lcp.host_if_name)
                         continue
 
-                if vpp_iface.sub_number_of_tags > 1:
+                if vpp_iface.sub_number_of_tags > 0:
                     config_encap = interface.get_encapsulation(self.cfg, config_ifname)
                     vpp_encap = self.__get_encapsulation(vpp_iface)
                     if config_encap != vpp_encap:
@@ -495,6 +531,14 @@ class Reconciler():
                 if vpp_iface.interface_dev_type=='Loopback':
                     ## Loopbacks will not have a PHY to check.
                     continue
+                if vpp_iface.interface_dev_type=='bond':
+                    bond_iface = self.vpp.cache['interfaces'][vpp_iface.sup_sw_if_index]
+                    if self.__bond_has_diff(bond_iface.interface_name):
+                        ## If BondEthernet changed, it has to be re-created, so all LCPs must be removed.
+                        cli="lcp delete %s" % (vpp_iface.interface_name)
+                        self.cli['prune'].append(cli);
+                        removed_lcps.append(lcp.host_if_name)
+                        continue
 
                 phy_lcp = lcps[vpp_iface.sup_sw_if_index]
                 config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(self.cfg, phy_lcp.host_if_name)
@@ -578,7 +622,11 @@ class Reconciler():
                 continue
             ifname, iface = bondethernet.get_by_name(self.cfg, ifname)
             instance = int(ifname[12:])
-            cli="create bond mode lacp load-balance l34 id %d" % (instance)
+            mode = bondethernet.get_mode(self.cfg, ifname)
+            cli="create bond id %d mode %s" % (instance, mode)
+            lb = bondethernet.get_lb(self.cfg, ifname)
+            if lb:
+                cli += " load-balance %s" % lb
             self.cli['create'].append(cli);
         return True
 

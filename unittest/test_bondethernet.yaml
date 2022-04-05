@@ -2,6 +2,15 @@ bondethernets:
   BondEthernet0:
     interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
 
+  BondEthernet1:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mode: xor
+    load-balance: l2
+
+  BondEthernet2:
+    interfaces: [ GigabitEthernet4/0/0, GigabitEthernet4/0/1 ]
+    mode: round-robin
+
 interfaces:
   GigabitEthernet1/0/0:
     mtu: 3000
@@ -14,6 +23,16 @@ interfaces:
       100:
         mtu: 2000
 
+  GigabitEthernet3/0/0:
+    mtu: 3000
+  GigabitEthernet3/0/1:
+    mtu: 3000
+
+  GigabitEthernet4/0/0:
+    mtu: 3000
+  GigabitEthernet4/0/1:
+    mtu: 3000
+
   BondEthernet0:
     mtu: 3000
     lcp: "be012345678"
@@ -22,3 +41,9 @@ interfaces:
       100:
         mtu: 2000
         addresses: [ 192.0.2.9/29, 2001:db8:1::1/64 ]
+
+  BondEthernet1:
+    mtu: 3000
+
+  BondEthernet2:
+    mtu: 3000

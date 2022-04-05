@@ -31,7 +31,34 @@ class TestBondEthernetMethods(unittest.TestCase):
 
     def test_enumerators(self):
         ifs = bondethernet.get_bondethernets(self.cfg)
-        self.assertEqual(len(ifs), 1)
+        self.assertEqual(len(ifs), 3)
         self.assertIn("BondEthernet0", ifs)
+        self.assertIn("BondEthernet1", ifs)
+        self.assertIn("BondEthernet2", ifs)
         self.assertNotIn("BondEthernet-noexist", ifs)
 
+    def test_get_mode(self):
+        self.assertEqual('lacp', bondethernet.get_mode(self.cfg, "BondEthernet0"))
+        self.assertEqual('xor', bondethernet.get_mode(self.cfg, "BondEthernet1"))
+
+    def test_mode_to_int(self):
+        self.assertEqual(1, bondethernet.mode_to_int("round-robin"))
+        self.assertEqual(2, bondethernet.mode_to_int("active-backup"))
+        self.assertEqual(3, bondethernet.mode_to_int("xor"))
+        self.assertEqual(4, bondethernet.mode_to_int("broadcast"))
+        self.assertEqual(5, bondethernet.mode_to_int("lacp"))
+        self.assertEqual(-1, bondethernet.mode_to_int("not-exist"))
+
+    def test_get_lb(self):
+        self.assertEqual('l34', bondethernet.get_lb(self.cfg, "BondEthernet0"))
+        self.assertEqual('l2', bondethernet.get_lb(self.cfg, "BondEthernet1"))
+        self.assertIsNone(bondethernet.get_lb(self.cfg, "BondEthernet2"))
+
+    def test_lb_to_int(self):
+        self.assertEqual(0, bondethernet.lb_to_int("l2"))
+        self.assertEqual(1, bondethernet.lb_to_int("l34"))
+        self.assertEqual(2, bondethernet.lb_to_int("l23"))
+        self.assertEqual(3, bondethernet.lb_to_int("round-robin"))
+        self.assertEqual(4, bondethernet.lb_to_int("broadcast"))
+        self.assertEqual(5, bondethernet.lb_to_int("active-backup"))
+        self.assertEqual(-1, bondethernet.lb_to_int("not-exist"))

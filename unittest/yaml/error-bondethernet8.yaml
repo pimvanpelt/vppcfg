@@ -1,0 +1,44 @@
+test:
+  description: "BondEthernet can only have loadbalance if XOR or LACP"
+  errors:
+    expected: 
+     - "bondethernet BondEthernet2 can only have load-balance if in mode XOR or LACP"
+    count: 1
+---
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1 ]
+    mode: xor
+    load-balance: l34
+
+  BondEthernet1:
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+    mode: lacp
+    load-balance: l34
+
+  BondEthernet2:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mode: round-robin
+    load-balance: l34
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+  BondEthernet0:
+    mtu: 3000
+
+  GigabitEthernet2/0/0:
+    mtu: 3000
+  GigabitEthernet2/0/1:
+    mtu: 3000
+  BondEthernet1:
+    mtu: 3000
+
+  GigabitEthernet3/0/0:
+    mtu: 3000
+  GigabitEthernet3/0/1:
+    mtu: 3000
+  BondEthernet2:
+    mtu: 3000

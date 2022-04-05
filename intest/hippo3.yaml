@@ -1,6 +1,7 @@
 bondethernets:
   BondEthernet1:
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mode: round-robin
   
 interfaces:
   GigabitEthernet3/0/0:
