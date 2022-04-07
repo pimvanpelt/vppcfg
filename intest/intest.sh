@@ -7,7 +7,7 @@
 ## here should not be used although they can be a source of config inspiration :)
 
 ## Run me:
-# ./intest.sh 2>&1 | tee -a intest.out
+# ./intest.sh 2>&1 | tee intest.out
 
   for i in hippo[0-9]*.yaml; do
     echo "Clearing: Moving to hippo-empty.yaml"

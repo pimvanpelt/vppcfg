@@ -68,6 +68,7 @@ loopbacks:
     addresses: [ 192.0.2.1/30 ]
   loop2:
     lcp: "bvi2"
+    mtu: 2000
     addresses: [ 192.0.2.5/30 ]
 
 bridgedomains:
