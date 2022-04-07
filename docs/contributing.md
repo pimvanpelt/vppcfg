@@ -55,19 +55,6 @@ Developer's Certificate of Origin 1.1
         this project or the open source license(s) involved.
 ```
 
-### Semantic validation
-
-`vppcfg` will be used in many different scenarios - from the bench just doing a quick test
-when hacking on a VPP feature, all the way through to large production networks where dataplane
-crashes cause user harm. As such, contributing code has to be done with care.
-
-Static analysis is incredibly important, to help ensure that the YAML configuration files can
-be safely applied to running VPP instances:
-
-*   All changes to syntax validation are expected to have 100% unit test coverage.
-*   All changes to semantic validation are expected to have 100% YAMLTest coverage.
-*   New code cannot break an existing test unless the test is objectively incorrect.
-
 ### Completeness
 
 Feature additions are expected to be reasonably complete when merged. Keep work-in-progress in
@@ -80,6 +67,24 @@ a git branch until it's completed. New VPP APIs should have:
 *   A reasonable N-way integration test (moving between various YAML configuration states without
     crashing `vppcfg` or VPP itself)
 *   Demonstrably work well with existing code.
+
+### Testing Requirements
+
+`vppcfg` will be used in many different scenarios - from the bench just doing a quick test
+when hacking on a VPP feature, all the way through to large production networks where dataplane
+crashes cause user harm. As such, contributing code has to be done with care.
+
+Static analysis is incredibly important, to help ensure that the YAML configuration files can
+be safely applied to running VPP instances:
+
+*   All changes to syntax validation are expected to have 100% unit test coverage.
+*   All changes to semantic validation are expected to have 100% YAMLTest coverage.
+*   New code cannot break an existing test unless the test is objectively incorrect.
+
+APIs integrations that require hardware, for example DPDK, RDMA or other custom hardware, are very
+welcome in `vppcfg`. However, they must be tested / testable as well, so hardware must be made
+available to testing rigs either remotely or locally, and integrated with release and integration
+testing harnass to ensure continued support in releases. Contact the project tech lead to coordinate.
 
 ### Version Skew
 
