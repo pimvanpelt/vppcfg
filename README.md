@@ -57,3 +57,16 @@ Developer deep-dives:
 *   [Validation](https://ipng.ch/s/articles/2022/03/27/vppcfg-1.html)
 *   [Path Planning](https://ipng.ch/s/articles/2022/04/02/vppcfg-2.html)
 *   [Design - Reconciliation](docs/design.md)
+
+
+## Licensing
+
+The code in this project is release under Apache 2.0 license. A copy of the license
+is provided in this repo [here](LICENSE). All contributions are held against our
+[contributing](docs/contributing.md) guidelines. Notably, all code must be licensed
+Apache 2.0, and all contributions must come with a certificate of origin in the
+form of a `Signed-off-by` field in the commit.
+
+All documentation under the docs/ directory is licensed Creative Commons Attribution
+4.0 International License ([details](http://creativecommons.org/licenses/by/4.0/)). A
+copy of the license is provided in this repo [here](docs/LICENSE).
