@@ -69,6 +69,13 @@ class Validator(object):
         self.logger.addHandler(logging.NullHandler())
 
         self.schema = schema
+        self.validators = [
+           validate_bondethernets,
+           validate_interfaces,
+           validate_loopbacks,
+           validate_bridgedomains,
+           validate_vxlan_tunnels,
+           validate_taps ]
 
     def validate(self, yaml):
         ret_rv = True
@@ -107,41 +114,12 @@ class Validator(object):
 
         self.logger.debug("Validating Semantics...")
 
-        rv, msgs = validate_bondethernets(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
-
-        rv, msgs = validate_interfaces(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
-
-        rv, msgs = validate_loopbacks(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
-
-        rv, msgs = validate_bridgedomains(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
-
-        rv, msgs = validate_vxlan_tunnels(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
-
-        rv, msgs = validate_taps(yaml)
-        if msgs:
-            ret_msgs.extend(msgs)
-        if not rv:
-            ret_rv = False
+        for v in self.validators:
+            rv, msgs = v(yaml)
+            if msgs:
+                ret_msgs.extend(msgs)
+            if not rv:
+                ret_rv = False
 
         if ret_rv:
             self.logger.debug("Semantics correctly validated")
@@ -162,3 +140,11 @@ class Validator(object):
 
         self.logger.info("Configuration validated successfully")
         return True
+
+    def add_validator(self, func):
+        """ Add a validator function, which strictly takes the prototype
+               rv, msgs = func(yaml)
+            returning a Boolean success value in rv and a List of strings
+            in msgs. The function will be passed the configuration YAML and
+            gets to opine if it's valid or not. """
+        self.validators.append(func)

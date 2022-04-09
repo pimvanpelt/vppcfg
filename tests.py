@@ -27,6 +27,14 @@ except ImportError:
     print("ERROR: install argparse manually: sudo pip install argparse")
     sys.exit(-2)
 
+def example_validator(yaml):
+    """ A simple example validator that takes the YAML configuration file as an input,
+    and returns a tuple of rv (return value, True is success), and a list of string
+    messages to the validation framework. """
+    rv = True
+    msgs = []
+
+    return rv, msgs
 
 class YAMLTest(unittest.TestCase):
     def __init__(self, testName, yaml_filename, yaml_schema):
