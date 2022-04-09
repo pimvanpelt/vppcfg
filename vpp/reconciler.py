@@ -255,10 +255,10 @@ class Reconciler():
 
         vpp_bond = self.vpp.cache['bondethernets'][vpp_iface.sw_if_index]
         mode = bondethernet.mode_to_int(bondethernet.get_mode(self.cfg, config_ifname))
-        if mode != vpp_bond.mode:
+        if mode != -1 and mode != vpp_bond.mode:
             return True
         lb = bondethernet.lb_to_int(bondethernet.get_lb(self.cfg, config_ifname))
-        if lb != vpp_bond.lb:
+        if lb != -1 and lb != vpp_bond.lb:
             return True
 
         return False
