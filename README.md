@@ -17,6 +17,8 @@ sudo pip3 install argparse
 sudo pip3 install yamale
 sudo pip3 install pyyaml
 sudo pip3 install pyinstaller
+sudo pip3 install netaddr
+sudo pip3 install ipaddress
 
 ## Ensure all unittests pass.
 ./tests.py -d -t unittest/yaml/*.yaml

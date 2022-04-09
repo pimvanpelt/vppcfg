@@ -1,0 +1,17 @@
+test:
+  description: "Interface mac addresses cannot be multicast"
+  errors:
+    expected:
+     - "interface .* MAC address .* cannot be multicast"
+    count: 1
+---
+interfaces:
+  GigabitEthernet3/0/0:
+    description: "Cool, local MACs are fine"
+    mac: 02:00:00:00:00:00
+  GigabitEthernet3/0/1:
+    description: "Cool, global unicast MACs are fine"
+    mac: 04:00:00:00:00:00
+  GigabitEthernet3/0/2:
+    description: "Not cool, multicast MACs"
+    mac: 01:00:00:00:00:00

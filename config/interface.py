@@ -18,6 +18,7 @@ import config.loopback as loopback
 import config.vxlan_tunnel as vxlan_tunnel
 import config.lcp as lcp
 import config.address as address
+import config.mac as mac
 
 def get_qinx_parent_by_name(yaml, ifname):
     """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None,None
@@ -423,6 +424,10 @@ def validate_interfaces(yaml):
             result = False
         if not 'state' in iface:
             iface['state'] = 'up'
+
+        if 'mac' in iface and mac.is_multicast(iface['mac']):
+            msgs.append("interface %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
+            result = False
 
         iface_mtu = get_mtu(yaml, ifname)
         iface_lcp = get_lcp(yaml, ifname)
