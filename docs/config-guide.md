@@ -213,6 +213,70 @@ vxlan_tunnels:
     vni: 101
 ```
 
+### TAPs
+
+TAPs are virtual L2 (and sometimes L3) devices in the kernel, that are backed by a userspace
+program. VPP can create a TAP and expose them in a network namespace, and optionally add them
+to a (Linux) bridge.
+
+TAPs are required to be named `tapN` where N in [0,1024], but be aware that Linux CP will use TAPs
+with an instance id that equals their hardware interface id. It is safer to create TAPs from the top
+of the namespace, for example `tap100`, see the caveat below on why. The configuration then allows
+for the following fields:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***host***: Configuration of the Linux side of the TAP:
+    *    ***name***: A (mandatory) Linux interface name, at most 15 characters long, matching the
+         regular expression `[a-z]+[a-z0-9-]*`.
+    *    ***mac***: The MAC address for the Linux interface, if empty it will be randomly assigned.
+    *    ***mtu***: The MTU of the Linux interface, if empty it will be set to 1500.
+    *    ***bridge***: An optional Linux bridge to add the Linux interface into. Note: VPP will
+         expect this bridge to exist, otherwise the addition will silently fail after creating the TAP.
+    *    ***namespace***: An optional Linux network namespace in which to add the Linux interface,
+         which can be empty (the default) in which case the Linux interface is created in the default
+         namespace.
+    *    ***bridge-create***: A boolean that determines if vppcfg will create the bridge in the namespace
+         if it does not yet exist, and will set its MTU to the `host.mtu` value if it does exist.
+         Defaults to False, and can only be True if `bridge` is given.
+    *    ***namespace-create***: A boolean that determines if vppcfg will create the network namespace
+         if it does not yet exist. Defaults to False, and can only be True if `namespace` is given.
+*   ***rx-ring-size***: An optional RX ringbuffer size, a value from 8 to 32K, must be a power of two.
+    If it is not specified, it will default to 256.
+*   ***tx-ring-size***: An optional TX ringbuffer size, a value from 8 to 32K, must be a power of two.
+    If it is not specified, it will default to 256.
+
+*NOTE*: The Linux Controlplane (LCP) plugin in VPP also uses TAPs to expose the dataplane (sub-)
+interfaces in Linux, but for that functionality, refer to the `lcp` fields in interfaces and loopbacks.
+
+*Caveat*: syncing changed attributes (with the exception of the bridge name) after the TAP was created
+is not supported. This is because there are no API setters in VPP. Changing attributes is possible, but
+operators should expect that the TAP interface gets pruned and recreated.
+
+*Caveat*: `vppcfg` will try to ensure a TAP is not created with the same instance ID as a hardware
+interface, but it can not make strict guarantees, because there exists no API to look the hardware
+interface id's up.  As a rule of thumb, start TAPs at twice the total count of hardware interfaces
+(PHYs, BondEthernets, VXLAN Tunnels and other TAPs) in the config.
+
+Examples:
+```
+taps:
+  tap100:
+    description: "TAP with MAC, MTU and Bridge"
+    host:
+      name: vpp-tap100
+      mac: f6:18:fe:e7:d2:3a
+      mtu: 9000
+      namespace: test
+      namespace-create: True
+      bridge: vpp-br0
+      bridge-create: True
+    rx-ring-size: 1024
+    tx-ring-size: 512
+```
+
+
 ### Interfaces
 
 Interfaces and their sub-interfaces are configured very similarly. Interface names MUST either

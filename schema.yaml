@@ -3,6 +3,7 @@ bondethernets: map(include('bondethernet'),key=str(matches='BondEthernet[0-9]+')
 loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
 bridgedomains: map(include('bridgedomain'),key=str(matches='bd[0-9]+'),required=False)
 vxlan_tunnels: map(include('vxlan'),key=str(matches='vxlan_tunnel[0-9]+'),required=False)
+taps: map(include('tap'),key=str(matches='tap[0-9]+'),required=False)
 ---
 vxlan:
   description: str(exclude='\'"',len=64,required=False)
@@ -62,3 +63,16 @@ encapsulation:
   dot1ad: int(min=1,max=4095,required=False)
   inner-dot1q: int(min=1,max=4095,required=False)
   exact-match: bool(required=False)
+---
+tap:
+  description: str(exclude='\'"',len=64,required=False)
+  host:
+    name: str(max=15,matches='[a-z]+[a-z0-9-]*')
+    mac: mac(required=False)
+    mtu: int(min=128,max=9216,required=False)
+    bridge: str(max=15,matches='[a-z]+[a-z0-9-]*',required=False)
+    bridge-create: bool(required=False)
+    namespace: str(max=64,matches='[a-z]+[a-z0-9-]*',required=False)
+    namespace-create: bool(required=False)
+  rx-ring-size: int(min=8,max=32768,required=False)
+  tx-ring-size: int(min=8,max=32768,required=False)

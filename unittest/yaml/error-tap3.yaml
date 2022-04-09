@@ -1,0 +1,15 @@
+test:
+  description: "TAP host names must be unique"
+  errors:
+    expected:
+     - "tap .* does not have a unique host name .*"
+    count: 2
+---
+taps:
+  tap0:
+    host:
+      name: vpp-tap
+
+  tap1:
+    host:
+      name: vpp-tap

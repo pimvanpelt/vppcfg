@@ -1,0 +1,23 @@
+test:
+  description: "TAP host mac addresses cannot be multicast"
+  errors:
+    expected:
+     - "tap .* host MAC address .* cannot be multicast"
+    count: 1
+---
+taps:
+  tap0:
+    description: "Cool, local MACs are fine"
+    host:
+      mac: 02:00:00:00:00:00
+      name: vpp-tap0
+  tap1:
+    description: "Cool, global unicast MACs are fine"
+    host:
+      mac: 04:00:00:00:00:00
+      name: vpp-tap1
+  tap2:
+    description: "Not cool, multicast MACs"
+    host:
+      mac: 01:00:00:00:00:00
+      name: vpp-tap2

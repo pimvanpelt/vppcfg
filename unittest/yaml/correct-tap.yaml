@@ -1,0 +1,19 @@
+test:
+  description: "A few correct examples of well formed TAP interfaces"
+  errors:
+    count: 0
+---
+taps:
+  tap0:
+    description: "TAP with MAC, MTU and Bridge"
+    host:
+      name: vpp-tap0
+      mac: 00:01:02:03:04:05
+      mtu: 9216
+      bridge: br0
+    rx-ring-size: 256
+    tx-ring-size: 256
+  tap1:
+    description: "TAP, no config other than mandatory host-name"
+    host:
+      name: vpp-tap1

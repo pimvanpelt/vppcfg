@@ -33,6 +33,7 @@ from config.bondethernet import validate_bondethernets
 from config.interface import validate_interfaces
 from config.bridgedomain import validate_bridgedomains
 from config.vxlan_tunnel import validate_vxlan_tunnels
+from config.tap import validate_taps
 
 from yamale.validators import DefaultValidators, Validator
 
@@ -131,6 +132,12 @@ class Validator(object):
             ret_rv = False
 
         rv, msgs = validate_vxlan_tunnels(yaml)
+        if msgs:
+            ret_msgs.extend(msgs)
+        if not rv:
+            ret_rv = False
+
+        rv, msgs = validate_taps(yaml)
         if msgs:
             ret_msgs.extend(msgs)
         if not rv:

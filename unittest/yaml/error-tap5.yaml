@@ -1,0 +1,34 @@
+test:
+  description: "Creating bridge or namespace can only be asked if their name is specified"
+  errors:
+    expected:
+     - "tap .* bridge-create can only be set if bridge is set"
+     - "tap .* namespace-create can only be set if namespace is set"
+    count: 2
+---
+taps:
+  tap0:
+    description: "Cool, create bridge and namespace"
+    host:
+      mac: 02:00:00:00:00:00
+      name: vpp-tap0
+      bridge: vpp-br0
+      bridge-create: True
+      namespace: vpp-test
+      namespace-create: True
+  tap1:
+    description: "Cool, assuming the operator has created the bridge and namespace beforehand"
+    host:
+      name: vpp-tap1
+      bridge: vpp-br1
+      namespace: vpp-test
+  tap2:
+    description: "Not cool, asking to create a bridge without giving its name"
+    host:
+      name: vpp-tap2
+      bridge-create: True
+  tap3:
+    description: "Not cool, asking to create a namespace without giving its name"
+    host:
+      name: vpp-tap3
+      namespace-create: True

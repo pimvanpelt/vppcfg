@@ -1,0 +1,19 @@
+test:
+  description: "Instance id must be between [0..1024]"
+  errors:
+    expected:
+      - "tap .* has instance .* which is too large"
+    count: 1
+---
+taps:
+  tap0:
+    host:
+      name: vpp-tap0
+  tap1024:
+    description: "Cool"
+    host:
+      name: vpp-tap1024
+  tap1025:
+    description: "Not cool"
+    host:
+      name: vpp-tap1025

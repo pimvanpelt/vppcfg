@@ -1,0 +1,22 @@
+taps:
+  tap0:
+    description: "TAP with MAC, MTU and Bridge"
+    mac: 00:01:02:03:04:05
+    host:
+      mtu: 9216
+      name: vpp-tap0
+      bridge: br0
+    rx-ring-size: 256
+    tx-ring-size: 256
+  tap1:
+    description: "TAP, no config other than mandatory host-name"
+    host:
+      name: vpp-tap1
+  tap2:
+    description: "TAP, which has an overlapping host-name"
+    host:
+      name: vpp-tap
+  tap3:
+    description: "TAP, which has an overlapping host-name"
+    host:
+      name: vpp-tap

@@ -1,0 +1,14 @@
+test:
+  description: "RX and TX ring sizes must be power of two, at most 32K"
+  errors:
+    expected:
+      - "tap .* rx-ring-size must be a power of two"
+      - "tap .* tx-ring-size must be a power of two"
+    count: 2
+---
+taps:
+  tap0:
+    host:
+      name: vpp-tap0
+    rx-ring-size: 1023
+    tx-ring-size: 32767
