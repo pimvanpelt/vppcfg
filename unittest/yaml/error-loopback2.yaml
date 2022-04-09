@@ -1,0 +1,17 @@
+test:
+  description: "Loopback MAC address can't be multicast"
+  errors:
+    expected:
+     - "loopback .* MAC address .* cannot be multicast"
+    count: 1
+---
+loopbacks:
+  loop0:
+    description: "Cool, local MACs are fine"
+    mac: 02:00:00:00:00:00
+  loop1:
+    description: "Cool, global unicast MACs are fine"
+    mac: 04:00:00:00:00:00
+  loop2:
+    description: "Not cool, multicast MACs"
+    mac: 01:00:00:00:00:00

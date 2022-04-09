@@ -14,6 +14,7 @@
 import logging
 import config.lcp as lcp
 import config.address as address
+import config.mac as mac
 
 def get_loopbacks(yaml):
     """ Return a list of all loopbacks. """
@@ -73,5 +74,8 @@ def validate_loopbacks(yaml):
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
                     msgs.append("loopback %s IP address %s conflicts with another" % (ifname, a))
                     result = False
+        if 'mac' in iface and mac.is_multicast(iface['mac']):
+            msgs.append("loopback %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
+            result = False
 
     return result, msgs
