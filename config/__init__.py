@@ -146,5 +146,9 @@ class Validator(object):
                rv, msgs = func(yaml)
             returning a Boolean success value in rv and a List of strings
             in msgs. The function will be passed the configuration YAML and
-            gets to opine if it's valid or not. """
+            gets to opine if it's valid or not.
+
+            Note: will only be called iff Yamale syntax-check succeeded,
+                  and it will be called after all built-in validators.
+            """
         self.validators.append(func)
