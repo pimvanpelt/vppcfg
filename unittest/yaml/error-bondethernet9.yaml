@@ -1,0 +1,31 @@
+test:
+  description: "BondEthernet MAC address can't be multicast, members cannot set MAC"
+  errors:
+    expected:
+     - "bondethernet .* MAC address .* cannot be multicast"
+     - "interface .* is a member of bondethernet, cannot set MAC"
+    count: 2
+---
+bondethernets:
+  BondEthernet0:
+    description: "Cool, local MACs are fine"
+    mac: 02:00:00:00:00:00
+  BondEthernet1:
+    description: "Cool, global unicast MACs are fine"
+    mac: 04:00:00:00:00:00
+  BondEthernet2:
+    description: "Not cool, multicast MACs"
+    mac: 01:00:00:00:00:00
+  BondEthernet3:
+    description: "Not cool, should not set MAC in the interfaces.BondEthernet3"
+
+interfaces:
+  BondEthernet0:
+    description: "BE0"
+  BondEthernet1:
+    description: "BE1"
+  BondEthernet2:
+    description: "BE2"
+  BondEthernet3:
+    description: "BE3, not cool, must set in BondEthernet config"
+    mac: 02:00:00:00:00:01

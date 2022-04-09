@@ -13,6 +13,7 @@
 #
 import logging
 import config.interface as interface
+import config.mac as mac
 
 def get_bondethernets(yaml):
     """ Return a list of all bondethernets. """
@@ -169,6 +170,9 @@ def validate_bondethernets(yaml):
             result = False
         if not get_mode(yaml, bond_ifname) in ['xor','lacp'] and 'load-balance' in iface:
             msgs.append("bondethernet %s can only have load-balance if in mode XOR or LACP" % (ifname))
+            result = False
+        if 'mac' in iface and mac.is_multicast(iface['mac']):
+            msgs.append("bondethernet %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
             result = False
 
         if not 'interfaces' in iface:

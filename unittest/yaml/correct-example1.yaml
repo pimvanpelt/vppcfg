@@ -5,6 +5,7 @@ test:
 ---
 bondethernets:
   BondEthernet0:
+    mac: 00:01:02:03:04:05
     description: "Infra: xsw0.lab.ipng.ch LACP"
     interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
 
@@ -36,7 +37,6 @@ interfaces:
 
   BondEthernet0:
     description: "Bond, James Bond!"
-    mac: 00:01:02:03:04:05
     lcp: "bond0"
     sub-interfaces:
       200:

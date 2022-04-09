@@ -422,6 +422,9 @@ def validate_interfaces(yaml):
         if ifname.startswith("BondEthernet") and (None,None) == bondethernet.get_by_name(yaml, ifname):
             msgs.append("interface %s does not exist in bondethernets" % ifname)
             result = False
+        if ifname.startswith("BondEthernet") and 'mac' in iface:
+            msgs.append("interface %s is a member of bondethernet, cannot set MAC" % ifname)
+            result = False
         if not 'state' in iface:
             iface['state'] = 'up'
 
