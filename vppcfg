@@ -19,7 +19,7 @@ import yaml
 import logging
 from config import Validator
 from vpp.reconciler import Reconciler
-from vpp.vppapi import VPPApiDumper
+from vpp.dumper import VPPApiDumper
 
 try:
     import argparse
