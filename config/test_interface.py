@@ -172,6 +172,10 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertIsNone(ifname)
         self.assertIsNone(iface)
 
+        ifname, iface = interface.get_parent_by_name(self.cfg, None)
+        self.assertIsNone(ifname)
+        self.assertIsNone(iface)
+
     def test_get_qinx_parent_by_name(self):
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"))
         self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"))

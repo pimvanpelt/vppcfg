@@ -52,8 +52,6 @@ def get_qinx_parent_by_name(yaml, ifname):
 
 def get_parent_by_name(yaml, ifname):
     """ Returns the sub-interface's parent, or None,None if the sub-int doesn't exist. """
-    if not '.' in ifname:
-        return None, None
     try:
         parent_ifname, subid = ifname.split('.')
         subid = int(subid)
