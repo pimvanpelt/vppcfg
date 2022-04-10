@@ -1,5 +1,6 @@
 bondethernets:
   BondEthernet0:
+    mac: 02:b0:b0:00:00:00
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
 
 interfaces:
@@ -11,6 +12,7 @@ interfaces:
     description: "LAG #2"
 
   HundredGigabitEthernet12/0/0:
+    mac: 02:ff:ba:12:00:00
     lcp: "ice0"
 
   HundredGigabitEthernet12/0/1:

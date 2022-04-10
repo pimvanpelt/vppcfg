@@ -1,5 +1,6 @@
 interfaces:
   GigabitEthernet3/0/0:
+    mac: 02:ff:ba:03:00:00
     mtu: 9216
     sub-interfaces:
       100:

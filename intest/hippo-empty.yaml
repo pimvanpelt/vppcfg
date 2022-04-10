@@ -1,17 +1,21 @@
 interfaces:
   GigabitEthernet3/0/0:
     mtu: 1500
+    mac: 00:25:90:0c:05:00
     state: down
     description: Not Used
   GigabitEthernet3/0/1:
     mtu: 1500
+    mac: 00:25:90:0c:05:01
     state: down
     description: Not Used
   HundredGigabitEthernet12/0/0:
     mtu: 1500
+    mac: b4:96:91:b3:b1:10
     state: down
     description: Not Used
   HundredGigabitEthernet12/0/1:
     mtu: 1500
+    mac: b4:96:91:b3:b1:11
     state: down
     description: Not Used

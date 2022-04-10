@@ -1,5 +1,6 @@
 bondethernets:
   BondEthernet1:
+    mac: 02:b0:b0:00:00:02
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
     mode: round-robin
   

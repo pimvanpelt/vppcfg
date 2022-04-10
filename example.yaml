@@ -1,6 +1,7 @@
 bondethernets:
   BondEthernet0:
     interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+    mac: 02:b0:b0:01:02:03
     mode: xor
     load-balance: l2
 
@@ -14,6 +15,7 @@ interfaces:
 
   HundredGigabitEthernet12/0/0:
     lcp: "ice12-0-0"
+    mac: f2:01:00:12:00:00
     mtu: 9000
     addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]
     sub-interfaces:
@@ -74,6 +76,7 @@ loopbacks:
   loop1:
     lcp: "bvi1"
     mtu: 2000
+    mac: 02:de:ad:01:be:ef
     addresses: [ 10.0.1.1/24, 2001:db8:1::1/64 ]
 
 bridgedomains:

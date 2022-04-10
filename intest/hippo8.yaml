@@ -45,6 +45,7 @@ interfaces:
 loopbacks:
   loop11:
     mtu: 3000
+    mac: de:ad:00:be:ef:11
     lcp: "bvi11"
     addresses: [ 2001:db8:1::1/64, 192.0.2.1/30 ]
 

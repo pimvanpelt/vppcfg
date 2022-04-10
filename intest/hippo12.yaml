@@ -70,6 +70,7 @@ interfaces:
 loopbacks:
   loop0:
     lcp: "lo0"
+    mac: de:ad:00:be:ef:00
     addresses: [ 10.0.0.1/32, 2001:db8::1/128 ]
   loop1:
     mtu: 2000

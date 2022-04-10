@@ -613,6 +613,9 @@ class Reconciler():
                 continue
             instance = int(ifname[4:])
             cli="create loopback interface instance %d" % (instance)
+            ifname, iface = loopback.get_by_name(self.cfg, ifname)
+            if 'mac' in iface:
+                cli += " mac %s" % iface['mac']
             self.cli['create'].append(cli);
         return True
 
@@ -627,6 +630,8 @@ class Reconciler():
             lb = bondethernet.get_lb(self.cfg, ifname)
             if lb:
                 cli += " load-balance %s" % lb
+            if 'mac' in iface:
+                cli += " hw-addr %s" % iface['mac']
             self.cli['create'].append(cli);
         return True
 
@@ -727,6 +732,9 @@ class Reconciler():
 
     def sync(self):
         ret = True
+        if not self.sync_loopbacks():
+            self.logger.warning("Could not sync Loopbacks in VPP")
+            ret = False
         if not self.sync_bondethernets():
             self.logger.warning("Could not sync bondethernets in VPP")
             ret = False
@@ -742,18 +750,46 @@ class Reconciler():
         if not self.sync_addresses():
             self.logger.warning("Could not sync interface addresses in VPP")
             ret = False
+        if not self.sync_phys():
+            self.logger.warning("Could not sync PHYs in VPP")
+            ret = False
         if not self.sync_admin_state():
             self.logger.warning("Could not sync interface adminstate in VPP")
             ret = False
         return ret
 
+    def sync_loopbacks(self):
+        for ifname in loopback.get_loopbacks(self.cfg):
+            if not ifname in self.vpp.cache['interface_names']:
+                ## New loopback
+                continue
+            vpp_iface = self.vpp.cache['interface_names'][ifname]
+            config_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+            if 'mac' in config_iface and config_iface['mac'] != str(vpp_iface.l2_address):
+                cli="set interface mac address %s %s" % (config_ifname, config_iface['mac'])
+                self.cli['sync'].append(cli)
+        return True
+
+    def sync_phys(self):
+        for ifname in interface.get_phys(self.cfg):
+            if not ifname in self.vpp.cache['interface_names']:
+                ## New interface
+                continue
+            vpp_iface = self.vpp.cache['interface_names'][ifname]
+            config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+            if 'mac' in config_iface and config_iface['mac'] != str(vpp_iface.l2_address):
+                cli="set interface mac address %s %s" % (config_ifname, config_iface['mac'])
+                self.cli['sync'].append(cli)
+        return True
+
     def sync_bondethernets(self):
         for ifname in bondethernet.get_bondethernets(self.cfg):
             if ifname in self.vpp.cache['interface_names']:
-                vpp_bond_sw_if_index = self.vpp.cache['interface_names'][ifname].sw_if_index
-                vpp_members = [self.vpp.cache['interfaces'][x].interface_name for x in self.vpp.cache['bondethernet_members'][vpp_bond_sw_if_index]]
+                vpp_iface = self.vpp.cache['interface_names'][ifname]
+                vpp_members = [self.vpp.cache['interfaces'][x].interface_name for x in self.vpp.cache['bondethernet_members'][vpp_iface.sw_if_index]]
             else:
                 ## New BondEthernet
+                vpp_iface = None
                 vpp_members = []
 
             config_bond_ifname, config_bond_iface = bondethernet.get_by_name(self.cfg, ifname)
@@ -769,7 +805,10 @@ class Reconciler():
                         bondmac = member_iface.l2_address
                     cli="bond add %s %s" % (config_bond_ifname, member_iface.interface_name)
                     self.cli['sync'].append(cli);
-            if bondmac and 'lcp' in config_iface:
+            if vpp_iface and 'mac' in config_iface and str(vpp_iface.l2_address) != config_iface['mac']:
+                cli="set interface mac address %s %s" % (config_ifname, config_iface['mac'])
+                self.cli['sync'].append(cli);
+            elif bondmac and 'lcp' in config_iface:
                 ## TODO(pim) - Ensure LCP has the same MAC as the BondEthernet
                 ## VPP, when creating a BondEthernet, will give it an ephemeral MAC. Then, when the
                 ## first member is enslaved, the MAC address changes to that of the first member.

@@ -25,5 +25,9 @@
   
       echo " - Checking that from $j to $j is empty"
       ../vppcfg plan -s ../schema.yaml -c $j -o /tmp/vppcfg-exec_${j}_${j}_null
+      [ -s /tmp/vppcfg-exec_${j}_${j}_null ] && {
+	  echo " - ERROR Transition is not empty"
+          cat /tmp/vppcfg-exec_${j}_${j}_null
+      }
     done
   done

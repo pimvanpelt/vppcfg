@@ -272,17 +272,19 @@ class VPPApiDumper(VPPApi):
 
     def cache_to_config(self):
         config = {"loopbacks": {}, "bondethernets": {}, "interfaces": {}, "bridgedomains": {}, "vxlan_tunnels": {} }
-        for idx, iface in self.cache['bondethernets'].items():
+        for idx, bond_iface in self.cache['bondethernets'].items():
             bond = {"description": ""}
-            if iface.sw_if_index in self.cache['bondethernet_members']:
-                members = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][iface.sw_if_index]]
+            if bond_iface.sw_if_index in self.cache['bondethernet_members']:
+                members = [self.cache['interfaces'][x].interface_name for x in self.cache['bondethernet_members'][bond_iface.sw_if_index]]
                 if len(members) > 0:
                     bond['interfaces'] = members
 
-            mode = bondethernet.int_to_mode(iface.mode)
+            mode = bondethernet.int_to_mode(bond_iface.mode)
             bond['mode'] = mode
             if mode in ['xor', 'lacp']:
-                bond['load-balance'] = bondethernet.int_to_lb(iface.lb)
+                bond['load-balance'] = bondethernet.int_to_lb(bond_iface.lb)
+            iface = self.cache['interfaces'][bond_iface.sw_if_index]
+            bond['mac'] = str(iface.l2_address)
             config['bondethernets'][iface.interface_name] = bond
 
         for numtags in [ 0, 1, 2 ]:
@@ -296,6 +298,7 @@ class VPPApiDumper(VPPApi):
                         continue
                     loop = {"description": ""}
                     loop['mtu'] = iface.mtu[0]
+                    loop['mac'] = str(iface.l2_address)
                     if iface.sw_if_index in self.cache['lcps']:
                         loop['lcp'] = self.cache['lcps'][iface.sw_if_index].host_if_name
                     if iface.sw_if_index in self.cache['interface_addresses']:
@@ -315,6 +318,8 @@ class VPPApiDumper(VPPApi):
                     if not self.cache['interfaces'][idx].flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
                         i['state'] = 'down'
 
+                    if iface.interface_dev_type == 'dpdk':
+                        i['mac'] = str(iface.l2_address)
                     i['mtu'] = iface.mtu[0]
                     if iface.sub_number_of_tags == 0:
                         config['interfaces'][iface.interface_name] = i
