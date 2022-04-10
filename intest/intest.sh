@@ -7,10 +7,12 @@
 ## here should not be used although they can be a source of config inspiration :)
 
 ## Run me:
-# ./intest.sh 2>&1 | tee intest.out
-
+# ./intest.sh -strict 2>&1 | tee intest.out
 
 rm -f "intest.exec"
+
+STRICT=0
+[ $# -ge 1 -a "$1" = "-strict" ] && STRICT=1
 
 for i in hippo[0-9]*.yaml; do
   echo "Clearing: Moving to hippo-empty.yaml"
@@ -39,7 +41,9 @@ for i in hippo[0-9]*.yaml; do
     [ -s /tmp/vppcfg-exec_${j}_${j}_null ] && {
       echo " - ERROR Transition is not empty"
       cat /tmp/vppcfg-exec_${j}_${j}_null
-      exit 1
+      [ $STRICT -ne 0 ] && exit 1
     }
   done
 done
+
+exit 0
