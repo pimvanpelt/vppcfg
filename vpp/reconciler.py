@@ -1019,14 +1019,14 @@ class Reconciler():
         if not self.sync_link_mtu_direction(shrink=False):
             self.logger.warning("Could not sync growing interface Max Frame Size in VPP")
             ret = False
+        if not self.sync_link_mtu_direction(shrink=True):
+            self.logger.warning("Could not sync shrinking interface Max Frame Size in VPP")
+            ret = False
         if not self.sync_mtu_direction(shrink=True):
             self.logger.warning("Could not sync shrinking interface MTU in VPP")
             ret = False
         if not self.sync_mtu_direction(shrink=False):
             self.logger.warning("Could not sync growing interface MTU in VPP")
-            ret = False
-        if not self.sync_link_mtu_direction(shrink=True):
-            self.logger.warning("Could not sync shrinking interface Max Frame Size in VPP")
             ret = False
         return ret
 
