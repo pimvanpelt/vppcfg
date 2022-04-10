@@ -445,7 +445,7 @@ def validate_interfaces(yaml):
             elif 'mtu' in tap_iface['host']:
                 host_mtu = tap_iface['host']['mtu']
                 if host_mtu != iface_mtu:
-                    msgs.append("interface %s is a TAP so its MTU %d must match host MTU %d" % (ifname, host_mtu, iface_mtu))
+                    msgs.append("interface %s is a TAP so its MTU %d must match host MTU %d" % (ifname, iface_mtu, host_mtu))
                     result = False
             if iface_address:
                 msgs.append("interface %s is a TAP so it cannot have an address" % (ifname))
