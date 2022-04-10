@@ -8,7 +8,7 @@ import sys
 import yaml
 import config.bondethernet as bondethernet
 
-class VPPApiDumper(VPPApi):
+class Dumper(VPPApi):
     def __init__(self, address='/run/vpp/api.sock', clientname='vppcfg'):
         VPPApi.__init__(self, address, clientname)
 

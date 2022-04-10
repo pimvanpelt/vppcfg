@@ -19,7 +19,7 @@ import yaml
 import logging
 from config import Validator
 from vpp.reconciler import Reconciler
-from vpp.dumper import VPPApiDumper
+from vpp.dumper import Dumper
 
 try:
     import argparse
@@ -65,7 +65,7 @@ def main():
     logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
 
     if args.command=="dump":
-        d = VPPApiDumper()
+        d = Dumper()
         if not d.readconfig():
             logging.error("Could not retrieve config from VPP")
             sys.exit(-7)
