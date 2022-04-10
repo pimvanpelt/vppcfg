@@ -1,0 +1,26 @@
+test:
+  description: "TAP interfaces cannot have LCP, address or sub-interfaces. MTU must match tap.host.mtu"
+  errors:
+    expected:
+     - "interface .* is a TAP so its MTU .* must match host MTU .*"
+     - "interface .* is a TAP so it cannot have an address"
+     - "interface .* is a TAP so it cannot have an LCP"
+     - "interface .* is a TAP so it cannot have sub-interfaces"
+    count: 4
+---
+interfaces:
+  tap0:
+    addresses: [ 10.0.0.1/24 ]
+    lcp: "mytap"
+    mtu: 9216
+    sub-interfaces:
+      100:
+        description: "TAP is not allowed to have a sub"
+taps:
+  tap0:
+    host:
+      mac: 02:00:00:00:00:00
+      name: vpp-tap0
+      mtu: 1500
+      bridge: vpp-br0
+      namespace: vpp-test

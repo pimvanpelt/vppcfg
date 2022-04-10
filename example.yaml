@@ -69,6 +69,9 @@ interfaces:
   vxlan_tunnel1:
     mtu: 2000
 
+  tap101:
+    mtu: 1500
+
 loopbacks:
   loop0:
     lcp: "lo0"
@@ -78,6 +81,11 @@ loopbacks:
     mtu: 2000
     mac: 02:de:ad:01:be:ef
     addresses: [ 10.0.1.1/24, 2001:db8:1::1/64 ]
+  loop11:
+    lcp: "bvi11"
+    mtu: 1500
+    mac: 02:de:ad:11:be:ef
+    addresses: [ 10.0.2.1/24, 2001:db8:2::1/64 ]
 
 bridgedomains:
   bd1:
@@ -86,9 +94,26 @@ bridgedomains:
     interfaces: [ BondEthernet0.500, BondEthernet0.501, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
   bd11:
     mtu: 1500
+    bvi: loop11
+    interfaces: [ tap101 ]
 
 vxlan_tunnels:
   vxlan_tunnel1:
     local: 192.0.2.1
     remote: 192.0.2.2
     vni: 101
+
+taps:
+  tap100:
+    host:
+      name: vpp-tap100
+      mac: 00:01:02:03:04:05
+      mtu: 9216
+      bridge: br0
+    rx-ring-size: 256
+    tx-ring-size: 256
+  tap101:
+    host:
+      name: vpp-tap101
+      mtu: 1500
+      bridge: br1

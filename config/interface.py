@@ -19,6 +19,7 @@ import config.vxlan_tunnel as vxlan_tunnel
 import config.lcp as lcp
 import config.address as address
 import config.mac as mac
+import config.tap as tap
 
 def get_qinx_parent_by_name(yaml, ifname):
     """ Returns the sub-interface which matches a QinAD or QinQ outer tag, or None,None
@@ -280,6 +281,8 @@ def is_phy(yaml, ifname):
         return False
     if vxlan_tunnel.is_vxlan_tunnel(yaml, ifname):
         return False
+    if tap.is_tap(yaml, ifname):
+        return False
     return True
 
 
@@ -433,6 +436,26 @@ def validate_interfaces(yaml):
         iface_mtu = get_mtu(yaml, ifname)
         iface_lcp = get_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)
+
+        if ifname.startswith('tap'):
+            tap_ifname, tap_iface = tap.get_by_name(yaml, ifname)
+            if not tap_iface:
+                msgs.append("interface %s is a TAP but does not exist in taps" % (ifname))
+                result = False
+            elif 'mtu' in tap_iface['host']:
+                host_mtu = tap_iface['host']['mtu']
+                if host_mtu != iface_mtu:
+                    msgs.append("interface %s is a TAP so its MTU %d must match host MTU %d" % (ifname, host_mtu, iface_mtu))
+                    result = False
+            if iface_address:
+                msgs.append("interface %s is a TAP so it cannot have an address" % (ifname))
+                result = False
+            if iface_lcp:
+                msgs.append("interface %s is a TAP so it cannot have an LCP" % (ifname))
+                result = False
+            if has_sub(yaml, ifname):
+                msgs.append("interface %s is a TAP so it cannot have sub-interfaces" % (ifname))
+                result = False
 
         if is_l2(yaml, ifname) and iface_lcp:
             msgs.append("interface %s is in L2 mode but has LCP name %s" % (ifname, iface_lcp))
