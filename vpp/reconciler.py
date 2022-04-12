@@ -516,15 +516,11 @@ class Reconciler():
                     config_ifname, config_iface = interface.get_by_lcp_name(self.cfg, lcp.host_if_name)
                 if not config_iface:
                     ## Interface doesn't exist in the config
-                    cli="lcp delete %s" % (vpp_iface.interface_name)
-                    self.cli['prune'].append(cli);
-                    removed_lcps.append(lcp.host_if_name)
+                    removed_lcps.append(lcp)
                     continue
                 if not 'lcp' in config_iface:
                     ## Interface doesn't have an LCP
-                    cli="lcp delete %s" % (vpp_iface.interface_name)
-                    self.cli['prune'].append(cli);
-                    removed_lcps.append(lcp.host_if_name)
+                    removed_lcps.append(lcp)
                     continue
                 if vpp_iface.sub_number_of_tags == 2:
                     vpp_parent_idx = self.__parent_iface_by_encap(vpp_iface.sup_sw_if_index, vpp_iface.sub_outer_vlan_id, vpp_iface.sub_if_flags&8)
@@ -533,29 +529,21 @@ class Reconciler():
                     config_parent_ifname, config_parent_iface = interface.get_by_lcp_name(self.cfg, parent_lcp.host_if_name)
                     if not config_parent_iface:
                         ## QinX's parent doesn't exist in the config
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
                     if not 'lcp' in config_parent_iface:
                         ## QinX's parent doesn't have an LCP
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
                     if parent_lcp.host_if_name != config_parent_iface['lcp']:
                         ## QinX's parent LCP name mismatch
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
                     config_parent_encap = interface.get_encapsulation(self.cfg, config_parent_ifname)
                     vpp_parent_encap = self.__get_encapsulation(vpp_parent_iface)
                     if config_parent_encap != vpp_parent_encap:
                         ## QinX's parent encapsulation mismatch
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
 
                 if vpp_iface.sub_number_of_tags > 0:
@@ -563,9 +551,7 @@ class Reconciler():
                     vpp_encap = self.__get_encapsulation(vpp_iface)
                     if config_encap != vpp_encap:
                         ## Encapsulation mismatch
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
 
                 if vpp_iface.interface_dev_type=='Loopback':
@@ -575,36 +561,31 @@ class Reconciler():
                     bond_iface = self.vpp.cache['interfaces'][vpp_iface.sup_sw_if_index]
                     if self.__bond_has_diff(bond_iface.interface_name):
                         ## If BondEthernet changed, it has to be re-created, so all LCPs must be removed.
-                        cli="lcp delete %s" % (vpp_iface.interface_name)
-                        self.cli['prune'].append(cli);
-                        removed_lcps.append(lcp.host_if_name)
+                        removed_lcps.append(lcp)
                         continue
 
                 phy_lcp = lcps[vpp_iface.sup_sw_if_index]
                 config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(self.cfg, phy_lcp.host_if_name)
                 if not config_phy_iface:
                     ## Phy doesn't exist in the config
-                    cli="lcp delete %s" % (vpp_iface.interface_name)
-                    self.cli['prune'].append(cli);
-                    removed_lcps.append(lcp.host_if_name)
+                    removed_lcps.append(lcp)
                     continue
                 if not 'lcp' in config_phy_iface:
                     ## Phy doesn't have an LCP
-                    cli="lcp delete %s" % (vpp_iface.interface_name)
-                    self.cli['prune'].append(cli);
-                    removed_lcps.append(lcp.host_if_name)
+                    removed_lcps.append(lcp)
                     continue
                 if phy_lcp.host_if_name != config_phy_iface['lcp']:
                     ## Phy LCP name mismatch
-                    cli="lcp delete %s" % (vpp_iface.interface_name)
-                    self.cli['prune'].append(cli);
-                    removed_lcps.append(lcp.host_if_name)
+                    removed_lcps.append(lcp)
                     continue
 
                 self.logger.debug("LCP OK: %s -> (vpp=%s, config=%s)" % (lcp.host_if_name, vpp_iface.interface_name, config_ifname))
 
-        for lcpname in removed_lcps:
-            self.vpp.cache_remove_lcp(lcpname)
+        for lcp in removed_lcps:
+            vpp_ifname = self.vpp.cache['interfaces'][lcp.phy_sw_if_index].interface_name
+            cli="lcp delete %s" % (vpp_ifname)
+            self.cli['prune'].append(cli);
+            self.vpp.cache_remove_lcp(lcp.host_if_name)
         return True
 
     def prune_admin_state(self):
