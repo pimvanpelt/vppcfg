@@ -259,18 +259,14 @@ class Reconciler():
             return False
 
         if 'name' in config_iface['host'] and config_iface['host']['name'] != vpp_tap.host_if_name:
-            self.logger.info("TAP diff: hostname")
             return True
         if 'mtu' in config_iface['host'] and config_iface['host']['mtu'] != vpp_tap.host_mtu_size:
             return True
         if 'mac' in config_iface['host'] and config_iface['host']['mac'] != str(vpp_tap.host_mac_addr):
-            self.logger.info("TAP diff: mac")
             return True
         if 'bridge' in config_iface['host'] and config_iface['host']['bridge'] != vpp_tap.host_bridge:
-            self.logger.info("TAP diff: bridge")
             return True
         if 'namespace' in config_iface['host'] and config_iface['host']['namespace'] != vpp_tap.host_namespace:
-            self.logger.info("TAP diff: namespace")
             return True
 
         return False
