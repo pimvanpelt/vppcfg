@@ -21,6 +21,7 @@ import config.bondethernet as bondethernet
 import config.bridgedomain as bridgedomain
 import config.vxlan_tunnel as vxlan_tunnel
 import config.lcp as lcp
+import config.tap as tap
 from vpp.vppapi import VPPApi
 
 class Reconciler():
@@ -94,6 +95,9 @@ class Reconciler():
             ret = False
         if not self.prune_sub_interfaces():
             self.logger.warning("Could not prune Sub Interfaces from VPP")
+            ret = False
+        if not self.prune_taps():
+            self.logger.warning("Could not prune TAPs from VPP")
             ret = False
         if not self.prune_vxlan_tunnels():
             self.logger.warning("Could not prune VXLAN Tunnels from VPP")
@@ -236,6 +240,41 @@ class Reconciler():
             self.vpp.cache_remove_l2xc(l2xc)
         return True
 
+    def __tap_has_diff(self, ifname):
+        """ Returns True if the given ifname (tap0) has different attributes between VPP
+            and the given configuration, or if either does not exist.
+
+            Returns False if the TAP is a Linux Control Plane LIP.
+            Returns False if they are identical."""
+        if not ifname in self.vpp.cache['interface_names']:
+            return True
+        vpp_iface = self.vpp.cache['interface_names'][ifname]
+        vpp_tap = self.vpp.cache['taps'][vpp_iface.sw_if_index]
+
+        config_ifname, config_iface = tap.get_by_name(self.cfg, ifname)
+        if not config_iface:
+            return True
+
+        if self.vpp.tap_is_lcp(ifname):
+            return False
+
+        if 'name' in config_iface['host'] and config_iface['host']['name'] != vpp_tap.host_if_name:
+            self.logger.info("TAP diff: hostname")
+            return True
+        if 'mtu' in config_iface['host'] and config_iface['host']['mtu'] != vpp_tap.host_mtu_size:
+            return True
+        if 'mac' in config_iface['host'] and config_iface['host']['mac'] != str(vpp_tap.host_mac_addr):
+            self.logger.info("TAP diff: mac")
+            return True
+        if 'bridge' in config_iface['host'] and config_iface['host']['bridge'] != vpp_tap.host_bridge:
+            self.logger.info("TAP diff: bridge")
+            return True
+        if 'namespace' in config_iface['host'] and config_iface['host']['namespace'] != vpp_tap.host_namespace:
+            self.logger.info("TAP diff: namespace")
+            return True
+
+        return False
+
     def __bond_has_diff(self, ifname):
         """ Returns True if the given ifname (BondEthernet0) have different attributes,
             or if either does not exist.
@@ -262,6 +301,28 @@ class Reconciler():
             return True
 
         return False
+
+    def prune_taps(self):
+        """ Remove all TAPs from VPP, if they are not in the config. As an exception,
+            TAPs which are a part of Linux Control Plane, are left alone, to be handled
+            by prune_lcps() later. """
+        removed_taps = []
+        for idx, vpp_tap in self.vpp.cache['taps'].items():
+            vpp_iface = self.vpp.cache['interfaces'][vpp_tap.sw_if_index]
+            vpp_ifname = vpp_iface.interface_name
+            if self.vpp.tap_is_lcp(vpp_ifname):
+                continue
+            if self.__tap_has_diff(vpp_ifname):
+                removed_taps.append(vpp_ifname)
+                continue
+            self.logger.debug("TAP OK: %s" % (vpp_ifname))
+
+        for ifname in removed_taps:
+            cli = "delete tap %s" % ifname
+            self.cli['prune'].append(cli)
+            self.vpp.cache_remove_tap(ifname)
+            self.vpp.cache_remove_interface(ifname)
+        return True
 
     def prune_bondethernets(self):
         """ Remove all BondEthernets from VPP, if they are not in the config. If the bond has members,
@@ -338,22 +399,6 @@ class Reconciler():
 
         return True
 
-    def __tap_is_lcp(self, sw_if_index):
-        """ Returns True if the given sw_if_index is a TAP interface belonging to an LCP,
-            or False otherwise."""
-        if not sw_if_index in self.vpp.cache['interfaces']:
-            return False
-
-        vpp_iface = self.vpp.cache['interfaces'][sw_if_index]
-        if not vpp_iface.interface_dev_type=="virtio":
-            return False
-
-        match = False
-        for idx, lcp in self.vpp.cache['lcps'].items():
-            if vpp_iface.sw_if_index == lcp.host_sw_if_index:
-                match = True
-        return match
-
     def prune_sub_interfaces(self):
         """ Remove interfaces from VPP if they are not in the config, if their encapsulation is different,
             or if the BondEthernet they reside on is different.
@@ -365,7 +410,7 @@ class Reconciler():
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
 
-                if self.__tap_is_lcp(vpp_iface.sw_if_index):
+                if self.vpp.tap_is_lcp(vpp_ifname):
                     continue
 
                 prune=False
@@ -573,7 +618,7 @@ class Reconciler():
             if not ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(self.cfg):
                 vpp_iface = self.vpp.cache['interface_names'][ifname]
 
-                if self.__tap_is_lcp(vpp_iface.sw_if_index):
+                if self.vpp.tap_is_lcp(ifname):
                     continue
 
                 if vpp_iface.flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
@@ -595,6 +640,9 @@ class Reconciler():
             ret = False
         if not self.create_vxlan_tunnels():
             self.logger.warning("Could not create VXLAN Tunnels in VPP")
+            ret = False
+        if not self.create_taps():
+            self.logger.warning("Could not create TAPs in VPP")
             ret = False
         if not self.create_sub_interfaces():
             self.logger.warning("Could not create Sub Interfaces in VPP")
@@ -670,6 +718,29 @@ class Reconciler():
                 parent, subid = ifname.split('.')
                 cli="create sub %s %d %s" % (parent, int(subid), encapstr)
                 self.cli['create'].append(cli);
+        return True
+
+    def create_taps(self):
+        for ifname in tap.get_taps(self.cfg):
+            ifname, iface = tap.get_by_name(self.cfg, ifname)
+            if ifname in self.vpp.cache['interface_names']:
+                continue
+            instance=int(ifname[3:])
+            cli="create tap id %d host-if-name %s" % (instance, iface['host']['name'])
+            if 'mac' in iface['host']:
+                cli+=" host-mac-addr %s" % iface['host']['mac']
+            if 'namespace' in iface['host']:
+                cli+=" host-ns %d" % iface['host']['namespace']
+            if 'bridge' in iface['host']:
+                cli+=" host-bridge %s" % iface['host']['bridge']
+            if 'mtu' in iface['host']:
+                cli+=" host-mtu-size %d" % iface['host']['mtu']
+            if 'rx-ring-size' in iface:
+                cli+=" rx-ring-size %d" % iface['rx-ring-size']
+            if 'tx-ring-size' in iface:
+                cli+=" tx-ring-size %d" % iface['tx-ring-size']
+            self.cli['create'].append(cli)
+
         return True
 
     def create_bridgedomains(self):

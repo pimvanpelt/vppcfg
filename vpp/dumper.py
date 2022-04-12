@@ -28,7 +28,7 @@ class Dumper(VPPApi):
         self.logger.info("Wrote YAML config to %s" % (outfile))
 
     def cache_to_config(self):
-        config = {"loopbacks": {}, "bondethernets": {}, "interfaces": {}, "bridgedomains": {}, "vxlan_tunnels": {} }
+        config = {"loopbacks": {}, "bondethernets": {}, "interfaces": {}, "bridgedomains": {}, "vxlan_tunnels": {}, "taps": {} }
         for idx, bond_iface in self.cache['bondethernets'].items():
             bond = {"description": ""}
             if bond_iface.sw_if_index in self.cache['bondethernet_members']:
@@ -62,7 +62,7 @@ class Dumper(VPPApi):
                         if len(self.cache['interface_addresses'][iface.sw_if_index]) > 0:
                             loop['addresses'] = self.cache['interface_addresses'][iface.sw_if_index]
                     config['loopbacks'][iface.interface_name] = loop
-                elif iface.interface_dev_type in ['bond', 'VXLAN', 'dpdk']:
+                elif iface.interface_dev_type in ['bond', 'VXLAN', 'dpdk', 'virtio']:
                     i = {"description": "" }
                     if iface.sw_if_index in self.cache['lcps']:
                         i['lcp'] = self.cache['lcps'][iface.sw_if_index].host_if_name
@@ -77,6 +77,10 @@ class Dumper(VPPApi):
 
                     if iface.interface_dev_type == 'dpdk':
                         i['mac'] = str(iface.l2_address)
+
+                    if self.tap_is_lcp(iface.interface_name):
+                        continue
+
                     i['mtu'] = iface.mtu[0]
                     if iface.sub_number_of_tags == 0:
                         config['interfaces'][iface.interface_name] = i
@@ -108,6 +112,25 @@ class Dumper(VPPApi):
                     "local": str(iface.src_address),
                     "remote": str(iface.dst_address) }
             config['vxlan_tunnels'][vpp_iface.interface_name] = vxlan
+
+        for idx, iface in self.cache['taps'].items():
+            vpp_tap = self.cache['taps'][iface.sw_if_index]
+            vpp_iface = self.cache['interfaces'][vpp_tap.sw_if_index]
+
+            tap = { "description": "",
+                    "tx-ring-size": vpp_tap.tx_ring_sz,
+                    "rx-ring-size": vpp_tap.rx_ring_sz,
+                    "host": {
+                        "mac": str(vpp_tap.host_mac_addr),
+                        "name": vpp_tap.host_if_name,
+                    } }
+            if vpp_tap.host_mtu_size > 0:
+                tap['host']['mtu'] = vpp_tap.host_mtu_size
+            if vpp_tap.host_namespace:
+                tap['host']['namespace'] = vpp_tap.host_namespace
+            if vpp_tap.host_bridge:
+                tap['host']['bridge'] = vpp_tap.host_bridge
+            config['taps'][vpp_iface.interface_name] = tap
 
         for idx, iface in self.cache['bridgedomains'].items():
             # self.logger.info("%d: %s" % (idx, iface))

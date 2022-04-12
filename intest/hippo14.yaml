@@ -1,0 +1,34 @@
+interfaces:
+  GigabitEthernet3/0/0:
+    mtu: 9000
+    state: up
+    sub-interfaces:
+      100:
+        mtu: 9000
+        l2xc: tap100
+  GigabitEthernet3/0/1:
+    mtu: 1500
+    mac: 00:25:90:0c:05:01
+    state: down
+    description: Not Used
+  HundredGigabitEthernet12/0/0:
+    mtu: 1500
+    mac: b4:96:91:b3:b1:10
+    state: down
+    description: Not Used
+  HundredGigabitEthernet12/0/1:
+    mtu: 1500
+    mac: b4:96:91:b3:b1:11
+    state: down
+    description: Not Used
+
+  tap100:
+    mtu: 9000
+    l2xc: GigabitEthernet3/0/0.100
+
+taps:
+  tap100:
+    host:
+      name: vpp-tap100
+      mac: 02:01:be:ef:ca:fe
+      mtu: 9000

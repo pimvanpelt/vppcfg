@@ -66,6 +66,8 @@ interfaces:
            exact-match: False
   vxlan_tunnel1:
     mtu: 2000
+  tap100:
+    mtu: 9000
 
 loopbacks:
   loop0:
@@ -90,3 +92,9 @@ vxlan_tunnels:
     local: 192.0.2.1
     remote: 192.0.2.2
     vni: 101
+
+taps:
+  tap100:
+    host:
+      name: vpp-tap
+      mtu: 9000

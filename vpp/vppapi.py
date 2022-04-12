@@ -66,7 +66,7 @@ class VPPApi():
         self.cache_read = False
         return {"lcps": {}, "interface_names": {}, "interfaces": {}, "interface_addresses": {},
                 "bondethernets": {}, "bondethernet_members": {},
-                "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}}
+                "bridgedomains": {}, "vxlan_tunnels": {}, "l2xcs": {}, "taps": {}}
 
     def cache_remove_lcp(self, lcpname):
         """ Removes the LCP and TAP interface, identified by lcpname, from the config. """
@@ -79,11 +79,10 @@ class VPPApi():
             return False
 
         ifname = self.cache['interfaces'][lcp.host_sw_if_index].interface_name
-        del self.cache['interface_names'][ifname]
-        del self.cache['interface_addresses'][lcp.host_sw_if_index]
-        del self.cache['interfaces'][lcp.host_sw_if_index]
         del self.cache['lcps'][lcp.phy_sw_if_index]
-        return True
+
+        # Remove the TAP interface and its dependencies
+        return self.cache_remove_interface(ifname)
 
     def cache_remove_bondethernet_member(self, ifname):
         """ Removes the bonderthernet member interface, identified by name, from the config. """
@@ -104,6 +103,15 @@ class VPPApi():
             return False
         iface = self.cache['interface_names'][ifname]
         self.cache['l2xcs'].pop(iface.sw_if_index, None)
+        return True
+
+    def cache_remove_tap(self, ifname):
+        if not ifname in self.cache['interface_names']:
+            self.logger.warning("Trying to remove a TAP which is not in the config: %s" % ifname)
+            return False
+
+        iface = self.cache['interface_names'][ifname]
+        self.cache['taps'].pop(iface.sw_if_index, None)
         return True
 
     def cache_remove_vxlan_tunnel(self, ifname):
@@ -135,6 +143,8 @@ class VPPApi():
             else:
                 del self.cache['bondethernet_members'][iface.sw_if_index]
         self.cache['bondethernets'].pop(iface.sw_if_index, None)
+
+        self.cache['taps'].pop(iface.sw_if_index, None)
         return True
 
     def readconfig(self):
@@ -201,6 +211,11 @@ class VPPApi():
         for l2xc in r:
             self.cache['l2xcs'][l2xc.rx_sw_if_index] = l2xc
 
+        self.logger.debug("Retrieving TAPs")
+        r = self.vpp.api.sw_interface_tap_v2_dump()
+        for tap in r:
+            self.cache['taps'][tap.sw_if_index] = tap
+
         self.cache_read = True
         return self.cache_read
 
@@ -247,3 +262,18 @@ class VPPApi():
             if lcp.phy_sw_if_index == sw_if_index:
                 return lcp
         return None
+
+    def tap_is_lcp(self, tap_ifname):
+        """ Returns True if the given tap_ifname is a TAP interface belonging to an LCP,
+            or False otherwise."""
+        if not tap_ifname in self.cache['interface_names']:
+            return False
+
+        vpp_iface = self.cache['interface_names'][tap_ifname]
+        if not vpp_iface.interface_dev_type=="virtio":
+            return False
+
+        for idx, lcp in self.cache['lcps'].items():
+            if vpp_iface.sw_if_index == lcp.host_sw_if_index:
+                return True
+        return False

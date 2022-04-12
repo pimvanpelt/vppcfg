@@ -11,7 +11,8 @@ interfaces:
     description: "LAG #2"
 
   HundredGigabitEthernet12/0/0:
-    description: Not Used
+    mtu: 1500
+    description: "bridged with tap"
 
   HundredGigabitEthernet12/0/1:
     description: Not Used
@@ -42,3 +43,23 @@ interfaces:
         encapsulation:
            dot1ad: 501
            exact-match: False
+  tap100:
+    mtu: 1500
+
+loopbacks:
+  loop100:
+    lcp: "bvi100"
+    addresses: [ 10.1.2.1/24 ]
+
+bridgedomains:
+  bd100:
+    description: "Bridge Domain 100"
+    mtu: 1500
+    bvi: loop100
+    interfaces: [ HundredGigabitEthernet12/0/0, tap100 ]
+
+taps:
+  tap100:
+    host:
+      name: vpp-tap100
+      mtu: 1500
