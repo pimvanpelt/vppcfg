@@ -105,15 +105,6 @@ class VPPApi():
         self.cache['l2xcs'].pop(iface.sw_if_index, None)
         return True
 
-    def cache_remove_tap(self, ifname):
-        if not ifname in self.cache['interface_names']:
-            self.logger.warning("Trying to remove a TAP which is not in the config: %s" % ifname)
-            return False
-
-        iface = self.cache['interface_names'][ifname]
-        self.cache['taps'].pop(iface.sw_if_index, None)
-        return True
-
     def cache_remove_vxlan_tunnel(self, ifname):
         if not ifname in self.cache['interface_names']:
             self.logger.warning("Trying to remove a VXLAN Tunnel which is not in the config: %s" % ifname)
@@ -143,7 +134,6 @@ class VPPApi():
             else:
                 del self.cache['bondethernet_members'][iface.sw_if_index]
         self.cache['bondethernets'].pop(iface.sw_if_index, None)
-
         self.cache['taps'].pop(iface.sw_if_index, None)
         return True
 

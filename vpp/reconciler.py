@@ -316,7 +316,6 @@ class Reconciler():
         for ifname in removed_taps:
             cli = "delete tap %s" % ifname
             self.cli['prune'].append(cli)
-            self.vpp.cache_remove_tap(ifname)
             self.vpp.cache_remove_interface(ifname)
         return True
 
