@@ -33,7 +33,7 @@ class Reconciler():
         self.cfg = cfg
 
         ## List of CLI calls emitted during the prune, create and sync phases.
-        self.cli = { "prune": [], "create": [], "sync": [] }
+        self.cli={ "prune": [], "create": [], "sync": [] }
 
     def __del__(self):
         self.vpp.disconnect()
@@ -118,7 +118,7 @@ class Reconciler():
         removed_addresses = []
         for a in self.vpp.cache['interface_addresses'][idx]:
             if not a in address_list:
-                cli = "set interface ip address del %s %s" % (ifname, a)
+                cli="set interface ip address del %s %s" % (ifname, a)
                 self.cli['prune'].append(cli);
                 removed_addresses.append(a)
             else:
@@ -139,7 +139,7 @@ class Reconciler():
                 if not config_iface:
                     self.prune_addresses(vpp_iface.interface_name, [])
                     if numtags == 0:
-                        cli = "delete loopback interface intfc %s" % (vpp_iface.interface_name)
+                        cli="delete loopback interface intfc %s" % (vpp_iface.interface_name)
                         self.cli['prune'].append(cli);
                         removed_interfaces.append(vpp_iface.interface_name)
                     else:
@@ -240,6 +240,32 @@ class Reconciler():
             self.vpp.cache_remove_l2xc(l2xc)
         return True
 
+    def __vxlan_tunnel_has_diff(self, ifname):
+        """ Returns True if the given ifname (vxlan_tunnel0) has different attributes between VPP
+            and the given configuration, or if either does not exist.
+
+            Returns False if they are identical."""
+
+        if not ifname in self.vpp.cache['interface_names']:
+            return True
+        vpp_iface = self.vpp.cache['interface_names'][ifname]
+
+        if vpp_iface.sw_if_index not in self.vpp.cache['vxlan_tunnels']:
+            return True
+        vpp_vxlan = self.vpp.cache['vxlan_tunnels'][vpp_iface.sw_if_index]
+
+        config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
+        if not config_iface:
+            return True
+
+        if config_iface['local'] != str(vpp_vxlan.src_address):
+            return True
+        if config_iface['remote'] != str(vpp_vxlan.dst_address):
+            return True
+        if config_iface['vni'] != vpp_vxlan.vni:
+            return True
+        return False
+
     def __tap_has_diff(self, ifname):
         """ Returns True if the given ifname (tap0) has different attributes between VPP
             and the given configuration, or if either does not exist.
@@ -314,7 +340,7 @@ class Reconciler():
             self.logger.debug("TAP OK: %s" % (vpp_ifname))
 
         for ifname in removed_taps:
-            cli = "delete tap %s" % ifname
+            cli="delete tap %s" % ifname
             self.cli['prune'].append(cli)
             self.vpp.cache_remove_interface(ifname)
         return True
@@ -374,7 +400,7 @@ class Reconciler():
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
-            if config_iface['local'] != str(vpp_vxlan.src_address) or config_iface['remote'] != str(vpp_vxlan.dst_address) or config_iface['vni'] != vpp_vxlan.vni:
+            if self.__vxlan_tunnel_has_diff(config_ifname):
                 cli="create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
                     vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni)
                 self.cli['prune'].append(cli);
@@ -954,18 +980,16 @@ class Reconciler():
 
             l2xc_changed = False
             if not vpp_rx_iface or not vpp_tx_iface:
-                cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
-                self.cli['sync'].append(cli);
                 l2xc_changed = True
             elif not vpp_rx_iface.sw_if_index in self.vpp.cache['l2xcs']:
-                cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
-                self.cli['sync'].append(cli);
                 l2xc_changed = True
             elif not vpp_tx_iface.sw_if_index == self.vpp.cache['l2xcs'][vpp_rx_iface.sw_if_index].tx_sw_if_index:
+                l2xc_changed = True
+
+            if l2xc_changed:
                 cli="set interface l2 xconnect %s %s" % (config_rx_ifname, config_tx_ifname)
                 self.cli['sync'].append(cli);
-                l2xc_changed = True
-            if l2xc_changed:
+
                 operation="disable"
                 if interface.is_qinx(self.cfg, config_rx_ifname):
                     operation="pop 2"
