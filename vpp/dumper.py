@@ -75,7 +75,7 @@ class Dumper(VPPApi):
                     if not self.cache['interfaces'][idx].flags & 1: # IF_STATUS_API_FLAG_ADMIN_UP
                         i['state'] = 'down'
 
-                    if iface.interface_dev_type == 'dpdk':
+                    if iface.interface_dev_type == 'dpdk' and iface.sub_number_of_tags == 0:
                         i['mac'] = str(iface.l2_address)
 
                     if self.tap_is_lcp(iface.interface_name):
