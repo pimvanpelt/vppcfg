@@ -116,6 +116,8 @@ class Dumper(VPPApi):
         for idx, iface in self.cache['taps'].items():
             vpp_tap = self.cache['taps'][iface.sw_if_index]
             vpp_iface = self.cache['interfaces'][vpp_tap.sw_if_index]
+            if self.tap_is_lcp(vpp_iface.interface_name):
+                continue
 
             tap = { "description": "",
                     "tx-ring-size": vpp_tap.tx_ring_sz,
