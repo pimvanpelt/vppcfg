@@ -4,10 +4,11 @@ interface metadata. Its base class will never change state. See the
 derived classes VPPApiDumper() and VPPApiApplier()
 """
 
-from vpp_papi import VPPApiClient
 import os
 import fnmatch
 import logging
+import socket
+from vpp_papi import VPPApiClient
 
 
 class VPPApi:
@@ -32,7 +33,7 @@ class VPPApi:
 
         # construct a list of all the json api files
         jsonfiles = []
-        for root, dirnames, filenames in os.walk(vpp_json_dir):
+        for root, _dirnames, filenames in os.walk(vpp_json_dir):
             for filename in fnmatch.filter(filenames, "*.api.json"):
                 jsonfiles.append(os.path.join(root, filename))
 
@@ -47,8 +48,9 @@ class VPPApi:
         except:
             return False
 
-        v = self.vpp.api.show_version()
-        self.logger.info(f"VPP version is {v.version}")
+        # pylint: disable=no-member
+        api_response = self.vpp.api.show_version()
+        self.logger.info(f"VPP version is {api_response.version}")
 
         self.connected = True
         return True
@@ -78,22 +80,15 @@ class VPPApi:
 
     def cache_remove_lcp(self, lcpname):
         """Removes the LCP and TAP interface, identified by lcpname, from the config."""
-        found = False
-        for idx, lcp in self.cache["lcps"].items():
+        for _idx, lcp in self.cache["lcps"].items():
             if lcp.host_if_name == lcpname:
-                found = True
-                break
-        if not found:
-            self.logger.warning(
-                f"Trying to remove an LCP which is not in the config: {lcpname}"
-            )
-            return False
-
-        ifname = self.cache["interfaces"][lcp.host_sw_if_index].interface_name
-        del self.cache["lcps"][lcp.phy_sw_if_index]
-
-        # Remove the TAP interface and its dependencies
-        return self.cache_remove_interface(ifname)
+                ifname = self.cache["interfaces"][lcp.host_sw_if_index].interface_name
+                del self.cache["lcps"][lcp.phy_sw_if_index]
+                return self.cache_remove_interface(ifname)
+        self.logger.warning(
+            f"Trying to remove an LCP which is not in the config: {lcpname}"
+        )
+        return False
 
     def cache_remove_bondethernet_member(self, ifname):
         """Removes the bonderthernet member interface, identified by name, from the config."""
@@ -159,6 +154,7 @@ class VPPApi:
         return True
 
     def readconfig(self):
+        # pylint: disable=no-member
         if not self.connected and not self.connect():
             self.logger.error("Could not connect to VPP")
             return False
@@ -169,9 +165,9 @@ class VPPApi:
         self.lcp_enabled = False
         try:
             self.logger.debug("Retrieving LCPs")
-            r = self.vpp.api.lcp_itf_pair_get()
-            if isinstance(r, tuple) and r[0].retval == 0:
-                for lcp in r[1]:
+            api_response = self.vpp.api.lcp_itf_pair_get()
+            if isinstance(api_response, tuple) and api_response[0].retval == 0:
+                for lcp in api_response[1]:
                     if lcp.phy_sw_if_index > 65535 or lcp.host_sw_if_index > 65535:
                         ## Work around endianness bug: https://gerrit.fd.io/r/c/vpp/+/35479
                         ## TODO(pim) - remove this when 22.06 ships
@@ -193,8 +189,8 @@ class VPPApi:
             )
 
         self.logger.debug("Retrieving interfaces")
-        r = self.vpp.api.sw_interface_dump()
-        for iface in r:
+        api_response = self.vpp.api.sw_interface_dump()
+        for iface in api_response:
             self.cache["interfaces"][iface.sw_if_index] = iface
             self.cache["interface_names"][iface.interface_name] = iface
             self.cache["interface_addresses"][iface.sw_if_index] = []
@@ -202,22 +198,22 @@ class VPPApi:
             ipr = self.vpp.api.ip_address_dump(
                 sw_if_index=iface.sw_if_index, is_ipv6=False
             )
-            for ip in ipr:
+            for addr in ipr:
                 self.cache["interface_addresses"][iface.sw_if_index].append(
-                    str(ip.prefix)
+                    str(addr.prefix)
                 )
             self.logger.debug(f"Retrieving IPv6 addresses for {iface.interface_name}")
             ipr = self.vpp.api.ip_address_dump(
                 sw_if_index=iface.sw_if_index, is_ipv6=True
             )
-            for ip in ipr:
+            for addr in ipr:
                 self.cache["interface_addresses"][iface.sw_if_index].append(
-                    str(ip.prefix)
+                    str(addr.prefix)
                 )
 
         self.logger.debug("Retrieving bondethernets")
-        r = self.vpp.api.sw_bond_interface_dump()
-        for iface in r:
+        api_response = self.vpp.api.sw_bond_interface_dump()
+        for iface in api_response:
             self.cache["bondethernets"][iface.sw_if_index] = iface
             self.cache["bondethernet_members"][iface.sw_if_index] = []
             for member in self.vpp.api.sw_member_interface_dump(
@@ -228,23 +224,23 @@ class VPPApi:
                 )
 
         self.logger.debug("Retrieving bridgedomains")
-        r = self.vpp.api.bridge_domain_dump()
-        for bridge in r:
+        api_response = self.vpp.api.bridge_domain_dump()
+        for bridge in api_response:
             self.cache["bridgedomains"][bridge.bd_id] = bridge
 
         self.logger.debug("Retrieving vxlan_tunnels")
-        r = self.vpp.api.vxlan_tunnel_v2_dump()
-        for vxlan in r:
+        api_response = self.vpp.api.vxlan_tunnel_v2_dump()
+        for vxlan in api_response:
             self.cache["vxlan_tunnels"][vxlan.sw_if_index] = vxlan
 
         self.logger.debug("Retrieving L2 Cross Connects")
-        r = self.vpp.api.l2_xconnect_dump()
-        for l2xc in r:
+        api_response = self.vpp.api.l2_xconnect_dump()
+        for l2xc in api_response:
             self.cache["l2xcs"][l2xc.rx_sw_if_index] = l2xc
 
         self.logger.debug("Retrieving TAPs")
-        r = self.vpp.api.sw_interface_tap_v2_dump()
-        for tap in r:
+        api_response = self.vpp.api.sw_interface_tap_v2_dump()
+        for tap in api_response:
             self.cache["taps"][tap.sw_if_index] = tap
 
         self.cache_read = True
@@ -322,7 +318,7 @@ class VPPApi:
         return vxlan_tunnels
 
     def get_lcp_by_interface(self, sw_if_index):
-        for idx, lcp in self.cache["lcps"].items():
+        for _idx, lcp in self.cache["lcps"].items():
             if lcp.phy_sw_if_index == sw_if_index:
                 return lcp
         return None
@@ -337,7 +333,7 @@ class VPPApi:
         if not vpp_iface.interface_dev_type == "virtio":
             return False
 
-        for idx, lcp in self.cache["lcps"].items():
+        for _idx, lcp in self.cache["lcps"].items():
             if vpp_iface.sw_if_index == lcp.host_sw_if_index:
                 return True
         return False

@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
 import netaddr
 
 
@@ -19,7 +18,7 @@ def is_valid(mac):
     """Return True if the string given in `mac` is a valid (6-byte) MAC address,
     as defined by netaddr.EUI"""
     try:
-        addr = netaddr.EUI(mac)
+        _addr = netaddr.EUI(mac)
     except:
         return False
     return True

@@ -11,6 +11,8 @@ class Applier(VPPApi):
     and will ensure that the local cache is consistent after creations and
     modifications."""
 
+    # pylint: disable=unnecessary-pass
+
     def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
         VPPApi.__init__(self, address, clientname)
         self.logger.info("VPP Applier: changing the dataplane is enabled")
@@ -45,9 +47,6 @@ class Applier(VPPApi):
 
     def create_vxlan_tunnel(self, instance, config, is_create=True):
         """'config' is the YAML configuration for the vxlan_tunnels: entry"""
-        pass
-
-    def delete_subinterface(self, ifname):
         pass
 
     def set_interface_link_mtu(self, ifname, link_mtu):

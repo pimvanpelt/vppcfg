@@ -6,6 +6,7 @@ interfaces:
         mtu: 2000
         l2xc: vxlan_tunnel0
       101:
+        mtu: 1500
         l2xc: vxlan_tunnel1
   GigabitEthernet3/0/1:
     lcp: "e3-0-1"

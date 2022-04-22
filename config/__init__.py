@@ -29,14 +29,14 @@ try:
 except ImportError:
     print("ERROR: install yamale manually: sudo pip install yamale")
     sys.exit(-2)
+from yamale.validators import DefaultValidators, Validator
+
 from config.loopback import validate_loopbacks
 from config.bondethernet import validate_bondethernets
 from config.interface import validate_interfaces
 from config.bridgedomain import validate_bridgedomains
 from config.vxlan_tunnel import validate_vxlan_tunnels
 from config.tap import validate_taps
-
-from yamale.validators import DefaultValidators, Validator
 
 
 class IPInterfaceWithPrefixLength(Validator):
@@ -50,22 +50,22 @@ class IPInterfaceWithPrefixLength(Validator):
 
     def _is_valid(self, value):
         try:
-            network = ipaddress.ip_interface(value)
+            _network = ipaddress.ip_interface(value)
         except:
             return False
         if not isinstance(value, str):
             return False
         if not "/" in value:
             return False
-        e = value.split("/")
-        if not len(e) == 2:
+        elems = value.split("/")
+        if not len(elems) == 2:
             return False
-        if not e[1].isnumeric():
+        if not elems[1].isnumeric():
             return False
         return True
 
 
-class Validator(object):
+class Validator:
     def __init__(self, schema):
         self.logger = logging.getLogger("vppcfg.config")
         self.logger.addHandler(logging.NullHandler())
@@ -81,52 +81,52 @@ class Validator(object):
         ]
 
     def validate(self, yaml):
-        ret_rv = True
+        ret_retval = True
         ret_msgs = []
         if not yaml:
-            return ret_rv, ret_msgs
+            return ret_retval, ret_msgs
 
         validators = DefaultValidators.copy()
         validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
         if self.schema:
-            fn = self.schema
-            self.logger.debug(f"Validating against --schema {fn}")
+            fname = self.schema
+            self.logger.debug(f"Validating against --schema {fname}")
         elif hasattr(sys, "_MEIPASS"):
             ## See vppcfg.spec data_files that includes schema.yaml into the bundle
             self.logger.debug("Validating against built-in schema")
-            fn = os.path.join(sys._MEIPASS, "schema.yaml")
+            fname = os.path.join(sys._MEIPASS, "schema.yaml")
         else:
-            fn = "./schema.yaml"
-            self.logger.debug(f"Validating against fallthrough default schema {fn}")
+            fname = "./schema.yaml"
+            self.logger.debug(f"Validating against fallthrough default schema {fname}")
 
-        if not os.path.isfile(fn):
-            self.logger.error(f"Cannot file schema file: {fn}")
+        if not os.path.isfile(fname):
+            self.logger.error(f"Cannot file schema file: {fname}")
             return False, ret_msgs
 
         try:
-            schema = yamale.make_schema(fn, validators=validators)
+            schema = yamale.make_schema(fname, validators=validators)
             data = yamale.make_data(content=str(yaml))
             yamale.validate(schema, data)
             self.logger.debug("Schema correctly validated by yamale")
         except ValueError as e:
-            ret_rv = False
+            ret_retval = False
             for result in e.results:
                 for error in result.errors:
                     ret_msgs.extend([f"yamale: {error}"])
-            return ret_rv, ret_msgs
+            return ret_retval, ret_msgs
 
         self.logger.debug("Validating Semantics...")
 
-        for v in self.validators:
-            rv, msgs = v(yaml)
+        for validator in self.validators:
+            retval, msgs = validator(yaml)
             if msgs:
                 ret_msgs.extend(msgs)
-            if not rv:
-                ret_rv = False
+            if not retval:
+                ret_retval = False
 
-        if ret_rv:
+        if ret_retval:
             self.logger.debug("Semantics correctly validated")
-        return ret_rv, ret_msgs
+        return ret_retval, ret_msgs
 
     def valid_config(self, yaml):
         """Validate the given YAML configuration in 'yaml' against syntax
@@ -135,10 +135,10 @@ class Validator(object):
         Returns True if the configuration is valid, False otherwise.
         """
 
-        rv, msgs = self.validate(yaml)
-        if not rv:
-            for m in msgs:
-                self.logger.error(m)
+        retval, msgs = self.validate(yaml)
+        if not retval:
+            for msg in msgs:
+                self.logger.error(msg)
             return False
 
         self.logger.info("Configuration validated successfully")

@@ -12,14 +12,14 @@
 # limitations under the License.
 #
 import logging
-import config.mac as mac
+from config import mac
 
 
 def get_taps(yaml):
     """Return a list of all taps."""
     ret = []
     if "taps" in yaml:
-        for ifname, iface in yaml["taps"].items():
+        for ifname, _iface in yaml["taps"].items():
             ret.append(ifname)
     return ret
 
@@ -29,7 +29,7 @@ def get_by_name(yaml, ifname):
     try:
         if ifname in yaml["taps"]:
             return ifname, yaml["taps"][ifname]
-    except:
+    except KeyError:
         pass
     return None, None
 
@@ -40,7 +40,7 @@ def is_tap(yaml, ifname):
     a TAP belonging to a Linux Control Plane (LCP) will return False.
     """
     ifname, iface = get_by_name(yaml, ifname)
-    return not iface == None
+    return iface is not None
 
 
 def is_host_name_unique(yaml, hostname):
@@ -48,7 +48,7 @@ def is_host_name_unique(yaml, hostname):
     if not "taps" in yaml:
         return True
     host_names = []
-    for tap_ifname, tap_iface in yaml["taps"].items():
+    for _tap_ifname, tap_iface in yaml["taps"].items():
         host_names.append(tap_iface["host"]["name"])
     return host_names.count(hostname) < 2
 
@@ -78,14 +78,14 @@ def validate_taps(yaml):
             result = False
 
         if "rx-ring-size" in iface:
-            n = iface["rx-ring-size"]
-            if n & (n - 1) != 0:
+            ncount = iface["rx-ring-size"]
+            if ncount & (ncount - 1) != 0:
                 msgs.append(f"tap {ifname} rx-ring-size must be a power of two")
                 result = False
 
         if "tx-ring-size" in iface:
-            n = iface["tx-ring-size"]
-            if n & (n - 1) != 0:
+            ncount = iface["tx-ring-size"]
+            if ncount & (ncount - 1) != 0:
                 msgs.append(f"tap {ifname} tx-ring-size must be a power of two")
                 result = False
 

@@ -50,7 +50,7 @@ class TestInterfaceMethods(unittest.TestCase):
     def test_mtu(self):
         self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1"), 9216)
         self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.200"), 9000)
-        self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.201"), 1500)
+        self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.201"), 9216)
 
     def test_encapsulation(self):
         self.assertTrue(

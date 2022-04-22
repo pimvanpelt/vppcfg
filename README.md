@@ -20,6 +20,7 @@ sudo pip3 install netaddr
 sudo pip3 install ipaddress
 sudo pip3 install pyinstaller
 sudo pip3 install black
+sudo pip3 install pylint
 
 ## Ensure all unittests pass.
 ./tests.py -d -t unittest/yaml/*.yaml

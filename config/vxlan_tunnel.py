@@ -12,7 +12,6 @@
 # limitations under the License.
 #
 import logging
-import config.interface as interface
 import ipaddress
 
 
@@ -21,7 +20,7 @@ def get_by_name(yaml, ifname):
     try:
         if ifname in yaml["vxlan_tunnels"]:
             return ifname, yaml["vxlan_tunnels"][ifname]
-    except:
+    except KeyError:
         pass
     return None, None
 
@@ -29,7 +28,7 @@ def get_by_name(yaml, ifname):
 def is_vxlan_tunnel(yaml, ifname):
     """Returns True if the interface name is an existing VXLAN Tunnel."""
     ifname, iface = get_by_name(yaml, ifname)
-    return not iface == None
+    return iface is not None
 
 
 def vni_unique(yaml, vni):
@@ -38,7 +37,7 @@ def vni_unique(yaml, vni):
         return True
 
     ncount = 0
-    for ifname, iface in yaml["vxlan_tunnels"].items():
+    for _ifname, iface in yaml["vxlan_tunnels"].items():
         if iface["vni"] == vni:
             ncount = ncount + 1
 
@@ -51,7 +50,7 @@ def get_vxlan_tunnels(yaml):
     if not "vxlan_tunnels" in yaml:
         return ret
 
-    for ifname, iface in yaml["vxlan_tunnels"].items():
+    for ifname, _iface in yaml["vxlan_tunnels"].items():
         ret.append(ifname)
     return ret
 

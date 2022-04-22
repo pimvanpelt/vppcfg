@@ -12,14 +12,14 @@
 # limitations under the License.
 #
 import logging
-import config.bondethernet as bondethernet
-import config.bridgedomain as bridgedomain
-import config.loopback as loopback
-import config.vxlan_tunnel as vxlan_tunnel
-import config.lcp as lcp
-import config.address as address
-import config.mac as mac
-import config.tap as tap
+from config import bondethernet
+from config import bridgedomain
+from config import loopback
+from config import vxlan_tunnel
+from config import lcp
+from config import address
+from config import mac
+from config import tap
 
 
 def get_qinx_parent_by_name(yaml, ifname):
@@ -28,7 +28,7 @@ def get_qinx_parent_by_name(yaml, ifname):
 
     if not is_qinx(yaml, ifname):
         return None, None
-    qinx_ifname, qinx_iface = get_by_name(yaml, ifname)
+    _qinx_ifname, qinx_iface = get_by_name(yaml, ifname)
     if not qinx_iface:
         return None, None
 
@@ -54,12 +54,17 @@ def get_qinx_parent_by_name(yaml, ifname):
 
 def get_parent_by_name(yaml, ifname):
     """Returns the sub-interface's parent, or None,None if the sub-int doesn't exist."""
+    if not ifname:
+        return None, None
+
     try:
         parent_ifname, subid = ifname.split(".")
         subid = int(subid)
         iface = yaml["interfaces"][parent_ifname]
         return parent_ifname, iface
-    except:
+    except KeyError:
+        pass
+    except ValueError:
         pass
     return None, None
 
@@ -88,20 +93,22 @@ def get_by_name(yaml, ifname):
             subid = int(subid)
             iface = yaml["interfaces"][phy_ifname]["sub-interfaces"][subid]
             return ifname, iface
-        except:
+        except ValueError:
+            return None, None
+        except KeyError:
             return None, None
 
     try:
         iface = yaml["interfaces"][ifname]
         return ifname, iface
-    except:
+    except KeyError:
         pass
     return None, None
 
 
 def is_sub(yaml, ifname):
     """Returns True if this interface is a sub-interface"""
-    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
+    _parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     return isinstance(parent_iface, dict)
 
 
@@ -153,11 +160,11 @@ def get_l2xc_target_interfaces(yaml):
     """Returns a list of all interfaces that are the target of an L2 CrossConnect"""
     ret = []
     if "interfaces" in yaml:
-        for ifname, iface in yaml["interfaces"].items():
+        for _ifname, iface in yaml["interfaces"].items():
             if "l2xc" in iface:
                 ret.append(iface["l2xc"])
             if "sub-interfaces" in iface:
-                for subid, sub_iface in iface["sub-interfaces"].items():
+                for _subid, sub_iface in iface["sub-interfaces"].items():
                     if "l2xc" in sub_iface:
                         ret.append(sub_iface["l2xc"])
 
@@ -200,11 +207,7 @@ def valid_encapsulation(yaml, ifname):
         return False
     if "inner-dot1q" in encap and not ("dot1ad" in encap or "dot1q" in encap):
         return False
-    if (
-        "exact-match" in encap
-        and encap["exact-match"] == False
-        and has_lcp(yaml, ifname)
-    ):
+    if "exact-match" in encap and not encap["exact-match"] and has_lcp(yaml, ifname):
         return False
 
     return True
@@ -227,10 +230,10 @@ def get_encapsulation(yaml, ifname):
     if not iface:
         return None
 
-    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
+    _parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
     if not iface or not parent_iface:
         return None
-    parent_ifname, subid = ifname.split(".")
+    _parent_ifname, subid = ifname.split(".")
 
     dot1q = 0
     dot1ad = 0
@@ -265,7 +268,7 @@ def get_phys(yaml):
     ret = []
     if not "interfaces" in yaml:
         return ret
-    for ifname, iface in yaml["interfaces"].items():
+    for ifname, _iface in yaml["interfaces"].items():
         if is_phy(yaml, ifname):
             ret.append(ifname)
     return ret
@@ -275,7 +278,7 @@ def is_phy(yaml, ifname):
     """Returns True if the ifname is the name of a physical network interface."""
 
     ifname, iface = get_by_name(yaml, ifname)
-    if iface == None:
+    if iface is None:
         return False
     if is_sub(yaml, ifname):
         return False
@@ -300,7 +303,7 @@ def get_interfaces(yaml):
         ret.append(ifname)
         if not "sub-interfaces" in iface:
             continue
-        for subid, sub_iface in iface["sub-interfaces"].items():
+        for subid, _sub_iface in iface["sub-interfaces"].items():
             ret.append(f"{ifname}.{int(subid)}")
     return ret
 
@@ -351,7 +354,7 @@ def unique_encapsulation(yaml, sub_ifname):
         return False
 
     ncount = 0
-    for subid, sibling_iface in parent_iface["sub-interfaces"].items():
+    for subid, _sibling_iface in parent_iface["sub-interfaces"].items():
         sibling_ifname = f"{parent_ifname}.{int(subid)}"
         sibling_encap = get_encapsulation(yaml, sibling_ifname)
         if sub_encap == sibling_encap and new_ifname != sibling_ifname:
@@ -391,16 +394,12 @@ def get_mtu(yaml, ifname):
     """Returns MTU of the interface. If it's not set, return the parent's MTU, and
     return 1500 if no MTU was set on the sub-int or the parent."""
     ifname, iface = get_by_name(yaml, ifname)
-    if not iface:
-        return 1500
-
-    parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
-
-    try:
+    if iface and "mtu" in iface:
         return iface["mtu"]
+
+    _parent_ifname, parent_iface = get_parent_by_name(yaml, ifname)
+    if parent_iface and "mtu" in parent_iface:
         return parent_iface["mtu"]
-    except:
-        pass
     return 1500
 
 
@@ -451,7 +450,7 @@ def validate_interfaces(yaml):
         iface_address = has_address(yaml, ifname)
 
         if ifname.startswith("tap"):
-            tap_ifname, tap_iface = tap.get_by_name(yaml, ifname)
+            _tap_ifname, tap_iface = tap.get_by_name(yaml, ifname)
             if not tap_iface:
                 msgs.append(f"interface {ifname} is a TAP but does not exist in taps")
                 result = False
@@ -489,10 +488,10 @@ def validate_interfaces(yaml):
             result = False
 
         if "addresses" in iface:
-            for a in iface["addresses"]:
-                if not address.is_allowed(yaml, ifname, iface["addresses"], a):
+            for addr in iface["addresses"]:
+                if not address.is_allowed(yaml, ifname, iface["addresses"], addr):
                     msgs.append(
-                        f"interface {ifname} IP address {a} conflicts with another"
+                        f"interface {ifname} IP address {addr} conflicts with another"
                     )
                     result = False
 
@@ -624,12 +623,12 @@ def validate_interfaces(yaml):
                             f"sub-interface {sub_ifname} is in L2 mode but has an address"
                         )
                         result = False
-                    for a in sub_iface["addresses"]:
+                    for addr in sub_iface["addresses"]:
                         if not address.is_allowed(
-                            yaml, sub_ifname, sub_iface["addresses"], a
+                            yaml, sub_ifname, sub_iface["addresses"], addr
                         ):
                             msgs.append(
-                                f"sub-interface {sub_ifname} IP address {a} conflicts with another"
+                                f"sub-interface {sub_ifname} IP address {addr} conflicts with another"
                             )
                             result = False
                 if not valid_encapsulation(yaml, sub_ifname):

@@ -15,13 +15,13 @@
 # -*- coding: utf-8 -*-
 import sys
 import logging
-import config.loopback as loopback
-import config.interface as interface
-import config.bondethernet as bondethernet
-import config.bridgedomain as bridgedomain
-import config.vxlan_tunnel as vxlan_tunnel
-import config.lcp as lcp
-import config.tap as tap
+from config import loopback
+from config import interface
+from config import bondethernet
+from config import bridgedomain
+from config import vxlan_tunnel
+from config import lcp
+from config import tap
 from vpp.vppapi import VPPApi
 
 
@@ -117,26 +117,26 @@ class Reconciler:
         """
         idx = self.vpp.cache["interface_names"][ifname].sw_if_index
         removed_addresses = []
-        for a in self.vpp.cache["interface_addresses"][idx]:
-            if not a in address_list:
-                cli = f"set interface ip address del {ifname} {a}"
+        for addr in self.vpp.cache["interface_addresses"][idx]:
+            if not addr in address_list:
+                cli = f"set interface ip address del {ifname} {addr}"
                 self.cli["prune"].append(cli)
-                removed_addresses.append(a)
+                removed_addresses.append(addr)
             else:
-                self.logger.debug(f"Address OK: {ifname} {a}")
-        for a in removed_addresses:
-            self.vpp.cache["interface_addresses"][idx].remove(a)
+                self.logger.debug(f"Address OK: {ifname} {addr}")
+        for addr in removed_addresses:
+            self.vpp.cache["interface_addresses"][idx].remove(addr)
 
     def prune_loopbacks(self):
         """Remove loopbacks from VPP, if they do not occur in the config."""
         removed_interfaces = []
         for numtags in [2, 1, 0]:
-            for idx, vpp_iface in self.vpp.cache["interfaces"].items():
+            for _idx, vpp_iface in self.vpp.cache["interfaces"].items():
                 if vpp_iface.interface_dev_type != "Loopback":
                     continue
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
-                config_ifname, config_iface = loopback.get_by_name(
+                _config_ifname, config_iface = loopback.get_by_name(
                     self.cfg, vpp_iface.interface_name
                 )
                 if not config_iface:
@@ -166,8 +166,9 @@ class Reconciler:
         found in to-be removed bridge-domains, they are returned to L3 mode, and tag-rewrites removed."""
         for idx, bridge in self.vpp.cache["bridgedomains"].items():
             bridgename = f"bd{int(idx)}"
-            config_ifname, config_iface = bridgedomain.get_by_name(self.cfg, bridgename)
-            members = []
+            _config_ifname, config_iface = bridgedomain.get_by_name(
+                self.cfg, bridgename
+            )
             if not config_iface:
                 for member in bridge.sw_if_details:
                     if member.sw_if_index == bridge.bvi_sw_if_index:
@@ -222,7 +223,7 @@ class Reconciler:
         but are crossconnected to a different interface name, also remove them. Interfaces are put
         back into L3 mode, and their tag-rewrites removed."""
         removed_l2xcs = []
-        for idx, l2xc in self.vpp.cache["l2xcs"].items():
+        for _idx, l2xc in self.vpp.cache["l2xcs"].items():
             vpp_rx_ifname = self.vpp.cache["interfaces"][
                 l2xc.rx_sw_if_index
             ].interface_name
@@ -276,7 +277,7 @@ class Reconciler:
             return True
         vpp_vxlan = self.vpp.cache["vxlan_tunnels"][vpp_iface.sw_if_index]
 
-        config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
+        _config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
         if not config_iface:
             return True
 
@@ -299,7 +300,7 @@ class Reconciler:
         vpp_iface = self.vpp.cache["interface_names"][ifname]
         vpp_tap = self.vpp.cache["taps"][vpp_iface.sw_if_index]
 
-        config_ifname, config_iface = tap.get_by_name(self.cfg, ifname)
+        _config_ifname, config_iface = tap.get_by_name(self.cfg, ifname)
         if not config_iface:
             return True
 
@@ -352,10 +353,12 @@ class Reconciler:
 
         vpp_bond = self.vpp.cache["bondethernets"][vpp_iface.sw_if_index]
         mode = bondethernet.mode_to_int(bondethernet.get_mode(self.cfg, config_ifname))
-        if mode != -1 and mode != vpp_bond.mode:
+        if mode not in (-1, vpp_bond.mode):
             return True
-        lb = bondethernet.lb_to_int(bondethernet.get_lb(self.cfg, config_ifname))
-        if lb != -1 and lb != vpp_bond.lb:
+        loadbalance = bondethernet.lb_to_int(
+            bondethernet.get_lb(self.cfg, config_ifname)
+        )
+        if loadbalance not in (-1, vpp_bond.lb):
             return True
 
         return False
@@ -365,7 +368,7 @@ class Reconciler:
         TAPs which are a part of Linux Control Plane, are left alone, to be handled
         by prune_lcps() later."""
         removed_taps = []
-        for idx, vpp_tap in self.vpp.cache["taps"].items():
+        for _idx, vpp_tap in self.vpp.cache["taps"].items():
             vpp_iface = self.vpp.cache["interfaces"][vpp_tap.sw_if_index]
             vpp_ifname = vpp_iface.interface_name
             if self.vpp.tap_is_lcp(vpp_ifname):
@@ -388,7 +391,9 @@ class Reconciler:
         removed_bondethernet_members = []
         for idx, bond in self.vpp.cache["bondethernets"].items():
             vpp_ifname = bond.interface_name
-            config_ifname, config_iface = bondethernet.get_by_name(self.cfg, vpp_ifname)
+            _config_ifname, config_iface = bondethernet.get_by_name(
+                self.cfg, vpp_ifname
+            )
 
             if self.__bond_has_diff(vpp_ifname):
                 self.prune_addresses(vpp_ifname, [])
@@ -478,7 +483,7 @@ class Reconciler:
                     continue
 
                 prune = False
-                config_ifname, config_iface = interface.get_by_name(
+                _config_ifname, config_iface = interface.get_by_name(
                     self.cfg, vpp_ifname
                 )
                 if not config_iface:
@@ -489,7 +494,7 @@ class Reconciler:
                 ):
                     (
                         config_parent_ifname,
-                        config_parent_iface,
+                        _config_parent_iface,
                     ) = interface.get_parent_by_name(self.cfg, vpp_ifname)
                     if self.__bond_has_diff(config_parent_ifname):
                         prune = True
@@ -521,7 +526,7 @@ class Reconciler:
         """Set default MTU and remove IPs for PHYs that are not in the config."""
         for vpp_ifname in self.vpp.get_phys():
             vpp_iface = self.vpp.cache["interface_names"][vpp_ifname]
-            config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
+            _config_ifname, config_iface = interface.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
                 ## Interfaces were sent DOWN in the prune_admin_state() step previously
                 self.prune_addresses(vpp_ifname, [])
@@ -589,25 +594,25 @@ class Reconciler:
 
         removed_lcps = []
         for numtags in [2, 1, 0]:
-            for idx, lcp in lcps.items():
-                vpp_iface = self.vpp.cache["interfaces"][lcp.phy_sw_if_index]
+            for _idx, lcp_iface in lcps.items():
+                vpp_iface = self.vpp.cache["interfaces"][lcp_iface.phy_sw_if_index]
                 if vpp_iface.sub_number_of_tags != numtags:
                     continue
                 if vpp_iface.interface_dev_type == "Loopback":
                     config_ifname, config_iface = loopback.get_by_lcp_name(
-                        self.cfg, lcp.host_if_name
+                        self.cfg, lcp_iface.host_if_name
                     )
                 else:
                     config_ifname, config_iface = interface.get_by_lcp_name(
-                        self.cfg, lcp.host_if_name
+                        self.cfg, lcp_iface.host_if_name
                     )
                 if not config_iface:
                     ## Interface doesn't exist in the config
-                    removed_lcps.append(lcp)
+                    removed_lcps.append(lcp_iface)
                     continue
                 if not "lcp" in config_iface:
                     ## Interface doesn't have an LCP
-                    removed_lcps.append(lcp)
+                    removed_lcps.append(lcp_iface)
                     continue
                 if vpp_iface.sub_number_of_tags == 2:
                     vpp_parent_idx = self.__parent_iface_by_encap(
@@ -623,15 +628,15 @@ class Reconciler:
                     ) = interface.get_by_lcp_name(self.cfg, parent_lcp.host_if_name)
                     if not config_parent_iface:
                         ## QinX's parent doesn't exist in the config
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
                     if not "lcp" in config_parent_iface:
                         ## QinX's parent doesn't have an LCP
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
                     if parent_lcp.host_if_name != config_parent_iface["lcp"]:
                         ## QinX's parent LCP name mismatch
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
                     config_parent_encap = interface.get_encapsulation(
                         self.cfg, config_parent_ifname
@@ -639,7 +644,7 @@ class Reconciler:
                     vpp_parent_encap = self.__get_encapsulation(vpp_parent_iface)
                     if config_parent_encap != vpp_parent_encap:
                         ## QinX's parent encapsulation mismatch
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
 
                 if vpp_iface.sub_number_of_tags > 0:
@@ -647,7 +652,7 @@ class Reconciler:
                     vpp_encap = self.__get_encapsulation(vpp_iface)
                     if config_encap != vpp_encap:
                         ## Encapsulation mismatch
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
 
                 if vpp_iface.interface_dev_type == "Loopback":
@@ -657,37 +662,37 @@ class Reconciler:
                     bond_iface = self.vpp.cache["interfaces"][vpp_iface.sup_sw_if_index]
                     if self.__bond_has_diff(bond_iface.interface_name):
                         ## If BondEthernet changed, it has to be re-created, so all LCPs must be removed.
-                        removed_lcps.append(lcp)
+                        removed_lcps.append(lcp_iface)
                         continue
 
                 phy_lcp = lcps[vpp_iface.sup_sw_if_index]
-                config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(
+                _config_phy_ifname, config_phy_iface = interface.get_by_lcp_name(
                     self.cfg, phy_lcp.host_if_name
                 )
                 if not config_phy_iface:
                     ## Phy doesn't exist in the config
-                    removed_lcps.append(lcp)
+                    removed_lcps.append(lcp_iface)
                     continue
                 if not "lcp" in config_phy_iface:
                     ## Phy doesn't have an LCP
-                    removed_lcps.append(lcp)
+                    removed_lcps.append(lcp_iface)
                     continue
                 if phy_lcp.host_if_name != config_phy_iface["lcp"]:
                     ## Phy LCP name mismatch
-                    removed_lcps.append(lcp)
+                    removed_lcps.append(lcp_iface)
                     continue
 
                 self.logger.debug(
-                    f"LCP OK: {lcp.host_if_name} -> (vpp={vpp_iface.interface_name}, config={config_ifname})"
+                    f"LCP OK: {lcp_iface.host_if_name} -> (vpp={vpp_iface.interface_name}, config={config_ifname})"
                 )
 
-        for lcp in removed_lcps:
+        for lcp_iface in removed_lcps:
             vpp_ifname = self.vpp.cache["interfaces"][
-                lcp.phy_sw_if_index
+                lcp_iface.phy_sw_if_index
             ].interface_name
             cli = f"lcp delete {vpp_ifname}"
             self.cli["prune"].append(cli)
-            self.vpp.cache_remove_lcp(lcp.host_if_name)
+            self.vpp.cache_remove_lcp(lcp_iface.host_if_name)
         return True
 
     def prune_admin_state(self):
@@ -762,9 +767,9 @@ class Reconciler:
             instance = int(ifname[12:])
             mode = bondethernet.get_mode(self.cfg, ifname)
             cli = f"create bond id {int(instance)} mode {mode}"
-            lb = bondethernet.get_lb(self.cfg, ifname)
-            if lb:
-                cli += f" load-balance {lb}"
+            loadbalance = bondethernet.get_lb(self.cfg, ifname)
+            if loadbalance:
+                cli += f" load-balance {loadbalance}"
             if "mac" in iface:
                 cli += f" hw-addr {iface['mac']}"
             self.cli["create"].append(cli)
@@ -790,7 +795,7 @@ class Reconciler:
                 if not do_qinx == interface.is_qinx(self.cfg, ifname):
                     continue
 
-                ifname, iface = interface.get_by_name(self.cfg, ifname)
+                ifname, _iface = interface.get_by_name(self.cfg, ifname)
                 if ifname in self.vpp.cache["interface_names"]:
                     continue
 
@@ -802,7 +807,7 @@ class Reconciler:
                     encapstr = f"dot1q {int(encap['dot1q'])}"
                 if do_qinx:
                     encapstr += f" inner-dot1q {int(encap['inner-dot1q'])}"
-                if encap["exact-match"] == True:
+                if encap["exact-match"]:
                     encapstr += " exact-match"
                 parent, subid = ifname.split(".")
                 cli = f"create sub {parent} {int(int(subid))} {encapstr}"
@@ -834,7 +839,7 @@ class Reconciler:
 
     def create_bridgedomains(self):
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
-            ifname, iface = bridgedomain.get_by_name(self.cfg, ifname)
+            ifname, _iface = bridgedomain.get_by_name(self.cfg, ifname)
             instance = int(ifname[2:])
             settings = bridgedomain.get_settings(self.cfg, ifname)
             if instance in self.vpp.cache["bridgedomains"]:
@@ -1076,7 +1081,7 @@ class Reconciler:
             if not "interfaces" in config_bridge_iface:
                 continue
             for member_ifname in config_bridge_iface["interfaces"]:
-                member_ifname, member_iface = interface.get_by_name(
+                member_ifname, _member_iface = interface.get_by_name(
                     self.cfg, member_ifname
                 )
                 if not member_ifname in bridge_members:
@@ -1094,7 +1099,7 @@ class Reconciler:
     def sync_l2xcs(self):
         for ifname in interface.get_l2xc_interfaces(self.cfg):
             config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, ifname)
-            config_tx_ifname, config_tx_iface = interface.get_by_name(
+            config_tx_ifname, _config_tx_iface = interface.get_by_name(
                 self.cfg, config_rx_iface["l2xc"]
             )
             vpp_rx_iface = None
@@ -1171,13 +1176,13 @@ class Reconciler:
         return True
 
     def sync_link_mtu_direction(self, shrink=True):
-        for idx, vpp_iface in self.vpp.cache["interfaces"].items():
+        for _idx, vpp_iface in self.vpp.cache["interfaces"].items():
             if vpp_iface.sub_number_of_tags != 0:
                 continue
             if vpp_iface.interface_dev_type in ["local", "Loopback", "VXLAN", "virtio"]:
                 continue
 
-            config_ifname, config_iface = interface.get_by_name(
+            _config_ifname, config_iface = interface.get_by_name(
                 self.cfg, vpp_iface.interface_name
             )
             if not config_iface:
@@ -1266,10 +1271,10 @@ class Reconciler:
                         str(x)
                         for x in self.vpp.cache["interface_addresses"][sw_if_index]
                     ]
-            for a in config_addresses:
-                if a in vpp_addresses:
+            for addr in config_addresses:
+                if addr in vpp_addresses:
                     continue
-                cli = f"set interface ip address {vpp_ifname} {a}"
+                cli = f"set interface ip address {vpp_ifname} {addr}"
                 self.cli["sync"].append(cli)
         return True
 
@@ -1278,10 +1283,10 @@ class Reconciler:
             self.cfg
         ):
             if ifname.startswith("loop"):
-                vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+                vpp_ifname, _config_iface = loopback.get_by_name(self.cfg, ifname)
                 config_admin_state = 1
             else:
-                vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+                vpp_ifname, _config_iface = interface.get_by_name(self.cfg, ifname)
                 config_admin_state = interface.get_admin_state(self.cfg, ifname)
 
             vpp_admin_state = 0
@@ -1298,39 +1303,39 @@ class Reconciler:
             self.cli["sync"].append(cli)
         return True
 
-    def write(self, outfile, ok=False):
+    def write(self, outfile, emit_ok=False):
         """Emit the CLI contents to stdout (if outfile=='-') or a named file otherwise.
-        If the 'ok' flag is False, emit a warning at the top and bottom of the file.
+        If the 'emit_ok' flag is False, emit a warning at the top and bottom of the file.
         """
         # Assemble the intended output into a list
         output = []
-        if not ok:
+        if not emit_ok:
             output.append(
                 "comment { vppcfg: Planning failed, be careful with this output! }"
             )
 
         for phase in ["prune", "create", "sync"]:
-            n = len(self.cli[phase])
-            if n > 0:
+            ncount = len(self.cli[phase])
+            if ncount > 0:
                 output.append(
-                    f"comment {{ vppcfg {phase}: {n} CLI statement(s) follow }}"
+                    f"comment {{ vppcfg {phase}: {ncount} CLI statement(s) follow }}"
                 )
                 output.extend(self.cli[phase])
 
-        if not ok:
+        if not emit_ok:
             output.append(
                 "comment { vppcfg: Planning failed, be careful with this output! }"
             )
 
         # Emit the output list to stdout or a file
         if outfile and outfile == "-":
-            fh = sys.stdout
+            file = sys.stdout
             outfile = "(stdout)"
         else:
-            fh = open(outfile, "w")
+            file = open(outfile, "w", encoding="utf-8")
         if len(output) > 0:
-            print("\n".join(output), file=fh)
-        if fh is not sys.stdout:
-            fh.close()
+            print("\n".join(output), file=file)
+        if file is not sys.stdout:
+            file.close()
 
         self.logger.info(f"Wrote {len(output)} lines to {outfile}")

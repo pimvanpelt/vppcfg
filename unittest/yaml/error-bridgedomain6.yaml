@@ -15,6 +15,7 @@ interfaces:
     mtu: 3000
     sub-interfaces:
       1234:
+        mtu: 1500
         description: "BD11 and BD12"
 
 bridgedomains:

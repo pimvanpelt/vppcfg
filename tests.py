@@ -15,11 +15,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import yaml
-from config import Validator
 import glob
 import re
 import unittest
+import yaml
+from config import Validator
 
 try:
     import argparse
@@ -28,73 +28,71 @@ except ImportError:
     sys.exit(-2)
 
 
-def example_validator(yaml):
+def example_validator(_yaml):
     """A simple example validator that takes the YAML configuration file as an input,
     and returns a tuple of rv (return value, True is success), and a list of string
     messages to the validation framework."""
-    rv = True
-    msgs = []
-
-    return rv, msgs
+    return True, []
 
 
 class YAMLTest(unittest.TestCase):
     def __init__(self, testName, yaml_filename, yaml_schema):
         # calling the super class init varies for different python versions.  This works for 2.7
-        super(YAMLTest, self).__init__(testName)
+        super().__init__(testName)
         self.yaml_filename = yaml_filename
         self.yaml_schema = yaml_schema
 
     def test_yaml(self):
-        unittest = None
+        test = None
         cfg = None
-        n = 0
+        ncount = 0
         try:
-            with open(self.yaml_filename, "r") as f:
-                for data in yaml.load_all(f, Loader=yaml.Loader):
-                    if n == 0:
-                        unittest = data
-                        n = n + 1
-                    elif n == 1:
+            with open(self.yaml_filename, "r", encoding="utf-8") as file:
+                for data in yaml.load_all(file, Loader=yaml.Loader):
+                    if ncount == 0:
+                        test = data
+                        ncount += 1
+                    elif ncount == 1:
                         cfg = data
-                        n = n + 1
+                        ncount += 1
         except:
             pass
-        self.assertEqual(n, 2)
-        self.assertIsNotNone(unittest)
+        self.assertEqual(ncount, 2)
+        self.assertIsNotNone(test)
         if not cfg:
             return
 
-        v = Validator(schema=self.yaml_schema)
-        rv, msgs = v.validate(cfg)
+        validator = Validator(schema=self.yaml_schema)
+        _rv, msgs = validator.validate(cfg)
 
-        msgs_unexpected = 0
         msgs_expected = []
         if (
-            "test" in unittest
-            and "errors" in unittest["test"]
-            and "expected" in unittest["test"]["errors"]
+            "test" in test
+            and "errors" in test["test"]
+            and "expected" in test["test"]["errors"]
         ):
-            msgs_expected = unittest["test"]["errors"]["expected"]
+            msgs_expected = test["test"]["errors"]["expected"]
 
         fail = False
-        for m in msgs:
+        for msg in msgs:
             this_msg_expected = False
             for expected in msgs_expected:
-                if re.match(expected, m):
+                if re.match(expected, msg):
                     this_msg_expected = True
                     break
             if not this_msg_expected:
-                print(f"{self.yaml_filename}: Unexpected message: {m}", file=sys.stderr)
+                print(
+                    f"{self.yaml_filename}: Unexpected message: {msg}", file=sys.stderr
+                )
                 fail = True
 
         count = 0
         if (
-            "test" in unittest
-            and "errors" in unittest["test"]
-            and "count" in unittest["test"]["errors"]
+            "test" in test
+            and "errors" in test["test"]
+            and "count" in test["test"]["errors"]
         ):
-            count = unittest["test"]["errors"]["count"]
+            count = test["test"]["errors"]["count"]
 
         if len(msgs) != count:
             print(
@@ -143,11 +141,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.debug:
-        verbosity = 2
+        VERBOSITY = 2
     elif args.quiet:
-        verbosity = 0
+        VERBOSITY = 0
     else:
-        verbosity = 1
+        VERBOSITY = 1
     yaml_suite = unittest.TestSuite()
     for pattern in args.test:
         for fn in glob.glob(pattern):
@@ -155,21 +153,21 @@ if __name__ == "__main__":
                 YAMLTest("test_yaml", yaml_filename=fn, yaml_schema=args.schema)
             )
     yaml_ok = (
-        unittest.TextTestRunner(verbosity=verbosity, buffer=True)
+        unittest.TextTestRunner(verbosity=VERBOSITY, buffer=True)
         .run(yaml_suite)
         .wasSuccessful()
     )
 
     tests = unittest.TestLoader().discover(start_dir=".", pattern="test_*.py")
     unit_ok = (
-        unittest.TextTestRunner(verbosity=verbosity, buffer=True)
+        unittest.TextTestRunner(verbosity=VERBOSITY, buffer=True)
         .run(tests)
         .wasSuccessful()
     )
 
-    retval = 0
+    RETVAL = 0
     if not yaml_ok:
-        retval = retval - 1
+        RETVAL -= 1
     if not unit_ok:
-        retval = retval - 2
-    sys.exit(retval)
+        RETVAL -= 2
+    sys.exit(RETVAL)

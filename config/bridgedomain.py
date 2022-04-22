@@ -12,10 +12,8 @@
 # limitations under the License.
 #
 import logging
-import config.interface as interface
-import config.loopback as loopback
-import config.lcp as lcp
-import config.address as address
+from config import interface
+from config import loopback
 
 
 def get_bridgedomains(yaml):
@@ -23,7 +21,7 @@ def get_bridgedomains(yaml):
     ret = []
     if not "bridgedomains" in yaml:
         return ret
-    for ifname, iface in yaml["bridgedomains"].items():
+    for ifname, _iface in yaml["bridgedomains"].items():
         ret.append(ifname)
     return ret
 
@@ -33,7 +31,7 @@ def get_by_name(yaml, ifname):
     try:
         if ifname in yaml["bridgedomains"]:
             return ifname, yaml["bridgedomains"][ifname]
-    except:
+    except KeyError:
         pass
     return None, None
 
@@ -41,7 +39,7 @@ def get_by_name(yaml, ifname):
 def is_bridgedomain(yaml, ifname):
     """Returns True if the name (bd*) is an existing bridgedomain."""
     ifname, iface = get_by_name(yaml, ifname)
-    return not iface == None
+    return iface is not None
 
 
 def get_bridge_interfaces(yaml):
@@ -51,7 +49,7 @@ def get_bridge_interfaces(yaml):
     if not "bridgedomains" in yaml:
         return ret
 
-    for ifname, iface in yaml["bridgedomains"].items():
+    for _ifname, iface in yaml["bridgedomains"].items():
         if "interfaces" in iface:
             ret.extend(iface["interfaces"])
 
@@ -75,11 +73,11 @@ def bvi_unique(yaml, bviname):
     """Returns True if the BVI identified by bviname is unique among all BridgeDomains."""
     if not "bridgedomains" in yaml:
         return True
-    n = 0
-    for ifname, iface in yaml["bridgedomains"].items():
+    ncount = 0
+    for _ifname, iface in yaml["bridgedomains"].items():
         if "bvi" in iface and iface["bvi"] == bviname:
-            n += 1
-    return n < 2
+            ncount += 1
+    return ncount < 2
 
 
 def get_settings(yaml, ifname):
@@ -141,7 +139,6 @@ def validate_bridgedomains(yaml):
             result = False
 
         if "bvi" in iface:
-            bviname = iface["bvi"]
             bvi_ifname, bvi_iface = loopback.get_by_name(yaml, iface["bvi"])
             if not bvi_unique(yaml, bvi_ifname):
                 msgs.append(f"bridgedomain {ifname} BVI {bvi_ifname} is not unique")

@@ -13,10 +13,11 @@
 # limitations under the License.
 #
 # -*- coding: utf-8 -*-
-
+"""vppcfg is a utility to configure a running VPP Dataplane using YAML
+config files. See http://github.com/pimvanpelt/vppcfg/README.md for details. """
 import sys
-import yaml
 import logging
+import yaml
 from config import Validator
 from vpp.reconciler import Reconciler
 from vpp.dumper import Dumper
@@ -149,64 +150,64 @@ def main():
     )
 
     if args.command == "dump":
-        d = Dumper()
-        if not d.readconfig():
+        dumper = Dumper()
+        if not dumper.readconfig():
             logging.error("Could not retrieve config from VPP")
             sys.exit(-7)
-        d.write(args.outfile)
+        dumper.write(args.outfile)
         sys.exit(0)
 
     try:
-        with open(args.config, "r") as f:
+        with open(args.config, "r", encoding="utf-8") as file:
             logging.info(f"Loading configfile {args.config}")
-            cfg = yaml.load(f, Loader=yaml.FullLoader)
+            cfg = yaml.load(file, Loader=yaml.FullLoader)
             logging.debug(f"Config: {cfg}")
-    except:
-        logging.error(f"Couldn't read config from {args.config}")
+    except OSError as err:
+        logging.error(f"Couldn't read config from {args.config}: {err}")
         sys.exit(-1)
 
-    v = Validator(schema=args.schema)
-    if not v.valid_config(cfg):
+    validator = Validator(schema=args.schema)
+    if not validator.valid_config(cfg):
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
     logging.info("Configuration is valid")
     if args.command == "check":
         sys.exit(0)
 
-    r = Reconciler(cfg)
-    if not r.vpp_readconfig():
+    reconciler = Reconciler(cfg)
+    if not reconciler.vpp_readconfig():
         sys.exit(-3)
 
-    if not r.phys_exist_in_vpp():
+    if not reconciler.phys_exist_in_vpp():
         logging.error("Not all PHYs in the config exist in VPP")
         sys.exit(-4)
 
-    if not r.phys_exist_in_config():
+    if not reconciler.phys_exist_in_config():
         logging.error("Not all PHYs in VPP exist in the config")
         sys.exit(-5)
 
-    if not r.lcps_exist_with_lcp_enabled():
+    if not reconciler.lcps_exist_with_lcp_enabled():
         logging.error(
             "Linux Control Plane is needed, but linux-cp API is not available"
         )
         sys.exit(-6)
 
     failed = False
-    if not r.prune():
+    if not reconciler.prune():
         if not args.force:
             logging.error("Planning prune failure")
             sys.exit(-10)
         failed = True
         logging.warning("Planning prune failure, continuing due to --force")
 
-    if not r.create():
+    if not reconciler.create():
         if not args.force:
             logging.error("Planning create failure")
             sys.exit(-20)
         failed = True
         logging.warning("Planning create failure, continuing due to --force")
 
-    if not r.sync():
+    if not reconciler.sync():
         if not args.force:
             logging.error("Planning sync failure")
             sys.exit(-30)
@@ -214,7 +215,7 @@ def main():
         logging.warning("Planning sync failure, continuing due to --force")
 
     if args.command == "plan":
-        r.write(args.outfile, ok=not failed)
+        reconciler.write(args.outfile, emit_ok=not failed)
 
     if failed:
         logging.error("Planning failed")

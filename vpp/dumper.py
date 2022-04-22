@@ -3,10 +3,10 @@ The functions in this file interact with the VPP API to retrieve certain
 interface metadata and write it to a YAML file.
 """
 
-from vpp.vppapi import VPPApi
 import sys
 import yaml
-import config.bondethernet as bondethernet
+from vpp.vppapi import VPPApi
+from config import bondethernet
 
 
 class Dumper(VPPApi):
@@ -15,17 +15,17 @@ class Dumper(VPPApi):
 
     def write(self, outfile):
         if outfile and outfile == "-":
-            fh = sys.stdout
+            file = sys.stdout
             outfile = "(stdout)"
         else:
-            fh = open(outfile, "w")
+            file = open(outfile, "w", encoding="utf-8")
 
         config = self.cache_to_config()
 
-        print(yaml.dump(config), file=fh)
+        print(yaml.dump(config), file=file)
 
-        if fh is not sys.stdout:
-            fh.close()
+        if file is not sys.stdout:
+            file.close()
         self.logger.info(f"Wrote YAML config to {outfile}")
 
     def cache_to_config(self):

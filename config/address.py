@@ -11,8 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
-import config.interface as interface
 import ipaddress
 
 
@@ -27,8 +25,8 @@ def get_all_addresses_except_ifname(yaml, except_ifname):
                 continue
 
             if "addresses" in iface:
-                for a in iface["addresses"]:
-                    ret.append(ipaddress.ip_interface(a))
+                for addr in iface["addresses"]:
+                    ret.append(ipaddress.ip_interface(addr))
             if "sub-interfaces" in iface:
                 for subid, sub_iface in iface["sub-interfaces"].items():
                     sub_ifname = f"{ifname}.{int(subid)}"
@@ -36,24 +34,24 @@ def get_all_addresses_except_ifname(yaml, except_ifname):
                         continue
 
                     if "addresses" in sub_iface:
-                        for a in sub_iface["addresses"]:
-                            ret.append(ipaddress.ip_interface(a))
+                        for addr in sub_iface["addresses"]:
+                            ret.append(ipaddress.ip_interface(addr))
     if "loopbacks" in yaml:
         for ifname, iface in yaml["loopbacks"].items():
             if ifname == except_ifname:
                 continue
 
             if "addresses" in iface:
-                for a in iface["addresses"]:
-                    ret.append(ipaddress.ip_interface(a))
+                for addr in iface["addresses"]:
+                    ret.append(ipaddress.ip_interface(addr))
     if "bridgedomains" in yaml:
         for ifname, iface in yaml["bridgedomains"].items():
             if ifname == except_ifname:
                 continue
 
             if "addresses" in iface:
-                for a in iface["addresses"]:
-                    ret.append(ipaddress.ip_interface(a))
+                for addr in iface["addresses"]:
+                    ret.append(ipaddress.ip_interface(addr))
 
     return ret
 
@@ -99,8 +97,8 @@ def is_allowed(yaml, ifname, iface_addresses, ip_interface):
         if my_ip_network.subnet_of(ipaddress.ip_network(ipi, strict=False)):
             return False
 
-    for ip in iface_addresses:
-        ipi = ipaddress.ip_interface(ip)
+    for addr in iface_addresses:
+        ipi = ipaddress.ip_interface(addr)
         if ipi.version != my_ip_network.version:
             continue
 

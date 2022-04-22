@@ -12,16 +12,16 @@
 # limitations under the License.
 #
 import logging
-import config.lcp as lcp
-import config.address as address
-import config.mac as mac
+from config import lcp
+from config import address
+from config import mac
 
 
 def get_loopbacks(yaml):
     """Return a list of all loopbacks."""
     ret = []
     if "loopbacks" in yaml:
-        for ifname, iface in yaml["loopbacks"].items():
+        for ifname, _iface in yaml["loopbacks"].items():
             ret.append(ifname)
     return ret
 
@@ -41,7 +41,7 @@ def get_by_name(yaml, ifname):
     try:
         if ifname in yaml["loopbacks"]:
             return ifname, yaml["loopbacks"][ifname]
-    except:
+    except KeyError:
         pass
     return None, None
 
@@ -49,7 +49,7 @@ def get_by_name(yaml, ifname):
 def is_loopback(yaml, ifname):
     """Returns True if the interface name is an existing loopback."""
     ifname, iface = get_by_name(yaml, ifname)
-    return not iface == None
+    return iface is not None
 
 
 def validate_loopbacks(yaml):
@@ -75,10 +75,10 @@ def validate_loopbacks(yaml):
             )
             result = False
         if "addresses" in iface:
-            for a in iface["addresses"]:
-                if not address.is_allowed(yaml, ifname, iface["addresses"], a):
+            for addr in iface["addresses"]:
+                if not address.is_allowed(yaml, ifname, iface["addresses"], addr):
                     msgs.append(
-                        f"loopback {ifname} IP address {a} conflicts with another"
+                        f"loopback {ifname} IP address {addr} conflicts with another"
                     )
                     result = False
         if "mac" in iface and mac.is_multicast(iface["mac"]):

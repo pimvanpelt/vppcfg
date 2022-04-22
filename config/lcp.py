@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
 
 
 def get_lcps(yaml, interfaces=True, loopbacks=True, bridgedomains=True):
@@ -20,20 +19,20 @@ def get_lcps(yaml, interfaces=True, loopbacks=True, bridgedomains=True):
 
     ret = []
     if interfaces and "interfaces" in yaml:
-        for ifname, iface in yaml["interfaces"].items():
+        for _ifname, iface in yaml["interfaces"].items():
             if "lcp" in iface:
                 ret.append(iface["lcp"])
             if "sub-interfaces" in iface:
-                for subid, sub_iface in iface["sub-interfaces"].items():
+                for _subid, sub_iface in iface["sub-interfaces"].items():
                     if "lcp" in sub_iface:
                         ret.append(sub_iface["lcp"])
 
     if loopbacks and "loopbacks" in yaml:
-        for ifname, iface in yaml["loopbacks"].items():
+        for _ifname, iface in yaml["loopbacks"].items():
             if "lcp" in iface:
                 ret.append(iface["lcp"])
     if bridgedomains and "bridgedomains" in yaml:
-        for ifname, iface in yaml["bridgedomains"].items():
+        for _ifname, iface in yaml["bridgedomains"].items():
             if "lcp" in iface:
                 ret.append(iface["lcp"])
 

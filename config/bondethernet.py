@@ -12,15 +12,15 @@
 # limitations under the License.
 #
 import logging
-import config.interface as interface
-import config.mac as mac
+from config import interface
+from config import mac
 
 
 def get_bondethernets(yaml):
     """Return a list of all bondethernets."""
     ret = []
     if "bondethernets" in yaml:
-        for ifname, iface in yaml["bondethernets"].items():
+        for ifname, _iface in yaml["bondethernets"].items():
             ret.append(ifname)
     return ret
 
@@ -30,7 +30,7 @@ def get_by_name(yaml, ifname):
     try:
         if ifname in yaml["bondethernets"]:
             return ifname, yaml["bondethernets"][ifname]
-    except:
+    except KeyError:
         pass
     return None, None
 
@@ -38,7 +38,7 @@ def get_by_name(yaml, ifname):
 def is_bondethernet(yaml, ifname):
     """Returns True if the interface name is an existing BondEthernet."""
     ifname, iface = get_by_name(yaml, ifname)
-    return not iface == None
+    return iface is not None
 
 
 def is_bond_member(yaml, ifname):
@@ -46,7 +46,7 @@ def is_bond_member(yaml, ifname):
     if not "bondethernets" in yaml:
         return False
 
-    for bond, iface in yaml["bondethernets"].items():
+    for _bond, iface in yaml["bondethernets"].items():
         if not "interfaces" in iface:
             continue
         if ifname in iface["interfaces"]:
@@ -78,7 +78,7 @@ def mode_to_int(mode):
     ret = {"round-robin": 1, "active-backup": 2, "xor": 3, "broadcast": 4, "lacp": 5}
     try:
         return ret[mode]
-    except:
+    except KeyError:
         pass
     return -1
 
@@ -92,7 +92,7 @@ def int_to_mode(mode):
     ret = {1: "round-robin", 2: "active-backup", 3: "xor", 4: "broadcast", 5: "lacp"}
     try:
         return ret[mode]
-    except:
+    except KeyError:
         pass
     return ""
 
@@ -109,7 +109,7 @@ def get_lb(yaml, ifname):
     if not iface:
         return None
     mode = get_mode(yaml, ifname)
-    if not mode in ["xor", "lacp"]:
+    if mode not in ["xor", "lacp"]:
         return None
 
     if not "load-balance" in iface:
@@ -117,7 +117,7 @@ def get_lb(yaml, ifname):
     return iface["load-balance"]
 
 
-def lb_to_int(lb):
+def lb_to_int(loadbalance):
     """Returns the integer representation in VPP of a given load-balance strategy,
     or -1 if 'lb' is not a valid string.
 
@@ -133,13 +133,13 @@ def lb_to_int(lb):
         "active-backup": 5,
     }
     try:
-        return ret[lb]
-    except:
+        return ret[loadbalance]
+    except KeyError:
         pass
     return -1
 
 
-def int_to_lb(lb):
+def int_to_lb(loadbalance):
     """Returns the string representation in VPP of a given load-balance strategy,
     or "" if 'lb' is not a valid int.
 
@@ -155,8 +155,8 @@ def int_to_lb(lb):
         5: "active-backup",
     }
     try:
-        return ret[lb]
-    except:
+        return ret[loadbalance]
+    except KeyError:
         pass
     return ""
 
@@ -186,7 +186,7 @@ def validate_bondethernets(yaml):
             )
             result = False
         if (
-            not get_mode(yaml, bond_ifname) in ["xor", "lacp"]
+            get_mode(yaml, bond_ifname) not in ["xor", "lacp"]
             and "load-balance" in iface
         ):
             msgs.append(
