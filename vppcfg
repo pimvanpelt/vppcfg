@@ -74,11 +74,11 @@ def main():
 
     try:
         with open(args.config, "r") as f:
-            logging.info("Loading configfile %s" % args.config)
+            logging.info(f"Loading configfile {args.config}")
             cfg = yaml.load(f, Loader = yaml.FullLoader)
-            logging.debug("Config: %s" % cfg)
+            logging.debug(f"Config: {cfg}")
     except:
-        logging.error("Couldn't read config from %s" % args.config)
+        logging.error(f"Couldn't read config from {args.config}")
         sys.exit(-1)
 
     v = Validator(schema=args.schema)

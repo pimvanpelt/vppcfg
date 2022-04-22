@@ -48,7 +48,7 @@ class VPPApi():
             return False
 
         v = self.vpp.api.show_version()
-        self.logger.info('VPP version is %s' % v.version)
+        self.logger.info(f'VPP version is {v.version}')
 
         self.connected = True
         return True
@@ -76,7 +76,7 @@ class VPPApi():
                 found = True
                 break
         if not found:
-            self.logger.warning("Trying to remove an LCP which is not in the config: %s" % lcpname)
+            self.logger.warning(f"Trying to remove an LCP which is not in the config: {lcpname}")
             return False
 
         ifname = self.cache['interfaces'][lcp.host_sw_if_index].interface_name
@@ -88,7 +88,7 @@ class VPPApi():
     def cache_remove_bondethernet_member(self, ifname):
         """ Removes the bonderthernet member interface, identified by name, from the config. """
         if not ifname in self.cache['interface_names']:
-            self.logger.warning("Trying to remove a bondethernet member interface which is not in the config: %s" % ifname)
+            self.logger.warning(f"Trying to remove a bondethernet member interface which is not in the config: {ifname}")
             return False
 
         iface = self.cache['interface_names'][ifname]
@@ -100,7 +100,7 @@ class VPPApi():
 
     def cache_remove_l2xc(self, ifname):
         if not ifname in self.cache['interface_names']:
-            self.logger.warning("Trying to remove an L2XC which is not in the config: %s" % ifname)
+            self.logger.warning(f"Trying to remove an L2XC which is not in the config: {ifname}")
             return False
         iface = self.cache['interface_names'][ifname]
         self.cache['l2xcs'].pop(iface.sw_if_index, None)
@@ -108,7 +108,7 @@ class VPPApi():
 
     def cache_remove_vxlan_tunnel(self, ifname):
         if not ifname in self.cache['interface_names']:
-            self.logger.warning("Trying to remove a VXLAN Tunnel which is not in the config: %s" % ifname)
+            self.logger.warning(f"Trying to remove a VXLAN Tunnel which is not in the config: {ifname}")
             return False
 
         iface = self.cache['interface_names'][ifname]
@@ -118,20 +118,20 @@ class VPPApi():
     def cache_remove_interface(self, ifname):
         """ Removes the interface, identified by name, from the config. """
         if not ifname in self.cache['interface_names']:
-            self.logger.warning("Trying to remove an interface which is not in the config: %s" % ifname)
+            self.logger.warning(f"Trying to remove an interface which is not in the config: {ifname}")
             return False
 
         iface = self.cache['interface_names'][ifname]
         del self.cache['interfaces'][iface.sw_if_index]
         if len(self.cache['interface_addresses'][iface.sw_if_index]) > 0:
-            self.logger.warning("Not all addresses were removed on %s" % ifname)
+            self.logger.warning(f"Not all addresses were removed on {ifname}")
         del self.cache['interface_addresses'][iface.sw_if_index]
         del self.cache['interface_names'][ifname]
 
         ## Use my_dict.pop('key', None), as it allows 'key' to be absent
         if iface.sw_if_index in self.cache['bondethernet_members']:
             if len(self.cache['bondethernet_members'][iface.sw_if_index]) != 0:
-                self.logger.warning("When removing BondEthernet %s, its members are not empty: %s" % (ifname, self.cache['bondethernet_members'][iface.sw_if_index]))
+                self.logger.warning(f"When removing BondEthernet {ifname}, its members are not empty: {self.cache['bondethernet_members'][iface.sw_if_index]}")
             else:
                 del self.cache['bondethernet_members'][iface.sw_if_index]
         self.cache['bondethernets'].pop(iface.sw_if_index, None)
@@ -158,7 +158,7 @@ class VPPApi():
                         lcp = lcp._replace(phy_sw_if_index=socket.ntohl(lcp.phy_sw_if_index))
                         lcp = lcp._replace(host_sw_if_index=socket.ntohl(lcp.host_sw_if_index))
                         lcp = lcp._replace(vif_index=socket.ntohl(lcp.vif_index))
-                        self.logger.warning("LCP workaround for endianness issue on %s" % lcp.host_if_name)
+                        self.logger.warning(f"LCP workaround for endianness issue on {lcp.host_if_name}")
                     self.cache['lcps'][lcp.phy_sw_if_index] = lcp
                 self.lcp_enabled = True
         except:
@@ -170,11 +170,11 @@ class VPPApi():
             self.cache['interfaces'][iface.sw_if_index] = iface
             self.cache['interface_names'][iface.interface_name] = iface
             self.cache['interface_addresses'][iface.sw_if_index] = []
-            self.logger.debug("Retrieving IPv4 addresses for %s" % iface.interface_name)
+            self.logger.debug(f"Retrieving IPv4 addresses for {iface.interface_name}")
             ipr = self.vpp.api.ip_address_dump(sw_if_index=iface.sw_if_index, is_ipv6=False)
             for ip in ipr:
                 self.cache['interface_addresses'][iface.sw_if_index].append(str(ip.prefix))
-            self.logger.debug("Retrieving IPv6 addresses for %s" % iface.interface_name)
+            self.logger.debug(f"Retrieving IPv6 addresses for {iface.interface_name}")
             ipr = self.vpp.api.ip_address_dump(sw_if_index=iface.sw_if_index, is_ipv6=True)
             for ip in ipr:
                 self.cache['interface_addresses'][iface.sw_if_index].append(str(ip.prefix))
@@ -216,7 +216,7 @@ class VPPApi():
         ret = True
         for ifname in ifname_list:
             if not ifname in self.cache['interface_names']:
-                self.logger.warning("Interface %s does not exist in VPP" % ifname)
+                self.logger.warning(f"Interface {ifname} does not exist in VPP")
                 ret = False
         return ret
 

@@ -123,26 +123,26 @@ def validate_bridgedomains(yaml):
         return result, msgs
 
     for ifname, iface in yaml['bridgedomains'].items():
-        logger.debug("bridgedomain %s" % iface)
+        logger.debug(f"bridgedomain {iface}")
         bd_mtu = 1500
         if 'mtu' in iface:
             bd_mtu = iface['mtu']
         instance = int(ifname[2:])
         if instance == 0:
-            msgs.append("bridgedomain %s is reserved" % ifname)
+            msgs.append(f"bridgedomain {ifname} is reserved")
             result = False
         elif instance > 16777215:
-            msgs.append("bridgedomain %s has instance %d which is too large" % (ifname, instance))
+            msgs.append(f"bridgedomain {ifname} has instance {int(instance)} which is too large")
             result = False
 
         if 'bvi' in iface:
             bviname = iface['bvi']
             bvi_ifname, bvi_iface = loopback.get_by_name(yaml,iface['bvi'])
             if not bvi_unique(yaml, bvi_ifname):
-                msgs.append("bridgedomain %s BVI %s is not unique" % (ifname, bvi_ifname))
+                msgs.append(f"bridgedomain {ifname} BVI {bvi_ifname} is not unique")
                 result = False
             if not bvi_iface:
-                msgs.append("bridgedomain %s BVI %s does not exist" % (ifname, bvi_ifname))
+                msgs.append(f"bridgedomain {ifname} BVI {bvi_ifname} does not exist")
                 result = False
                 continue
 
@@ -150,28 +150,28 @@ def validate_bridgedomains(yaml):
             if 'mtu' in bvi_iface:
                 bvi_mtu = bvi_iface['mtu']
             if bvi_mtu != bd_mtu:
-                msgs.append("bridgedomain %s BVI %s has MTU %d, while bridge has %d" % (ifname, bvi_ifname, bvi_mtu, bd_mtu))
+                msgs.append(f"bridgedomain {ifname} BVI {bvi_ifname} has MTU {int(bvi_mtu)}, while bridge has {int(bd_mtu)}")
                 result = False
 
         if 'interfaces' in iface:
             for member in iface['interfaces']:
                 if (None, None) == interface.get_by_name(yaml, member):
-                    msgs.append("bridgedomain %s member %s does not exist" % (ifname, member))
+                    msgs.append(f"bridgedomain {ifname} member {member} does not exist")
                     result = False
                     continue
 
                 if not is_bridge_interface_unique(yaml, member):
-                    msgs.append("bridgedomain %s member %s is not unique" % (ifname, member))
+                    msgs.append(f"bridgedomain {ifname} member {member} is not unique")
                     result = False
                 if interface.has_lcp(yaml, member):
-                    msgs.append("bridgedomain %s member %s has an LCP" % (ifname, member))
+                    msgs.append(f"bridgedomain {ifname} member {member} has an LCP")
                     result = False
                 if interface.has_address(yaml, member):
-                    msgs.append("bridgedomain %s member %s has an address" % (ifname, member))
+                    msgs.append(f"bridgedomain {ifname} member {member} has an address")
                     result = False
                 member_mtu = interface.get_mtu(yaml, member)
                 if member_mtu != bd_mtu:
-                    msgs.append("bridgedomain %s member %s has MTU %d, while bridge has %d" % (ifname, member, member_mtu, bd_mtu))
+                    msgs.append(f"bridgedomain {ifname} member {member} has MTU {int(member_mtu)}, while bridge has {int(bd_mtu)}")
                     result = False
 
 

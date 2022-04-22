@@ -79,7 +79,7 @@ class YAMLTest(unittest.TestCase):
                     this_msg_expected = True
                     break
             if not this_msg_expected:
-                print("%s: Unexpected message: %s" % (self.yaml_filename, m), file=sys.stderr)
+                print(f"{self.yaml_filename}: Unexpected message: {m}", file=sys.stderr)
                 fail = True
 
         count = 0
@@ -87,7 +87,7 @@ class YAMLTest(unittest.TestCase):
             count = unittest['test']['errors']['count']
 
         if len(msgs) != count:
-            print("%s: Unexpected error count %d (expecting %d)" % (self.yaml_filename, len(msgs), count), file=sys.stderr)
+            print(f"{self.yaml_filename}: Unexpected error count {len(msgs)} (expecting {int(count)})", file=sys.stderr)
         self.assertEqual(len(msgs), count)
         self.assertFalse(fail)
 

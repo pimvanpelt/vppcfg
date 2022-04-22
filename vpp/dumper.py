@@ -25,7 +25,7 @@ class Dumper(VPPApi):
 
         if fh is not sys.stdout:
             fh.close()
-        self.logger.info("Wrote YAML config to %s" % (outfile))
+        self.logger.info(f"Wrote YAML config to {outfile}")
 
     def cache_to_config(self):
         config = {"loopbacks": {}, "bondethernets": {}, "interfaces": {}, "bridgedomains": {}, "vxlan_tunnels": {}, "taps": {} }
@@ -51,7 +51,7 @@ class Dumper(VPPApi):
 
                 if iface.interface_dev_type=='Loopback':
                     if iface.sub_id > 0:
-                        self.logger.warning("Refusing to export sub-interfaces of loopback devices (%s)" % iface.interface_name)
+                        self.logger.warning(f"Refusing to export sub-interfaces of loopback devices ({iface.interface_name})")
                         continue
                     loop = {"description": ""}
                     loop['mtu'] = iface.mtu[0]
@@ -136,7 +136,7 @@ class Dumper(VPPApi):
 
         for idx, iface in self.cache['bridgedomains'].items():
             # self.logger.info("%d: %s" % (idx, iface))
-            bridge_name = "bd%d" % idx
+            bridge_name = f"bd{int(idx)}"
             mtu = 1500
             bridge = {"description": ""}
             settings = {}

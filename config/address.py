@@ -30,7 +30,7 @@ def get_all_addresses_except_ifname(yaml, except_ifname):
                     ret.append(ipaddress.ip_interface(a))
             if 'sub-interfaces' in iface:
                 for subid, sub_iface in iface['sub-interfaces'].items():
-                    sub_ifname = "%s.%d" % (ifname, subid)
+                    sub_ifname = f"{ifname}.{int(subid)}"
                     if sub_ifname == except_ifname:
                         continue
 

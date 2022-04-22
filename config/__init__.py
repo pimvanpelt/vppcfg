@@ -87,17 +87,17 @@ class Validator(object):
         validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
         if self.schema:
             fn = self.schema
-            self.logger.debug("Validating against --schema %s" % fn)
+            self.logger.debug(f"Validating against --schema {fn}")
         elif hasattr(sys, "_MEIPASS"):
             ## See vppcfg.spec data_files that includes schema.yaml into the bundle
             self.logger.debug("Validating against built-in schema")
             fn = os.path.join(sys._MEIPASS, "schema.yaml")
         else:
             fn = "./schema.yaml"
-            self.logger.debug("Validating against fallthrough default schema %s" % fn)
+            self.logger.debug(f"Validating against fallthrough default schema {fn}")
 
         if not os.path.isfile(fn):
-            self.logger.error("Cannot file schema file: %s" % fn)
+            self.logger.error(f"Cannot file schema file: {fn}")
             return False, ret_msgs
 
         try:
@@ -109,7 +109,7 @@ class Validator(object):
             ret_rv = False
             for result in e.results:
                 for error in result.errors:
-                    ret_msgs.extend(['yamale: %s' % error])
+                    ret_msgs.extend([f'yamale: {error}'])
             return ret_rv, ret_msgs
 
         self.logger.debug("Validating Semantics...")

@@ -156,23 +156,23 @@ def validate_bondethernets(yaml):
         return result, msgs
 
     for ifname, iface in yaml['bondethernets'].items():
-        logger.debug("bondethernet %s: %s" % (ifname, iface))
+        logger.debug(f"bondethernet {ifname}: {iface}")
         bond_ifname, bond_iface = interface.get_by_name(yaml, ifname)
         bond_mtu = 1500
         if not bond_iface:
-            msgs.append("bondethernet %s does not exist in interfaces" % (ifname))
+            msgs.append(f"bondethernet {ifname} does not exist in interfaces")
             result = False
         else:
             bond_mtu = interface.get_mtu(yaml, bond_ifname)
         instance = int(ifname[12:])
         if instance > 4294967294:
-            msgs.append("bondethernet %s has instance %d which is too large" % (ifname, instance))
+            msgs.append(f"bondethernet {ifname} has instance {int(instance)} which is too large")
             result = False
         if not get_mode(yaml, bond_ifname) in ['xor','lacp'] and 'load-balance' in iface:
-            msgs.append("bondethernet %s can only have load-balance if in mode XOR or LACP" % (ifname))
+            msgs.append(f"bondethernet {ifname} can only have load-balance if in mode XOR or LACP")
             result = False
         if 'mac' in iface and mac.is_multicast(iface['mac']):
-            msgs.append("bondethernet %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
+            msgs.append(f"bondethernet {ifname} MAC address {iface['mac']} cannot be multicast")
             result = False
 
         if not 'interfaces' in iface:
@@ -180,21 +180,21 @@ def validate_bondethernets(yaml):
 
         for member in iface['interfaces']:
             if (None, None) == interface.get_by_name(yaml, member):
-                msgs.append("bondethernet %s member %s does not exist" % (ifname, member))
+                msgs.append(f"bondethernet {ifname} member {member} does not exist")
                 result = False
                 continue
 
             if interface.has_sub(yaml, member):
-                msgs.append("bondethernet %s member %s has sub-interface(s)" % (ifname, member))
+                msgs.append(f"bondethernet {ifname} member {member} has sub-interface(s)")
                 result = False
             if interface.has_lcp(yaml, member):
-                msgs.append("bondethernet %s member %s has an LCP" % (ifname, member))
+                msgs.append(f"bondethernet {ifname} member {member} has an LCP")
                 result = False
             if interface.has_address(yaml, member):
-                msgs.append("bondethernet %s member %s has an address" % (ifname, member))
+                msgs.append(f"bondethernet {ifname} member {member} has an address")
                 result = False
             member_mtu = interface.get_mtu(yaml, member)
             if  member_mtu != bond_mtu:
-                msgs.append("bondethernet %s member %s MTU %d does not match BondEthernet MTU %d" % (ifname, member, member_mtu, bond_mtu))
+                msgs.append(f"bondethernet {ifname} member {member} MTU {int(member_mtu)} does not match BondEthernet MTU {int(bond_mtu)}")
                 result = False
     return result, msgs

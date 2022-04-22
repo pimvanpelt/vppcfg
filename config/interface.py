@@ -40,7 +40,7 @@ def get_qinx_parent_by_name(yaml, ifname):
         return None,None
 
     for subid, sub_iface in parent_iface['sub-interfaces'].items():
-        sub_ifname = "%s.%d" % (parent_ifname, subid)
+        sub_ifname = f"{parent_ifname}.{int(subid)}"
         sub_encap = get_encapsulation(yaml, sub_ifname)
         if not sub_encap:
             continue
@@ -73,7 +73,7 @@ def get_by_lcp_name(yaml, lcpname):
         if not 'sub-interfaces' in iface:
             continue
         for subid, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
-            sub_ifname = "%s.%d" % (ifname, subid)
+            sub_ifname = f"{ifname}.{int(subid)}"
             if 'lcp' in sub_iface and sub_iface['lcp'] == lcpname:
                 return sub_ifname, sub_iface
     return None,None
@@ -135,7 +135,7 @@ def get_l2xc_interfaces(yaml):
             ret.append(ifname)
         if 'sub-interfaces' in iface:
             for subid, sub_iface in iface['sub-interfaces'].items():
-                sub_ifname = "%s.%d" % (ifname, subid)
+                sub_ifname = f"{ifname}.{int(subid)}"
                 if 'l2xc' in sub_iface:
                     ret.append(sub_ifname)
 
@@ -296,7 +296,7 @@ def get_interfaces(yaml):
         if not 'sub-interfaces' in iface:
             continue
         for subid, sub_iface in iface['sub-interfaces'].items():
-            ret.append("%s.%d" % (ifname, subid))
+            ret.append(f"{ifname}.{int(subid)}")
     return ret
 
 
@@ -346,7 +346,7 @@ def unique_encapsulation(yaml, sub_ifname):
 
     ncount = 0
     for subid, sibling_iface in parent_iface['sub-interfaces'].items():
-        sibling_ifname = "%s.%d" % (parent_ifname, subid)
+        sibling_ifname = f"{parent_ifname}.{int(subid)}"
         sibling_encap = get_encapsulation(yaml, sibling_ifname)
         if sub_encap == sibling_encap and new_ifname != sibling_ifname:
             ncount = ncount + 1
@@ -418,18 +418,18 @@ def validate_interfaces(yaml):
         return result, msgs
 
     for ifname, iface in yaml['interfaces'].items():
-        logger.debug("interface %s" % iface)
+        logger.debug(f"interface {iface}")
         if ifname.startswith("BondEthernet") and (None,None) == bondethernet.get_by_name(yaml, ifname):
-            msgs.append("interface %s does not exist in bondethernets" % ifname)
+            msgs.append(f"interface {ifname} does not exist in bondethernets")
             result = False
         if ifname.startswith("BondEthernet") and 'mac' in iface:
-            msgs.append("interface %s is a member of bondethernet, cannot set MAC" % ifname)
+            msgs.append(f"interface {ifname} is a member of bondethernet, cannot set MAC")
             result = False
         if not 'state' in iface:
             iface['state'] = 'up'
 
         if 'mac' in iface and mac.is_multicast(iface['mac']):
-            msgs.append("interface %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
+            msgs.append(f"interface {ifname} MAC address {iface['mac']} cannot be multicast")
             result = False
 
         iface_mtu = get_mtu(yaml, ifname)
@@ -439,167 +439,167 @@ def validate_interfaces(yaml):
         if ifname.startswith('tap'):
             tap_ifname, tap_iface = tap.get_by_name(yaml, ifname)
             if not tap_iface:
-                msgs.append("interface %s is a TAP but does not exist in taps" % (ifname))
+                msgs.append(f"interface {ifname} is a TAP but does not exist in taps")
                 result = False
             elif 'mtu' in tap_iface['host']:
                 host_mtu = tap_iface['host']['mtu']
                 if host_mtu != iface_mtu:
-                    msgs.append("interface %s is a TAP so its MTU %d must match host MTU %d" % (ifname, iface_mtu, host_mtu))
+                    msgs.append(f"interface {ifname} is a TAP so its MTU {int(iface_mtu)} must match host MTU {int(host_mtu)}")
                     result = False
             if iface_address:
-                msgs.append("interface %s is a TAP so it cannot have an address" % (ifname))
+                msgs.append(f"interface {ifname} is a TAP so it cannot have an address")
                 result = False
             if iface_lcp:
-                msgs.append("interface %s is a TAP so it cannot have an LCP" % (ifname))
+                msgs.append(f"interface {ifname} is a TAP so it cannot have an LCP")
                 result = False
             if has_sub(yaml, ifname):
-                msgs.append("interface %s is a TAP so it cannot have sub-interfaces" % (ifname))
+                msgs.append(f"interface {ifname} is a TAP so it cannot have sub-interfaces")
                 result = False
 
         if is_l2(yaml, ifname) and iface_lcp:
-            msgs.append("interface %s is in L2 mode but has LCP name %s" % (ifname, iface_lcp))
+            msgs.append(f"interface {ifname} is in L2 mode but has LCP name {iface_lcp}")
             result = False
         if is_l2(yaml, ifname) and iface_address:
-            msgs.append("interface %s is in L2 mode but has an address" % ifname)
+            msgs.append(f"interface {ifname} is in L2 mode but has an address")
             result = False
         if iface_lcp and not lcp.is_unique(yaml, iface_lcp):
-            msgs.append("interface %s does not have a unique LCP name %s" % (ifname, iface_lcp))
+            msgs.append(f"interface {ifname} does not have a unique LCP name {iface_lcp}")
             result = False
 
         if 'addresses' in iface:
             for a in iface['addresses']:
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("interface %s IP address %s conflicts with another" % (ifname, a))
+                    msgs.append(f"interface {ifname} IP address {a} conflicts with another")
                     result = False
 
         if 'l2xc' in iface:
             if has_sub(yaml, ifname):
-                msgs.append("interface %s has l2xc so it cannot have sub-interfaces" % (ifname))
+                msgs.append(f"interface {ifname} has l2xc so it cannot have sub-interfaces")
                 result = False
             if iface_lcp:
-                msgs.append("interface %s has l2xc so it cannot have an LCP" % (ifname))
+                msgs.append(f"interface {ifname} has l2xc so it cannot have an LCP")
                 result = False
             if iface_address:
-                msgs.append("interface %s has l2xc so it cannot have an address" % (ifname))
+                msgs.append(f"interface {ifname} has l2xc so it cannot have an address")
                 result = False
             if (None,None) == get_by_name(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s does not exist" % (ifname, iface['l2xc']))
+                msgs.append(f"interface {ifname} l2xc target {iface['l2xc']} does not exist")
                 result = False
             if iface['l2xc'] == ifname:
-                msgs.append("interface %s l2xc target cannot be itself" % (ifname))
+                msgs.append(f"interface {ifname} l2xc target cannot be itself")
                 result = False
             target_mtu = get_mtu(yaml, iface['l2xc'])
             if target_mtu != iface_mtu:
-                msgs.append("interface %s l2xc target MTU %d does not match source MTU %d" % (ifname, target_mtu, iface_mtu))
+                msgs.append(f"interface {ifname} l2xc target MTU {int(target_mtu)} does not match source MTU {int(iface_mtu)}")
                 result = False
             if not is_l2xc_target_interface_unique(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s is not unique" % (ifname, iface['l2xc']))
+                msgs.append(f"interface {ifname} l2xc target {iface['l2xc']} is not unique")
                 result = False
             if bridgedomain.is_bridge_interface(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s is in a bridgedomain" % (ifname, iface['l2xc']))
+                msgs.append(f"interface {ifname} l2xc target {iface['l2xc']} is in a bridgedomain")
                 result = False
             if has_lcp(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s cannot have an LCP" % (ifname, iface['l2xc']))
+                msgs.append(f"interface {ifname} l2xc target {iface['l2xc']} cannot have an LCP")
                 result = False
             if has_address(yaml, iface['l2xc']):
-                msgs.append("interface %s l2xc target %s cannot have an address" % (ifname, iface['l2xc']))
+                msgs.append(f"interface {ifname} l2xc target {iface['l2xc']} cannot have an address")
                 result = False
 
         if has_sub(yaml, ifname):
             for sub_id, sub_iface in yaml['interfaces'][ifname]['sub-interfaces'].items():
-                logger.debug("sub-interface %s" % sub_iface)
-                sub_ifname = "%s.%d" % (ifname, sub_id)
+                logger.debug(f"sub-interface {sub_iface}")
+                sub_ifname = f"{ifname}.{int(sub_id)}"
                 if not sub_iface:
-                    msgs.append("sub-interface %s has no config" % (sub_ifname))
+                    msgs.append(f"sub-interface {sub_ifname} has no config")
                     result = False
                     continue
 
                 if not 'state' in sub_iface:
                     sub_iface['state'] = 'up'
                 if sub_iface['state'] == 'up' and iface['state'] == 'down':
-                    msgs.append("sub-interface %s cannot be up if parent %s is down" % (sub_ifname, ifname))
+                    msgs.append(f"sub-interface {sub_ifname} cannot be up if parent {ifname} is down")
                     result = False
 
                 sub_mtu = get_mtu(yaml, sub_ifname)
                 if sub_mtu > iface_mtu:
-                    msgs.append("sub-interface %s has MTU %d higher than parent %s MTU %d" % (sub_ifname, sub_iface['mtu'], ifname, iface_mtu))
+                    msgs.append(f"sub-interface {sub_ifname} has MTU {int(sub_iface['mtu'])} higher than parent {ifname} MTU {int(iface_mtu)}")
                     result = False
                 if is_qinx(yaml, sub_ifname):
                     mid_ifname, mid_iface = get_qinx_parent_by_name(yaml, sub_ifname)
                     mid_mtu = get_mtu(yaml, mid_ifname)
                     if sub_mtu > mid_mtu:
-                        msgs.append("sub-interface %s has MTU %d higher than parent %s MTU %d" % (sub_ifname, sub_iface['mtu'], mid_ifname, mid_mtu))
+                        msgs.append(f"sub-interface {sub_ifname} has MTU {int(sub_iface['mtu'])} higher than parent {mid_ifname} MTU {int(mid_mtu)}")
                         result = False
 
                 sub_lcp = get_lcp(yaml, sub_ifname)
                 if is_l2(yaml, sub_ifname) and sub_lcp:
-                    msgs.append("sub-interface %s is in L2 mode but has LCP name %s" % (sub_ifname, sub_lcp))
+                    msgs.append(f"sub-interface {sub_ifname} is in L2 mode but has LCP name {sub_lcp}")
                     result = False
                 if sub_lcp and not lcp.is_unique(yaml, sub_lcp):
-                    msgs.append("sub-interface %s does not have a unique LCP name %s" % (sub_ifname, sub_lcp))
+                    msgs.append(f"sub-interface {sub_ifname} does not have a unique LCP name {sub_lcp}")
                     result = False
                 if sub_lcp and not iface_lcp:
-                    msgs.append("sub-interface %s has LCP name %s but %s does not have an LCP" % (sub_ifname, sub_lcp, ifname))
+                    msgs.append(f"sub-interface {sub_ifname} has LCP name {sub_lcp} but {ifname} does not have an LCP")
                     result = False
                 if sub_lcp and is_qinx(yaml, sub_ifname):
                     mid_ifname, mid_iface = get_qinx_parent_by_name(yaml, sub_ifname)
                     if not mid_iface:
-                        msgs.append("sub-interface %s is QinX and has LCP name %s which requires a parent" % (sub_ifname, sub_lcp))
+                        msgs.append(f"sub-interface {sub_ifname} is QinX and has LCP name {sub_lcp} which requires a parent")
                         result = False
                     elif not get_lcp(yaml, mid_ifname):
-                        msgs.append("sub-interface %s is QinX and has LCP name %s but %s does not have an LCP" % (sub_ifname, sub_lcp, mid_ifname))
+                        msgs.append(f"sub-interface {sub_ifname} is QinX and has LCP name {sub_lcp} but {mid_ifname} does not have an LCP")
                         result = False
 
                 encap = get_encapsulation(yaml, sub_ifname)
                 if sub_lcp and (not encap or not encap['exact-match']):
-                    msgs.append("sub-interface %s has LCP name %s but its encapsulation is not exact-match" % (sub_ifname, sub_lcp))
+                    msgs.append(f"sub-interface {sub_ifname} has LCP name {sub_lcp} but its encapsulation is not exact-match")
                     result = False
 
                 if has_address(yaml, sub_ifname):
                     if not encap or not encap['exact-match']:
-                        msgs.append("sub-interface %s has an address but its encapsulation is not exact-match" % (sub_ifname))
+                        msgs.append(f"sub-interface {sub_ifname} has an address but its encapsulation is not exact-match")
                         result = False
                     if is_l2(yaml, sub_ifname):
-                        msgs.append("sub-interface %s is in L2 mode but has an address" % sub_ifname)
+                        msgs.append(f"sub-interface {sub_ifname} is in L2 mode but has an address")
                         result = False
                     for a in sub_iface['addresses']:
                         if not address.is_allowed(yaml, sub_ifname, sub_iface['addresses'], a):
-                            msgs.append("sub-interface %s IP address %s conflicts with another" % (sub_ifname, a))
+                            msgs.append(f"sub-interface {sub_ifname} IP address {a} conflicts with another")
                             result = False
                 if not valid_encapsulation(yaml, sub_ifname):
-                    msgs.append("sub-interface %s has invalid encapsulation" % (sub_ifname))
+                    msgs.append(f"sub-interface {sub_ifname} has invalid encapsulation")
                     result = False
                 elif not unique_encapsulation(yaml, sub_ifname):
-                    msgs.append("sub-interface %s does not have unique encapsulation" % (sub_ifname))
+                    msgs.append(f"sub-interface {sub_ifname} does not have unique encapsulation")
                     result = False
                 if 'l2xc' in sub_iface:
                     if has_lcp(yaml, sub_ifname):
-                        msgs.append("sub-interface %s has l2xc so it cannot have an LCP" % (sub_ifname))
+                        msgs.append(f"sub-interface {sub_ifname} has l2xc so it cannot have an LCP")
                         result = False
                     if has_address(yaml, sub_ifname):
-                        msgs.append("sub-interface %s has l2xc so it cannot have an address" % (sub_ifname))
+                        msgs.append(f"sub-interface {sub_ifname} has l2xc so it cannot have an address")
                         result = False
                     if (None, None) == get_by_name(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s does not exist" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target {sub_iface['l2xc']} does not exist")
                         result = False
                     if sub_iface['l2xc'] == sub_ifname:
-                        msgs.append("sub-interface %s l2xc target cannot be itself" % (sub_ifname))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target cannot be itself")
                         result = False
                     target_mtu = get_mtu(yaml, sub_iface['l2xc'])
                     if target_mtu != sub_mtu:
-                        msgs.append("sub-interface %s l2xc target MTU %d does not match source MTU %d" % (ifname, target_mtu, sub_mtu))
+                        msgs.append(f"sub-interface {ifname} l2xc target MTU {int(target_mtu)} does not match source MTU {int(sub_mtu)}")
                         result = False
                     if not is_l2xc_target_interface_unique(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s is not unique" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target {sub_iface['l2xc']} is not unique")
                         result = False
                     if bridgedomain.is_bridge_interface(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s is in a bridgedomain" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target {sub_iface['l2xc']} is in a bridgedomain")
                         result = False
                     if has_lcp(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s cannot have an LCP" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target {sub_iface['l2xc']} cannot have an LCP")
                         result = False
                     if has_address(yaml, sub_iface['l2xc']):
-                        msgs.append("sub-interface %s l2xc target %s cannot have an address" % (sub_ifname, sub_iface['l2xc']))
+                        msgs.append(f"sub-interface {sub_ifname} l2xc target {sub_iface['l2xc']} cannot have an address")
                         result = False
 
 

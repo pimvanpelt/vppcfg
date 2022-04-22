@@ -65,20 +65,20 @@ def validate_vxlan_tunnels(yaml):
         return result, msgs
 
     for ifname, iface in yaml['vxlan_tunnels'].items():
-        logger.debug("vxlan_tunnel %s: %s" % (ifname, iface))
+        logger.debug(f"vxlan_tunnel {ifname}: {iface}")
         instance = int(ifname[12:])
         if instance > 2147483647:
-            msgs.append("vxlan_tunnel %s has instance %d which is too large" % (ifname, instance))
+            msgs.append(f"vxlan_tunnel {ifname} has instance {int(instance)} which is too large")
             result = False
 
         vni = iface['vni']
         if not vni_unique(yaml, vni):
-            msgs.append("vxlan_tunnel %s VNI %d is not unique" % (ifname, vni))
+            msgs.append(f"vxlan_tunnel {ifname} VNI {int(vni)} is not unique")
             result = False
         local = ipaddress.ip_address(iface['local'])
         remote = ipaddress.ip_address(iface['remote'])
         if local.version != remote.version:
-            msgs.append("vxlan_tunnel %s local and remote are not the same address family" % (ifname))
+            msgs.append(f"vxlan_tunnel {ifname} local and remote are not the same address family")
             result = False
 
     return result, msgs

@@ -61,21 +61,21 @@ def validate_loopbacks(yaml):
         return result, msgs
 
     for ifname, iface in yaml['loopbacks'].items():
-        logger.debug("loopback %s" % iface)
+        logger.debug(f"loopback {iface}")
         instance = int(ifname[4:])
         if instance > 4095:
-            msgs.append("loopback %s has instance %d which is too large" % (ifname, instance))
+            msgs.append(f"loopback {ifname} has instance {int(instance)} which is too large")
             result = False
         if 'lcp' in iface and not lcp.is_unique(yaml, iface['lcp']):
-            msgs.append("loopback %s does not have a unique LCP name %s" % (ifname, iface['lcp']))
+            msgs.append(f"loopback {ifname} does not have a unique LCP name {iface['lcp']}")
             result = False
         if 'addresses' in iface:
             for a in iface['addresses']:
                 if not address.is_allowed(yaml, ifname, iface['addresses'], a):
-                    msgs.append("loopback %s IP address %s conflicts with another" % (ifname, a))
+                    msgs.append(f"loopback {ifname} IP address {a} conflicts with another")
                     result = False
         if 'mac' in iface and mac.is_multicast(iface['mac']):
-            msgs.append("loopback %s MAC address %s cannot be multicast" % (ifname, iface['mac']))
+            msgs.append(f"loopback {ifname} MAC address {iface['mac']} cannot be multicast")
             result = False
 
     return result, msgs
