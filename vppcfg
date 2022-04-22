@@ -30,26 +30,108 @@ except ImportError:
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="""enable debug logging, default False""")
-    parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help="""be quiet (only warnings/errors), default False""")
-    parser.add_argument('-f', '--force', dest='force', action='store_true', help="""force progress despite warnings, default False""")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        dest="debug",
+        action="store_true",
+        help="""enable debug logging, default False""",
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        dest="quiet",
+        action="store_true",
+        help="""be quiet (only warnings/errors), default False""",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        dest="force",
+        action="store_true",
+        help="""force progress despite warnings, default False""",
+    )
 
-    subparsers = parser.add_subparsers(dest='command')
-    check_p = subparsers.add_parser('check', help="check given YAML config for validity (no VPP)")
-    check_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
-    check_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
+    subparsers = parser.add_subparsers(dest="command")
+    check_p = subparsers.add_parser(
+        "check", help="check given YAML config for validity (no VPP)"
+    )
+    check_p.add_argument(
+        "-s",
+        "--schema",
+        dest="schema",
+        type=str,
+        help="""YAML schema validation file, default to use built-in""",
+    )
+    check_p.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        required=True,
+        type=str,
+        help="""YAML configuration file for vppcfg""",
+    )
 
-    dump_p = subparsers.add_parser('dump', help="dump current running VPP configuration (VPP readonly)")
-    dump_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for YAML config, default stdout""")
+    dump_p = subparsers.add_parser(
+        "dump", help="dump current running VPP configuration (VPP readonly)"
+    )
+    dump_p.add_argument(
+        "-o",
+        "--output",
+        dest="outfile",
+        required=False,
+        default="-",
+        type=str,
+        help="""Output file for YAML config, default stdout""",
+    )
 
-    plan_p = subparsers.add_parser('plan', help="plan changes from current VPP dataplane to target config (VPP readonly)")
-    plan_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
-    plan_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
-    plan_p.add_argument('-o', '--output', dest='outfile', required=False, default='-', type=str, help="""Output file for VPP CLI commands, default stdout""")
+    plan_p = subparsers.add_parser(
+        "plan",
+        help="plan changes from current VPP dataplane to target config (VPP readonly)",
+    )
+    plan_p.add_argument(
+        "-s",
+        "--schema",
+        dest="schema",
+        type=str,
+        help="""YAML schema validation file, default to use built-in""",
+    )
+    plan_p.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        required=True,
+        type=str,
+        help="""YAML configuration file for vppcfg""",
+    )
+    plan_p.add_argument(
+        "-o",
+        "--output",
+        dest="outfile",
+        required=False,
+        default="-",
+        type=str,
+        help="""Output file for VPP CLI commands, default stdout""",
+    )
 
-    apply_p = subparsers.add_parser('apply', help="apply changes from current VPP dataplane to target config")
-    apply_p.add_argument('-s', '--schema', dest='schema', type=str, help="""YAML schema validation file, default to use built-in""")
-    apply_p.add_argument('-c', '--config', dest='config', required=True, type=str, help="""YAML configuration file for vppcfg""")
+    apply_p = subparsers.add_parser(
+        "apply", help="apply changes from current VPP dataplane to target config"
+    )
+    apply_p.add_argument(
+        "-s",
+        "--schema",
+        dest="schema",
+        type=str,
+        help="""YAML schema validation file, default to use built-in""",
+    )
+    apply_p.add_argument(
+        "-c",
+        "--config",
+        dest="config",
+        required=True,
+        type=str,
+        help="""YAML configuration file for vppcfg""",
+    )
 
     args = parser.parse_args()
     if not args.command:
@@ -62,9 +144,11 @@ def main():
         level = logging.DEBUG
     if args.quiet:
         level = logging.WARNING
-    logging.basicConfig(format='[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s', level=level)
+    logging.basicConfig(
+        format="[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s", level=level
+    )
 
-    if args.command=="dump":
+    if args.command == "dump":
         d = Dumper()
         if not d.readconfig():
             logging.error("Could not retrieve config from VPP")
@@ -75,7 +159,7 @@ def main():
     try:
         with open(args.config, "r") as f:
             logging.info(f"Loading configfile {args.config}")
-            cfg = yaml.load(f, Loader = yaml.FullLoader)
+            cfg = yaml.load(f, Loader=yaml.FullLoader)
             logging.debug(f"Config: {cfg}")
     except:
         logging.error(f"Couldn't read config from {args.config}")
@@ -86,7 +170,7 @@ def main():
         logging.error("Configuration is not valid, bailing")
         sys.exit(-2)
     logging.info("Configuration is valid")
-    if args.command=="check":
+    if args.command == "check":
         sys.exit(0)
 
     r = Reconciler(cfg)
@@ -102,7 +186,9 @@ def main():
         sys.exit(-5)
 
     if not r.lcps_exist_with_lcp_enabled():
-        logging.error("Linux Control Plane is needed, but linux-cp API is not available")
+        logging.error(
+            "Linux Control Plane is needed, but linux-cp API is not available"
+        )
         sys.exit(-6)
 
     failed = False
@@ -127,7 +213,7 @@ def main():
         failed = True
         logging.warning("Planning sync failure, continuing due to --force")
 
-    if args.command=="plan":
+    if args.command == "plan":
         r.write(args.outfile, ok=not failed)
 
     if failed:
@@ -135,9 +221,11 @@ def main():
         sys.exit(-40)
 
     logging.info("Planning succeeded")
-    if args.command=="plan":
+    if args.command == "plan":
         sys.exit(0)
 
     sys.exit(0)
+
+
 if __name__ == "__main__":
     main()
