@@ -46,17 +46,14 @@ class YAMLTest(unittest.TestCase):
         test = None
         cfg = None
         ncount = 0
-        try:
-            with open(self.yaml_filename, "r", encoding="utf-8") as file:
-                for data in yaml.load_all(file, Loader=yaml.Loader):
-                    if ncount == 0:
-                        test = data
-                        ncount += 1
-                    elif ncount == 1:
-                        cfg = data
-                        ncount += 1
-        except:
-            pass
+        with open(self.yaml_filename, "r", encoding="utf-8") as file:
+            for data in yaml.load_all(file, Loader=yaml.Loader):
+                if ncount == 0:
+                    test = data
+                    ncount += 1
+                elif ncount == 1:
+                    cfg = data
+                    ncount += 1
         self.assertEqual(ncount, 2)
         self.assertIsNotNone(test)
         if not cfg:
