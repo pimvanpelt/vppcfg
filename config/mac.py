@@ -19,7 +19,7 @@ def is_valid(mac):
     as defined by netaddr.EUI"""
     try:
         _addr = netaddr.EUI(mac)
-    except:
+    except netaddr.core.AddrFormatError:
         return False
     return True
 
@@ -28,7 +28,7 @@ def is_local(mac):
     """Return True if a MAC address is a valid locally administered one."""
     try:
         addr = netaddr.EUI(mac)
-    except:
+    except netaddr.core.AddrFormatError:
         return False
     return bool(addr.words[0] & 0b10)
 
@@ -37,7 +37,7 @@ def is_multicast(mac):
     """Return True if a MAC address is a valid multicast one."""
     try:
         addr = netaddr.EUI(mac)
-    except:
+    except netaddr.core.AddrFormatError:
         return False
     return bool(addr.words[0] & 0b01)
 
@@ -46,6 +46,6 @@ def is_unicast(mac):
     """Return True if a MAC address is a valid unicast one."""
     try:
         addr = netaddr.EUI(mac)
-    except:
+    except netaddr.core.AddrFormatError:
         return False
     return not bool(addr.words[0] & 0b01)
