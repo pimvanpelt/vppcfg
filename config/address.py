@@ -15,70 +15,72 @@ import logging
 import config.interface as interface
 import ipaddress
 
+
 def get_all_addresses_except_ifname(yaml, except_ifname):
-    """ Return a list of all ipaddress.ip_interface() instances in the entire config,
-        except for those that belong to 'ifname'.
+    """Return a list of all ipaddress.ip_interface() instances in the entire config,
+    except for those that belong to 'ifname'.
     """
     ret = []
-    if 'interfaces' in yaml:
-        for ifname, iface in yaml['interfaces'].items():
+    if "interfaces" in yaml:
+        for ifname, iface in yaml["interfaces"].items():
             if ifname == except_ifname:
                 continue
 
-            if 'addresses' in iface:
-                for a in iface['addresses']:
+            if "addresses" in iface:
+                for a in iface["addresses"]:
                     ret.append(ipaddress.ip_interface(a))
-            if 'sub-interfaces' in iface:
-                for subid, sub_iface in iface['sub-interfaces'].items():
+            if "sub-interfaces" in iface:
+                for subid, sub_iface in iface["sub-interfaces"].items():
                     sub_ifname = f"{ifname}.{int(subid)}"
                     if sub_ifname == except_ifname:
                         continue
 
-                    if 'addresses' in sub_iface:
-                        for a in sub_iface['addresses']:
+                    if "addresses" in sub_iface:
+                        for a in sub_iface["addresses"]:
                             ret.append(ipaddress.ip_interface(a))
-    if 'loopbacks' in yaml:
-        for ifname, iface in yaml['loopbacks'].items():
+    if "loopbacks" in yaml:
+        for ifname, iface in yaml["loopbacks"].items():
             if ifname == except_ifname:
                 continue
 
-            if 'addresses' in iface:
-                for a in iface['addresses']:
+            if "addresses" in iface:
+                for a in iface["addresses"]:
                     ret.append(ipaddress.ip_interface(a))
-    if 'bridgedomains' in yaml:
-        for ifname, iface in yaml['bridgedomains'].items():
+    if "bridgedomains" in yaml:
+        for ifname, iface in yaml["bridgedomains"].items():
             if ifname == except_ifname:
                 continue
 
-            if 'addresses' in iface:
-                for a in iface['addresses']:
+            if "addresses" in iface:
+                for a in iface["addresses"]:
                     ret.append(ipaddress.ip_interface(a))
 
     return ret
 
+
 def is_allowed(yaml, ifname, iface_addresses, ip_interface):
-    """ Returns True if there is at most one occurence of the ip_interface (an IPv4/IPv6 prefix+len)
-        in the entire config. That said, we need the 'iface_addresses' because VPP is a bit fickle in
-        this regard.
+    """Returns True if there is at most one occurence of the ip_interface (an IPv4/IPv6 prefix+len)
+    in the entire config. That said, we need the 'iface_addresses' because VPP is a bit fickle in
+    this regard.
 
-        IP addresses from the same prefix/len can be added to a given interface (ie 192.0.2.1/24 and
-        192.0.2.2/24), but other than that, any prefix can not occur as a more-specific or less-specific
-        of any other interface.
+    IP addresses from the same prefix/len can be added to a given interface (ie 192.0.2.1/24 and
+    192.0.2.2/24), but other than that, any prefix can not occur as a more-specific or less-specific
+    of any other interface.
 
-        So, we will allow:
-        - any ip_interface that is of equal network/len of existing one(s) _on the same interface_
+    So, we will allow:
+    - any ip_interface that is of equal network/len of existing one(s) _on the same interface_
 
-        And, we will reject
-        - any ip_interface that is a more specific of any existing one
-        - any ip_interface that is a less specific of any existing one
+    And, we will reject
+    - any ip_interface that is a more specific of any existing one
+    - any ip_interface that is a less specific of any existing one
 
-        Examples:
-        vpp# set interface ip address loop0 192.0.2.1/24
-        vpp# set interface ip address loop0 192.0.2.2/24
-        vpp# set interface ip address loop0 192.0.2.1/29
-        set interface ip address: failed to add 192.0.2.1/29 on loop0 which conflicts with 192.0.2.1/24 for interface loop0
-        vpp# set interface ip address loop0 192.0.2.3/23
-        set interface ip address: failed to add 192.0.2.3/23 on loop0 which conflicts with 192.0.2.1/24 for interface loop0
+    Examples:
+    vpp# set interface ip address loop0 192.0.2.1/24
+    vpp# set interface ip address loop0 192.0.2.2/24
+    vpp# set interface ip address loop0 192.0.2.1/29
+    set interface ip address: failed to add 192.0.2.1/29 on loop0 which conflicts with 192.0.2.1/24 for interface loop0
+    vpp# set interface ip address loop0 192.0.2.3/23
+    set interface ip address: failed to add 192.0.2.3/23 on loop0 which conflicts with 192.0.2.1/24 for interface loop0
     """
     all_other_addresses = get_all_addresses_except_ifname(yaml, ifname)
 

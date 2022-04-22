@@ -14,54 +14,55 @@
 import logging
 import config.mac as mac
 
+
 def get_taps(yaml):
-    """ Return a list of all taps. """
+    """Return a list of all taps."""
     ret = []
-    if 'taps' in yaml:
-        for ifname, iface in yaml['taps'].items():
+    if "taps" in yaml:
+        for ifname, iface in yaml["taps"].items():
             ret.append(ifname)
     return ret
 
 
 def get_by_name(yaml, ifname):
-    """ Return the tap by name, if it exists. Return None otherwise. """
+    """Return the tap by name, if it exists. Return None otherwise."""
     try:
-        if ifname in yaml['taps']:
-            return ifname, yaml['taps'][ifname]
+        if ifname in yaml["taps"]:
+            return ifname, yaml["taps"][ifname]
     except:
         pass
     return None, None
 
 
 def is_tap(yaml, ifname):
-    """ Returns True if the interface name is an existing tap in the config.
-        The TAP has to be explicitly named in the configuration, and notably
-        a TAP belonging to a Linux Control Plane (LCP) will return False.
+    """Returns True if the interface name is an existing tap in the config.
+    The TAP has to be explicitly named in the configuration, and notably
+    a TAP belonging to a Linux Control Plane (LCP) will return False.
     """
     ifname, iface = get_by_name(yaml, ifname)
     return not iface == None
 
 
 def is_host_name_unique(yaml, hostname):
-    """ Returns True if there is at most one occurence of the given ifname amonst all host-names of TAPs. """
-    if not 'taps' in yaml:
+    """Returns True if there is at most one occurence of the given ifname amonst all host-names of TAPs."""
+    if not "taps" in yaml:
         return True
     host_names = []
-    for tap_ifname, tap_iface in yaml['taps'].items():
-        host_names.append(tap_iface['host']['name'])
+    for tap_ifname, tap_iface in yaml["taps"].items():
+        host_names.append(tap_iface["host"]["name"])
     return host_names.count(hostname) < 2
 
 
 def validate_taps(yaml):
     result = True
     msgs = []
-    logger = logging.getLogger('vppcfg.config')
+    logger = logging.getLogger("vppcfg.config")
     logger.addHandler(logging.NullHandler())
 
-    if not 'taps' in yaml:
+    if not "taps" in yaml:
         return result, msgs
 
-    for ifname, iface in yaml['taps'].items():
+    for ifname, iface in yaml["taps"].items():
         logger.debug(f"tap {iface}")
         instance = int(ifname[3:])
 
@@ -70,32 +71,46 @@ def validate_taps(yaml):
             msgs.append(f"tap {ifname} has instance {int(instance)} which is too large")
             result = False
 
-        if not is_host_name_unique(yaml, iface['host']['name']):
-            msgs.append(f"tap {ifname} does not have a unique host name {iface['host']['name']}")
+        if not is_host_name_unique(yaml, iface["host"]["name"]):
+            msgs.append(
+                f"tap {ifname} does not have a unique host name {iface['host']['name']}"
+            )
             result = False
 
-        if 'rx-ring-size' in iface:
-            n = iface['rx-ring-size']
-            if n & (n-1) != 0:
+        if "rx-ring-size" in iface:
+            n = iface["rx-ring-size"]
+            if n & (n - 1) != 0:
                 msgs.append(f"tap {ifname} rx-ring-size must be a power of two")
                 result = False
 
-        if 'tx-ring-size' in iface:
-            n = iface['tx-ring-size']
-            if n & (n-1) != 0:
+        if "tx-ring-size" in iface:
+            n = iface["tx-ring-size"]
+            if n & (n - 1) != 0:
                 msgs.append(f"tap {ifname} tx-ring-size must be a power of two")
                 result = False
 
-        if 'namespace-create' in iface['host'] and iface['host']['namespace-create'] and not 'namespace' in iface['host']:
-            msgs.append(f"tap {ifname} namespace-create can only be set if namespace is set")
+        if (
+            "namespace-create" in iface["host"]
+            and iface["host"]["namespace-create"]
+            and not "namespace" in iface["host"]
+        ):
+            msgs.append(
+                f"tap {ifname} namespace-create can only be set if namespace is set"
+            )
             result = False
 
-        if 'bridge-create' in iface['host'] and iface['host']['bridge-create'] and not 'bridge' in iface['host']:
+        if (
+            "bridge-create" in iface["host"]
+            and iface["host"]["bridge-create"]
+            and not "bridge" in iface["host"]
+        ):
             msgs.append(f"tap {ifname} bridge-create can only be set if bridge is set")
             result = False
 
-        if 'mac' in iface['host'] and mac.is_multicast(iface['host']['mac']):
-            msgs.append(f"tap {ifname} host MAC address {iface['host']['mac']} cannot be multicast")
+        if "mac" in iface["host"] and mac.is_multicast(iface["host"]["mac"]):
+            msgs.append(
+                f"tap {ifname} host MAC address {iface['host']['mac']} cannot be multicast"
+            )
             result = False
 
     return result, msgs

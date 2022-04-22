@@ -2,10 +2,11 @@ import unittest
 import yaml
 import config.loopback as loopback
 
+
 class TestLoopbackMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_loopback.yaml", "r") as f:
-            self.cfg = yaml.load(f, Loader = yaml.FullLoader)
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_lcp_name(self):
         ifname, iface = loopback.get_by_lcp_name(self.cfg, "loop56789012345")
@@ -20,7 +21,7 @@ class TestLoopbackMethods(unittest.TestCase):
         ifname, iface = loopback.get_by_name(self.cfg, "loop1")
         self.assertIsNotNone(iface)
         self.assertEqual("loop1", ifname)
-        self.assertEqual(iface['mtu'], 2000)
+        self.assertEqual(iface["mtu"], 2000)
 
         ifname, iface = loopback.get_by_name(self.cfg, "loop-noexist")
         self.assertIsNone(ifname)

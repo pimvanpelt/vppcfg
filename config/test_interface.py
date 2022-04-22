@@ -2,10 +2,11 @@ import unittest
 import yaml
 import config.interface as interface
 
+
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_interface.yaml", "r") as f:
-            self.cfg = yaml.load(f, Loader = yaml.FullLoader)
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_enumerators(self):
         ifs = interface.get_interfaces(self.cfg)
@@ -52,22 +53,42 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertEqual(interface.get_mtu(self.cfg, "GigabitEthernet1/0/1.201"), 1500)
 
     def test_encapsulation(self):
-        self.assertTrue(interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/1.200"))
-        self.assertTrue(interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/1.200"))
-        self.assertEqual(interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.200"),
-            { 'dot1q': 1000, 'dot1ad': 0, 'inner-dot1q': 0, 'exact-match': False })
-        self.assertEqual(interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.201"),
-            { 'dot1q': 1000, 'dot1ad': 0, 'inner-dot1q': 1234, 'exact-match': False })
-        self.assertEqual(interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.202"),
-            { 'dot1q': 0, 'dot1ad': 1000, 'inner-dot1q': 0, 'exact-match': False })
-        self.assertEqual(interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.203"),
-            { 'dot1q': 0, 'dot1ad': 1000, 'inner-dot1q': 1000, 'exact-match': True })
+        self.assertTrue(
+            interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/1.200")
+        )
+        self.assertTrue(
+            interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/1.200")
+        )
+        self.assertEqual(
+            interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.200"),
+            {"dot1q": 1000, "dot1ad": 0, "inner-dot1q": 0, "exact-match": False},
+        )
+        self.assertEqual(
+            interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.201"),
+            {"dot1q": 1000, "dot1ad": 0, "inner-dot1q": 1234, "exact-match": False},
+        )
+        self.assertEqual(
+            interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.202"),
+            {"dot1q": 0, "dot1ad": 1000, "inner-dot1q": 0, "exact-match": False},
+        )
+        self.assertEqual(
+            interface.get_encapsulation(self.cfg, "GigabitEthernet1/0/1.203"),
+            {"dot1q": 0, "dot1ad": 1000, "inner-dot1q": 1000, "exact-match": True},
+        )
 
-        self.assertFalse(interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/0.100"))
-        self.assertFalse(interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/0.101"))
+        self.assertFalse(
+            interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/0.100")
+        )
+        self.assertFalse(
+            interface.valid_encapsulation(self.cfg, "GigabitEthernet1/0/0.101")
+        )
 
-        self.assertFalse(interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/0.102"))
-        self.assertFalse(interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/0.103"))
+        self.assertFalse(
+            interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/0.102")
+        )
+        self.assertFalse(
+            interface.unique_encapsulation(self.cfg, "GigabitEthernet1/0/0.103")
+        )
 
     def test_has_sub(self):
         self.assertTrue(interface.has_sub(self.cfg, "GigabitEthernet1/0/1"))
@@ -97,8 +118,12 @@ class TestInterfaceMethods(unittest.TestCase):
 
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1"), "e1")
         self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.100"), "foo")
-        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.101"), "e1.100")
-        self.assertEqual(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.102"), "e1.100.100")
+        self.assertEqual(
+            interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.101"), "e1.100"
+        )
+        self.assertEqual(
+            interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.102"), "e1.100.100"
+        )
 
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.200"))
         self.assertIsNone(interface.get_lcp(self.cfg, "GigabitEthernet1/0/1.201"))
@@ -119,12 +144,16 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertIn("GigabitEthernet3/0/0", l2xc_ifs)
         self.assertIn("GigabitEthernet3/0/0", l2xc_target_ifs)
         self.assertTrue(interface.is_l2xc_interface(self.cfg, "GigabitEthernet3/0/0"))
-        self.assertTrue(interface.is_l2xc_target_interface(self.cfg, "GigabitEthernet3/0/0"))
+        self.assertTrue(
+            interface.is_l2xc_target_interface(self.cfg, "GigabitEthernet3/0/0")
+        )
 
         self.assertNotIn("GigabitEthernet2/0/0", l2xc_ifs)
         self.assertNotIn("GigabitEthernet2/0/0", l2xc_target_ifs)
         self.assertFalse(interface.is_l2xc_interface(self.cfg, "GigabitEthernet2/0/0"))
-        self.assertFalse(interface.is_l2xc_target_interface(self.cfg, "GigabitEthernet2/0/0"))
+        self.assertFalse(
+            interface.is_l2xc_target_interface(self.cfg, "GigabitEthernet2/0/0")
+        )
 
     def test_l2(self):
         self.assertTrue(interface.is_l2(self.cfg, "GigabitEthernet3/0/0"))
@@ -151,22 +180,29 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertEqual(ifname, "GigabitEthernet1/0/1.201")
         self.assertIsNotNone(iface)
         encap = interface.get_encapsulation(self.cfg, ifname)
-        self.assertEqual(encap, {'dot1q': 1000, 'dot1ad': 0, 'inner-dot1q': 1234, 'exact-match': False})
+        self.assertEqual(
+            encap,
+            {"dot1q": 1000, "dot1ad": 0, "inner-dot1q": 1234, "exact-match": False},
+        )
 
         ifname, iface = interface.get_by_name(self.cfg, "GigabitEthernet1/0/1.1")
         self.assertIsNone(ifname)
         self.assertIsNone(iface)
 
     def test_get_parent_by_name(self):
-        ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        ifname, iface = interface.get_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1.201"
+        )
         self.assertEqual(ifname, "GigabitEthernet1/0/1")
         self.assertIsNotNone(iface)
-        self.assertNotIn('encapsulation', iface)
+        self.assertNotIn("encapsulation", iface)
 
-        ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200")
+        ifname, iface = interface.get_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1.200"
+        )
         self.assertEqual(ifname, "GigabitEthernet1/0/1")
         self.assertIsNotNone(iface)
-        self.assertNotIn('encapsulation', iface)
+        self.assertNotIn("encapsulation", iface)
 
         ifname, iface = interface.get_parent_by_name(self.cfg, "GigabitEthernet1/0/1")
         self.assertIsNone(ifname)
@@ -177,22 +213,34 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertIsNone(iface)
 
     def test_get_qinx_parent_by_name(self):
-        self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202"))
-        self.assertIsNotNone(interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203"))
+        self.assertIsNotNone(
+            interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.202")
+        )
+        self.assertIsNotNone(
+            interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.203")
+        )
 
-        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1")
+        ifname, iface = interface.get_qinx_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1"
+        )
         self.assertIsNone(iface)
         self.assertIsNone(ifname)
 
-        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.100")
+        ifname, iface = interface.get_qinx_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1.100"
+        )
         self.assertIsNone(iface)
         self.assertIsNone(ifname)
 
-        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.200")
+        ifname, iface = interface.get_qinx_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1.200"
+        )
         self.assertIsNone(iface)
         self.assertIsNone(ifname)
 
-        ifname, iface = interface.get_qinx_parent_by_name(self.cfg, "GigabitEthernet1/0/1.201")
+        ifname, iface = interface.get_qinx_parent_by_name(
+            self.cfg, "GigabitEthernet1/0/1.201"
+        )
         self.assertEqual(ifname, "GigabitEthernet1/0/1.200")
 
     def test_get_phys(self):
@@ -211,4 +259,6 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertFalse(interface.get_admin_state(self.cfg, "GigabitEthernet2/0/0"))
         self.assertTrue(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.101"))
-        self.assertFalse(interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.102"))
+        self.assertFalse(
+            interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.102")
+        )

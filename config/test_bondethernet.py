@@ -2,17 +2,18 @@ import unittest
 import yaml
 import config.bondethernet as bondethernet
 
+
 class TestBondEthernetMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_bondethernet.yaml", "r") as f:
-            self.cfg = yaml.load(f, Loader = yaml.FullLoader)
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):
         ifname, iface = bondethernet.get_by_name(self.cfg, "BondEthernet0")
         self.assertIsNotNone(iface)
         self.assertEqual("BondEthernet0", ifname)
-        self.assertIn("GigabitEthernet1/0/0", iface['interfaces'])
-        self.assertNotIn("GigabitEthernet2/0/0", iface['interfaces'])
+        self.assertIn("GigabitEthernet1/0/0", iface["interfaces"])
+        self.assertNotIn("GigabitEthernet2/0/0", iface["interfaces"])
 
         ifname, iface = bondethernet.get_by_name(self.cfg, "BondEthernet-notexist")
         self.assertIsNone(iface)
@@ -22,11 +23,15 @@ class TestBondEthernetMethods(unittest.TestCase):
         self.assertTrue(bondethernet.is_bond_member(self.cfg, "GigabitEthernet1/0/0"))
         self.assertTrue(bondethernet.is_bond_member(self.cfg, "GigabitEthernet1/0/1"))
         self.assertFalse(bondethernet.is_bond_member(self.cfg, "GigabitEthernet2/0/0"))
-        self.assertFalse(bondethernet.is_bond_member(self.cfg, "GigabitEthernet2/0/0.100"))
+        self.assertFalse(
+            bondethernet.is_bond_member(self.cfg, "GigabitEthernet2/0/0.100")
+        )
 
     def test_is_bondethernet(self):
         self.assertTrue(bondethernet.is_bondethernet(self.cfg, "BondEthernet0"))
-        self.assertFalse(bondethernet.is_bondethernet(self.cfg, "BondEthernet-notexist"))
+        self.assertFalse(
+            bondethernet.is_bondethernet(self.cfg, "BondEthernet-notexist")
+        )
         self.assertFalse(bondethernet.is_bondethernet(self.cfg, "GigabitEthernet1/0/0"))
 
     def test_enumerators(self):
@@ -38,8 +43,8 @@ class TestBondEthernetMethods(unittest.TestCase):
         self.assertNotIn("BondEthernet-noexist", ifs)
 
     def test_get_mode(self):
-        self.assertEqual('lacp', bondethernet.get_mode(self.cfg, "BondEthernet0"))
-        self.assertEqual('xor', bondethernet.get_mode(self.cfg, "BondEthernet1"))
+        self.assertEqual("lacp", bondethernet.get_mode(self.cfg, "BondEthernet0"))
+        self.assertEqual("xor", bondethernet.get_mode(self.cfg, "BondEthernet1"))
 
     def test_mode_to_int(self):
         self.assertEqual(1, bondethernet.mode_to_int("round-robin"))
@@ -59,8 +64,8 @@ class TestBondEthernetMethods(unittest.TestCase):
         self.assertEqual("", bondethernet.int_to_mode(6))
 
     def test_get_lb(self):
-        self.assertEqual('l34', bondethernet.get_lb(self.cfg, "BondEthernet0"))
-        self.assertEqual('l2', bondethernet.get_lb(self.cfg, "BondEthernet1"))
+        self.assertEqual("l34", bondethernet.get_lb(self.cfg, "BondEthernet0"))
+        self.assertEqual("l2", bondethernet.get_lb(self.cfg, "BondEthernet1"))
         self.assertIsNone(bondethernet.get_lb(self.cfg, "BondEthernet2"))
 
     def test_lb_to_int(self):

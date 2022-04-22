@@ -2,10 +2,11 @@ import unittest
 import yaml
 import config.tap as tap
 
+
 class TestTAPMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_tap.yaml", "r") as f:
-            self.cfg = yaml.load(f, Loader = yaml.FullLoader)
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):
         ifname, iface = tap.get_by_name(self.cfg, "tap0")

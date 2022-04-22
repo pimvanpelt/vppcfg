@@ -23,6 +23,7 @@ import logging
 import ipaddress
 import os.path
 import sys
+
 try:
     import yamale
 except ImportError:
@@ -37,13 +38,15 @@ from config.tap import validate_taps
 
 from yamale.validators import DefaultValidators, Validator
 
+
 class IPInterfaceWithPrefixLength(Validator):
-    """ Custom IPAddress config - takes IP/prefixlen as input:
-        192.0.2.1/29 or 2001:db8::1/64 are correct. The PrefixLength
-        is required, and must be a number (0-32 for IPv4 and 0-128 for
-        IPv6).
+    """Custom IPAddress config - takes IP/prefixlen as input:
+    192.0.2.1/29 or 2001:db8::1/64 are correct. The PrefixLength
+    is required, and must be a number (0-32 for IPv4 and 0-128 for
+    IPv6).
     """
-    tag = 'ip_interface'
+
+    tag = "ip_interface"
 
     def _is_valid(self, value):
         try:
@@ -52,9 +55,9 @@ class IPInterfaceWithPrefixLength(Validator):
             return False
         if not isinstance(value, str):
             return False
-        if not '/' in value:
+        if not "/" in value:
             return False
-        e = value.split('/')
+        e = value.split("/")
         if not len(e) == 2:
             return False
         if not e[1].isnumeric():
@@ -62,20 +65,20 @@ class IPInterfaceWithPrefixLength(Validator):
         return True
 
 
-
 class Validator(object):
     def __init__(self, schema):
-        self.logger = logging.getLogger('vppcfg.config')
+        self.logger = logging.getLogger("vppcfg.config")
         self.logger.addHandler(logging.NullHandler())
 
         self.schema = schema
         self.validators = [
-           validate_bondethernets,
-           validate_interfaces,
-           validate_loopbacks,
-           validate_bridgedomains,
-           validate_vxlan_tunnels,
-           validate_taps ]
+            validate_bondethernets,
+            validate_interfaces,
+            validate_loopbacks,
+            validate_bridgedomains,
+            validate_vxlan_tunnels,
+            validate_taps,
+        ]
 
     def validate(self, yaml):
         ret_rv = True
@@ -109,7 +112,7 @@ class Validator(object):
             ret_rv = False
             for result in e.results:
                 for error in result.errors:
-                    ret_msgs.extend([f'yamale: {error}'])
+                    ret_msgs.extend([f"yamale: {error}"])
             return ret_rv, ret_msgs
 
         self.logger.debug("Validating Semantics...")
@@ -126,7 +129,7 @@ class Validator(object):
         return ret_rv, ret_msgs
 
     def valid_config(self, yaml):
-        """ Validate the given YAML configuration in 'yaml' against syntax
+        """Validate the given YAML configuration in 'yaml' against syntax
         validation given in the yamale 'schema', and all semantic configs.
 
         Returns True if the configuration is valid, False otherwise.
@@ -142,13 +145,13 @@ class Validator(object):
         return True
 
     def add_validator(self, func):
-        """ Add a validator function, which strictly takes the prototype
-               rv, msgs = func(yaml)
-            returning a Boolean success value in rv and a List of strings
-            in msgs. The function will be passed the configuration YAML and
-            gets to opine if it's valid or not.
+        """Add a validator function, which strictly takes the prototype
+           rv, msgs = func(yaml)
+        returning a Boolean success value in rv and a List of strings
+        in msgs. The function will be passed the configuration YAML and
+        gets to opine if it's valid or not.
 
-            Note: will only be called iff Yamale syntax-check succeeded,
-                  and it will be called after all built-in validators.
-            """
+        Note: will only be called iff Yamale syntax-check succeeded,
+              and it will be called after all built-in validators.
+        """
         self.validators.append(func)

@@ -2,10 +2,11 @@ import unittest
 import yaml
 import config.vxlan_tunnel as vxlan_tunnel
 
+
 class TestVXLANMethods(unittest.TestCase):
     def setUp(self):
         with open("unittest/test_vxlan_tunnel.yaml", "r") as f:
-            self.cfg = yaml.load(f, Loader = yaml.FullLoader)
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):
         ifname, iface = vxlan_tunnel.get_by_name(self.cfg, "vxlan_tunnel0")

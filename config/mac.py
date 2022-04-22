@@ -14,33 +14,37 @@
 import logging
 import netaddr
 
+
 def is_valid(mac):
-    """ Return True if the string given in `mac` is a valid (6-byte) MAC address,
-        as defined by netaddr.EUI """
+    """Return True if the string given in `mac` is a valid (6-byte) MAC address,
+    as defined by netaddr.EUI"""
     try:
         addr = netaddr.EUI(mac)
     except:
         return False
     return True
 
+
 def is_local(mac):
-    """ Return True if a MAC address is a valid locally administered one. """
+    """Return True if a MAC address is a valid locally administered one."""
     try:
         addr = netaddr.EUI(mac)
     except:
         return False
     return bool(addr.words[0] & 0b10)
 
+
 def is_multicast(mac):
-    """ Return True if a MAC address is a valid multicast one. """
+    """Return True if a MAC address is a valid multicast one."""
     try:
         addr = netaddr.EUI(mac)
     except:
         return False
     return bool(addr.words[0] & 0b01)
 
+
 def is_unicast(mac):
-    """ Return True if a MAC address is a valid unicast one. """
+    """Return True if a MAC address is a valid unicast one."""
     try:
         addr = netaddr.EUI(mac)
     except:

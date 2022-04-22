@@ -1,6 +1,7 @@
 import unittest
 import config.mac as mac
 
+
 class TestMACMethods(unittest.TestCase):
     def test_is_valid(self):
         self.assertTrue(mac.is_valid("00:01:02:03:04:05"))

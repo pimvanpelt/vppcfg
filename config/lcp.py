@@ -13,33 +13,35 @@
 #
 import logging
 
+
 def get_lcps(yaml, interfaces=True, loopbacks=True, bridgedomains=True):
-    """ Returns a list of LCPs configured in the system. Optionally (de)select the different
-    types of LCP. Return an empty list if there are none of the given type(s). """
+    """Returns a list of LCPs configured in the system. Optionally (de)select the different
+    types of LCP. Return an empty list if there are none of the given type(s)."""
 
     ret = []
-    if interfaces and 'interfaces' in yaml:
-        for ifname, iface in yaml['interfaces'].items():
-            if 'lcp' in iface:
-                ret.append(iface['lcp'])
-            if 'sub-interfaces' in iface:
-                for subid, sub_iface in iface['sub-interfaces'].items():
-                    if 'lcp' in sub_iface:
-                        ret.append(sub_iface['lcp'])
+    if interfaces and "interfaces" in yaml:
+        for ifname, iface in yaml["interfaces"].items():
+            if "lcp" in iface:
+                ret.append(iface["lcp"])
+            if "sub-interfaces" in iface:
+                for subid, sub_iface in iface["sub-interfaces"].items():
+                    if "lcp" in sub_iface:
+                        ret.append(sub_iface["lcp"])
 
-    if loopbacks and 'loopbacks' in yaml:
-        for ifname, iface in yaml['loopbacks'].items():
-            if 'lcp' in iface:
-                ret.append(iface['lcp'])
-    if bridgedomains and 'bridgedomains' in yaml:
-        for ifname, iface in yaml['bridgedomains'].items():
-            if 'lcp' in iface:
-                ret.append(iface['lcp'])
+    if loopbacks and "loopbacks" in yaml:
+        for ifname, iface in yaml["loopbacks"].items():
+            if "lcp" in iface:
+                ret.append(iface["lcp"])
+    if bridgedomains and "bridgedomains" in yaml:
+        for ifname, iface in yaml["bridgedomains"].items():
+            if "lcp" in iface:
+                ret.append(iface["lcp"])
 
     return ret
 
+
 def is_unique(yaml, lcpname):
-    """ Returns True if there is at most one occurence of the LCP name in the entire config."""
+    """Returns True if there is at most one occurence of the LCP name in the entire config."""
 
     lcps = get_lcps(yaml)
     return lcps.count(lcpname) < 2
