@@ -23,6 +23,9 @@ small guidelines you need to follow.
 1.   Do your best to have well-formed commit messages for each change. This provides consistency
      throughout the project, and ensures that commit messages are able to be formatted properly
      by various git tools.
+1.   Code will be checked for Python formatting by [black](https://github.com/psf/black) so before
+     submitting a pull request (or pushing), ensure `black . vppcfg` is run and changes are accounted
+     for.
 
 Finally, push the commits to your fork and submit a pull request (GitHub) or commit them to
 gerrit.fd.io and request a review (Gerrit).
