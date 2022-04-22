@@ -395,14 +395,14 @@ class Reconciler():
             config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, vpp_ifname)
             if not config_iface:
                 self.prune_addresses(vpp_ifname, [])
-                cli="create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
-                    vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni)
+                cli=(f"create vxlan tunnel instance {vpp_vxlan.instance} "
+                     f"src {vpp_vxlan.src_address} dst {vpp_vxlan.dst_address} vni {vpp_vxlan.vni} del")
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
             if self.__vxlan_tunnel_has_diff(config_ifname):
-                cli="create vxlan tunnel instance %d src %s dst %s vni %d del" % (vpp_vxlan.instance, 
-                    vpp_vxlan.src_address, vpp_vxlan.dst_address, vpp_vxlan.vni)
+                cli=(f"create vxlan tunnel instance {vpp_vxlan.instance} "
+                     f"src {vpp_vxlan.src_address} dst {vpp_vxlan.dst_address} vni {vpp_vxlan.vni} del")
                 self.cli['prune'].append(cli);
                 removed_interfaces.append(vpp_ifname)
                 continue
@@ -691,8 +691,8 @@ class Reconciler():
                 continue
             ifname, iface = vxlan_tunnel.get_by_name(self.cfg, ifname)
             instance = int(ifname[12:])
-            cli="create vxlan tunnel src %s dst %s instance %d vni %d decap-next l2" % (
-                iface['local'], iface['remote'], instance, iface['vni'])
+            cli=(f"create vxlan tunnel src {iface['local']} dst {iface['remote']} "
+                 f"instance {instance} vni {iface['vni']} decap-next l2")
             self.cli['create'].append(cli);
         return True
 
@@ -888,7 +888,7 @@ class Reconciler():
                 ## However, LinuxCP does not propagate this change to the Linux side (because there
                 ## is no API callback for MAC address changes). To ensure consistency, every time we
                 ## sync members, we ought to ensure the Linux device has the same MAC as its BondEthernet.
-                cli="comment { ip link set %s address %s }" % (config_iface['lcp'], str(bondmac))
+                cli=f"comment {{ ip link set {config_iface['lcp']} address {bondmac} }}"
                 self.cli['sync'].append(cli);
         return True
 
@@ -1055,8 +1055,8 @@ class Reconciler():
             config_mtu = interface.get_mtu(self.cfg, vpp_iface.interface_name)
 
             if vpp_iface.interface_dev_type=='bond' and vpp_iface.link_mtu < config_mtu:
-                self.logger.warning("%s has a Max Frame Size (%d) lower than desired MTU (%d), this is unsupported" %
-                        (vpp_iface.interface_name, vpp_iface.link_mtu, config_mtu))
+                self.logger.warning(f"{vpp_iface.interface_name} has a Max Frame Size ({vpp_iface.link_mtu}) "
+                                     "lower than desired MTU ({config_mtu}), this is unsupported")
                 continue
 
             if shrink and config_mtu < vpp_iface.link_mtu:
@@ -1157,7 +1157,7 @@ class Reconciler():
         for phase in [ "prune", "create", "sync" ]:
             n = len(self.cli[phase])
             if n > 0:
-                output.append("comment { vppcfg %s: %d CLI statement(s) follow }" % (phase, n))
+                output.append(f"comment {{ vppcfg {phase}: {n} CLI statement(s) follow }}")
                 output.extend(self.cli[phase])
 
         if not ok:

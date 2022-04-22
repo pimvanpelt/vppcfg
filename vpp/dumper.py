@@ -135,7 +135,6 @@ class Dumper(VPPApi):
             config['taps'][vpp_iface.interface_name] = tap
 
         for idx, iface in self.cache['bridgedomains'].items():
-            # self.logger.info("%d: %s" % (idx, iface))
             bridge_name = f"bd{int(idx)}"
             mtu = 1500
             bridge = {"description": ""}
