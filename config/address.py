@@ -80,9 +80,7 @@ def is_allowed(yaml, ifname, iface_addresses, ip_interface):
         vpp# set interface ip address loop0 192.0.2.3/23
         set interface ip address: failed to add 192.0.2.3/23 on loop0 which conflicts with 192.0.2.1/24 for interface loop0
     """
-    ## print("input: (%s,%s)" % (iface_addresses, ip_interface))
     all_other_addresses = get_all_addresses_except_ifname(yaml, ifname)
-    ## print("All IPs: %s" % all_other_addresses)
 
     my_ip_network = ipaddress.ip_network(ip_interface, strict=False)
 
@@ -91,15 +89,12 @@ def is_allowed(yaml, ifname, iface_addresses, ip_interface):
             continue
 
         if ipaddress.ip_network(ipi, strict=False) == my_ip_network:
-            ## print("Same: %s == %s" % (ip_interface, ipi))
             return False
 
         if ipaddress.ip_network(ipi, strict=False).subnet_of(my_ip_network):
-            ## print("More: %s == %s" % (ip_interface, ipi))
             return False
 
         if my_ip_network.subnet_of(ipaddress.ip_network(ipi, strict=False)):
-            ## print("Less: %s == %s" % (ip_interface, ipi))
             return False
 
     for ip in iface_addresses:
@@ -108,15 +103,12 @@ def is_allowed(yaml, ifname, iface_addresses, ip_interface):
             continue
 
         if ipaddress.ip_network(ipi, strict=False) == my_ip_network:
-            ## print("iface same: %s == %s" % (ip_interface, ipi))
             return True
 
         if ipaddress.ip_network(ipi, strict=False).subnet_of(my_ip_network):
-            ## print("iface more: %s == %s" % (ip_interface, ipi))
             return False
 
         if my_ip_network.subnet_of(ipaddress.ip_network(ipi, strict=False)):
-            ## print("iface less: %s == %s" % (ip_interface, ipi))
             return False
 
     return True

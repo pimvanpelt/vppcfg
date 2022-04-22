@@ -349,7 +349,6 @@ def unique_encapsulation(yaml, sub_ifname):
         sibling_ifname = "%s.%d" % (parent_ifname, subid)
         sibling_encap = get_encapsulation(yaml, sibling_ifname)
         if sub_encap == sibling_encap and new_ifname != sibling_ifname:
-            ## print("%s overlaps with %s" % (sub_encap, sibling_encap))
             ncount = ncount + 1
 
     return ncount == 0
