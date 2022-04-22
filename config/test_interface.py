@@ -245,7 +245,6 @@ class TestInterfaceMethods(unittest.TestCase):
 
     def test_get_phys(self):
         phys = interface.get_phys(self.cfg)
-        print(phys)
         self.assertEqual(len(phys), 6)
         self.assertIn("GigabitEthernet1/0/0", phys)
         self.assertNotIn("GigabitEthernet1/0/0.100", phys)
