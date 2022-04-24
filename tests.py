@@ -107,7 +107,6 @@ class YAMLTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    """ The main program """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-t",
