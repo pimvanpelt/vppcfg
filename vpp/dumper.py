@@ -1,3 +1,17 @@
+#
+# Copyright (c) 2022 Pim van Pelt
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# -*- coding: utf-8 -*-
 """
 The functions in this file interact with the VPP API to retrieve certain
 interface metadata and write it to a YAML file.
@@ -10,10 +24,17 @@ from config import bondethernet
 
 
 class Dumper(VPPApi):
+    """The Dumper class first reads the configuration from a running VPP Dataplane
+    by using a set of (readonly) API getters, and then emits the configuration as
+    a YAML file with its write() method, either to stdout or to a filename.
+
+    Note that not all running VPP configs are "valid" in vppcfg's eyes. It is not
+    guaranteed that the output of the Dumper() will stand validation."""
     def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
         VPPApi.__init__(self, address, clientname)
 
     def write(self, outfile):
+        """ Emit the configuration to either stdout (outfile=='-') or a filename """
         if outfile and outfile == "-":
             file = sys.stdout
             outfile = "(stdout)"
@@ -29,6 +50,8 @@ class Dumper(VPPApi):
         self.logger.info(f"Wrote YAML config to {outfile}")
 
     def cache_to_config(self):
+        """ Convert the VPP configuration cache (previously read by readconfig() into
+        a YAML representation."""
         config = {
             "loopbacks": {},
             "bondethernets": {},

@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that validates vxlan_tunnels """
 import logging
 import ipaddress
 
@@ -56,6 +57,7 @@ def get_vxlan_tunnels(yaml):
 
 
 def validate_vxlan_tunnels(yaml):
+    """Validate the semantics of all YAML 'vxlan_tunnels' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")

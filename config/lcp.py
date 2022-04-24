@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that validates Linux Control Plane (lcp) elements """
 
 
 def get_lcps(yaml, interfaces=True, loopbacks=True, bridgedomains=True):

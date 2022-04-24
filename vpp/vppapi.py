@@ -1,3 +1,17 @@
+#
+# Copyright (c) 2022 Pim van Pelt
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# -*- coding: utf-8 -*-
 """
 The functions in this file interact with the VPP API to retrieve certain
 interface metadata. Its base class will never change state. See the
@@ -12,6 +26,7 @@ from vpp_papi import VPPApiClient
 
 
 class VPPApi:
+    """The VPPApi class is a base class that abstracts the vpp_papi."""
     def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
         self.logger = logging.getLogger("vppcfg.vppapi")
         self.logger.addHandler(logging.NullHandler())
@@ -25,6 +40,7 @@ class VPPApi:
         self.lcp_enabled = False
 
     def connect(self):
+        """ Connect to the VPP Dataplane, if we're not already connected """
         if self.connected:
             return True
 
@@ -56,6 +72,7 @@ class VPPApi:
         return True
 
     def disconnect(self):
+        """Disconnect from the VPP dataplane, if we are still connected."""
         if not self.connected:
             return True
         self.vpp.disconnect()
@@ -64,6 +81,7 @@ class VPPApi:
         return True
 
     def cache_clear(self):
+        """ Remove the cached VPP configuration elements and return an empty dictionary"""
         self.cache_read = False
         return {
             "lcps": {},
@@ -79,7 +97,7 @@ class VPPApi:
         }
 
     def cache_remove_lcp(self, lcpname):
-        """Removes the LCP and TAP interface, identified by lcpname, from the config."""
+        """Removes the LCP and TAP interface, identified by lcpname, from the VPP config cache"""
         for _idx, lcp in self.cache["lcps"].items():
             if lcp.host_if_name == lcpname:
                 ifname = self.cache["interfaces"][lcp.host_sw_if_index].interface_name
@@ -91,7 +109,7 @@ class VPPApi:
         return False
 
     def cache_remove_bondethernet_member(self, ifname):
-        """Removes the bonderthernet member interface, identified by name, from the config."""
+        """Removes the bonderthernet member interface, identified by name, from the VPP config cache"""
         if not ifname in self.cache["interface_names"]:
             self.logger.warning(
                 f"Trying to remove a bondethernet member interface which is not in the config: {ifname}"
@@ -106,6 +124,7 @@ class VPPApi:
         return True
 
     def cache_remove_l2xc(self, ifname):
+        """Remvoes the l2xc from the VPP config cache"""
         if not ifname in self.cache["interface_names"]:
             self.logger.warning(
                 f"Trying to remove an L2XC which is not in the config: {ifname}"
@@ -116,6 +135,7 @@ class VPPApi:
         return True
 
     def cache_remove_vxlan_tunnel(self, ifname):
+        """Removes a vxlan_tunnel from the VPP config cache"""
         if not ifname in self.cache["interface_names"]:
             self.logger.warning(
                 f"Trying to remove a VXLAN Tunnel which is not in the config: {ifname}"
@@ -127,7 +147,7 @@ class VPPApi:
         return True
 
     def cache_remove_interface(self, ifname):
-        """Removes the interface, identified by name, from the config."""
+        """Removes the interface, identified by name, from the VPP config cache"""
         if not ifname in self.cache["interface_names"]:
             self.logger.warning(
                 f"Trying to remove an interface which is not in the config: {ifname}"
@@ -154,6 +174,8 @@ class VPPApi:
         return True
 
     def readconfig(self):
+        """Read the configuration out of a running VPP Dataplane and put it into a
+        VPP config cache"""
         # pylint: disable=no-member
         if not self.connected and not self.connect():
             self.logger.error("Could not connect to VPP")
@@ -257,6 +279,7 @@ class VPPApi:
         return ret
 
     def get_sub_interfaces(self):
+        """Return all interfaces which have a sub-id and one or more tags"""
         subints = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -266,6 +289,7 @@ class VPPApi:
         return subints
 
     def get_qinx_interfaces(self):
+        """Return all interfaces which have a sub-id and a non-zero inner vlan tag"""
         qinx_subints = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -275,6 +299,7 @@ class VPPApi:
         return qinx_subints
 
     def get_dot1x_interfaces(self):
+        """Return all interfaces which have only an outer vlan tag (dot1q/dot1ad)"""
         dot1x_subints = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -284,6 +309,7 @@ class VPPApi:
         return dot1x_subints
 
     def get_loopbacks(self):
+        """Return all interfaces of VPP type 'Loopback'"""
         loopbacks = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -292,6 +318,8 @@ class VPPApi:
         return loopbacks
 
     def get_phys(self):
+        """Return all interfaces for which the super interface has the same sw_if_index
+        and aren't known to be virtual interfaces"""
         phys = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -303,6 +331,7 @@ class VPPApi:
         return phys
 
     def get_bondethernets(self):
+        """Return all bondethernet interfaces"""
         bonds = [
             self.cache["bondethernets"][x].interface_name
             for x in self.cache["bondethernets"]
@@ -310,6 +339,7 @@ class VPPApi:
         return bonds
 
     def get_vxlan_tunnels(self):
+        """Return all vxlan_tunnel interfaces"""
         vxlan_tunnels = [
             self.cache["interfaces"][x].interface_name
             for x in self.cache["interfaces"]
@@ -318,6 +348,7 @@ class VPPApi:
         return vxlan_tunnels
 
     def get_lcp_by_interface(self, sw_if_index):
+        """Return the LCP config cache for the interface given by sw_if_index"""
         for _idx, lcp in self.cache["lcps"].items():
             if lcp.phy_sw_if_index == sw_if_index:
                 return lcp

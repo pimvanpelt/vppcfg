@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that validates interfaces """
 import logging
 from config import bondethernet
 from config import bridgedomain
@@ -415,6 +416,7 @@ def get_admin_state(yaml, ifname):
 
 
 def validate_interfaces(yaml):
+    """Validate the semantics of all YAML 'interfaces' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")

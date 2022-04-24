@@ -14,7 +14,7 @@ ignore-patterns=test_.*
 #   W1203 = Use lazy % formatting in logging functions
 
 # Disable the message(s) with the given id(s).
-disable=R0201,W0212,W0613,C0301,R0914,C0111,W1203
+disable=R0201,W0212,W0613,C0301,R0914,W1203
 
 [FORMAT]
 max-line-length=148

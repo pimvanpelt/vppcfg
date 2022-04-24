@@ -13,6 +13,10 @@
 # limitations under the License.
 #
 # -*- coding: utf-8 -*-
+"""
+The functions in this file interact with the VPP API to retrieve certain
+metadata, and plan configuration changes towards a given YAML target configuration.
+"""
 import sys
 import logging
 from config import loopback
@@ -26,6 +30,14 @@ from vpp.vppapi import VPPApi
 
 
 class Reconciler:
+    """The Reconciler class first reads the running configuration of a VPP Dataplane,
+    and based on an intended target YAML configuration file, plans a path to make the
+    dataplane safely reflect the target config. It first prunes (removes) objects that
+    are not meant to be in the dataplane, or are in the dataplane but are not of the
+    correct create-time attributes; then it creates objects that are in the configuration
+    but not yet in the dataplane; and finally it syncs the configuration attributes of
+    objects that can be changed at runtime."""
+
     def __init__(self, cfg):
         self.logger = logging.getLogger("vppcfg.reconciler")
         self.logger.addHandler(logging.NullHandler())
@@ -67,12 +79,6 @@ class Reconciler:
                 self.logger.warning(f"Interface {ifname} does not exist in the config")
                 ret = False
         return ret
-
-    def vpp_readconfig(self):
-        if not self.vpp.readconfig():
-            self.logger.error("Could not (re)read config from VPP")
-            return False
-        return True
 
     def prune(self):
         """Remove all objects from VPP that do not occur in the config. For an indepth explanation
@@ -748,6 +754,7 @@ class Reconciler:
         return ret
 
     def create_loopbacks(self):
+        """Create all loopbacks that occur in the config but not in VPP"""
         for ifname in loopback.get_loopbacks(self.cfg):
             if ifname in self.vpp.cache["interface_names"]:
                 continue
@@ -760,6 +767,7 @@ class Reconciler:
         return True
 
     def create_bondethernets(self):
+        """Create all bondethernets that occur in the config but not in VPP"""
         for ifname in bondethernet.get_bondethernets(self.cfg):
             if ifname in self.vpp.cache["interface_names"]:
                 continue
@@ -776,6 +784,7 @@ class Reconciler:
         return True
 
     def create_vxlan_tunnels(self):
+        """Create all vxlan_tunnels that occur in the config but not in VPP"""
         for ifname in vxlan_tunnel.get_vxlan_tunnels(self.cfg):
             if ifname in self.vpp.cache["interface_names"]:
                 continue
@@ -789,6 +798,7 @@ class Reconciler:
         return True
 
     def create_sub_interfaces(self):
+        """Create all sub-interfaces that occur in the config but not in VPP"""
         ## First create 1-tag (Dot1Q/Dot1AD), and then create 2-tag (Qin*) sub-interfaces
         for do_qinx in [False, True]:
             for ifname in interface.get_sub_interfaces(self.cfg):
@@ -815,6 +825,7 @@ class Reconciler:
         return True
 
     def create_taps(self):
+        """Create all taps that occur in the config but not in VPP"""
         for ifname in tap.get_taps(self.cfg):
             ifname, iface = tap.get_by_name(self.cfg, ifname)
             if ifname in self.vpp.cache["interface_names"]:
@@ -838,6 +849,7 @@ class Reconciler:
         return True
 
     def create_bridgedomains(self):
+        """Create all bridgedomains that occur in the config but not in VPP"""
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
             ifname, _iface = bridgedomain.get_by_name(self.cfg, ifname)
             instance = int(ifname[2:])
@@ -863,6 +875,7 @@ class Reconciler:
         return True
 
     def create_lcps(self):
+        """Create all LCPs that occur in the config but not in VPP"""
         lcpnames = [
             self.vpp.cache["lcps"][x].host_if_name for x in self.vpp.cache["lcps"]
         ]
@@ -900,6 +913,7 @@ class Reconciler:
         return True
 
     def sync(self):
+        """Synchronize the VPP Dataplane configuration for all objects in the config"""
         ret = True
         if not self.sync_loopbacks():
             self.logger.warning("Could not sync Loopbacks in VPP")
@@ -928,6 +942,7 @@ class Reconciler:
         return ret
 
     def sync_loopbacks(self):
+        """Synchronize the VPP Dataplane configuration for loopbacks"""
         for ifname in loopback.get_loopbacks(self.cfg):
             if not ifname in self.vpp.cache["interface_names"]:
                 ## New loopback
@@ -942,6 +957,7 @@ class Reconciler:
         return True
 
     def sync_phys(self):
+        """Synchronize the VPP Dataplane configuration for PHYs"""
         for ifname in interface.get_phys(self.cfg):
             if not ifname in self.vpp.cache["interface_names"]:
                 ## New interface
@@ -956,6 +972,7 @@ class Reconciler:
         return True
 
     def sync_bondethernets(self):
+        """Synchronize the VPP Dataplane configuration for bondethernets"""
         for ifname in bondethernet.get_bondethernets(self.cfg):
             if ifname in self.vpp.cache["interface_names"]:
                 vpp_iface = self.vpp.cache["interface_names"][ifname]
@@ -1008,6 +1025,7 @@ class Reconciler:
         return True
 
     def sync_bridgedomains(self):
+        """Synchronize the VPP Dataplane configuration for bridgedomains"""
         for ifname in bridgedomain.get_bridgedomains(self.cfg):
             instance = int(ifname[2:])
             if instance in self.vpp.cache["bridgedomains"]:
@@ -1097,6 +1115,7 @@ class Reconciler:
         return True
 
     def sync_l2xcs(self):
+        """Synchronize the VPP Dataplane configuration for L2 cross connects"""
         for ifname in interface.get_l2xc_interfaces(self.cfg):
             config_rx_ifname, config_rx_iface = interface.get_by_name(self.cfg, ifname)
             config_tx_ifname, _config_tx_iface = interface.get_by_name(
@@ -1134,6 +1153,9 @@ class Reconciler:
         return True
 
     def sync_mtu_direction(self, shrink=True):
+        """Synchronize the VPP Dataplane packet MTU, where 'shrink' determines the
+        direction (if shrink is True, go from inner-most (QinQ) to outer-most (untagged),
+        and the other direction if shrink is False"""
         if shrink:
             tag_list = [2, 1, 0]
         else:
@@ -1176,6 +1198,9 @@ class Reconciler:
         return True
 
     def sync_link_mtu_direction(self, shrink=True):
+        """Synchronize the VPP Dataplane max frame size (link MTU), where 'shrink' determines the
+        direction (if shrink is True, go from inner-most (QinQ) to outer-most (untagged),
+        and the other direction if shrink is False"""
         for _idx, vpp_iface in self.vpp.cache["interfaces"].items():
             if vpp_iface.sub_number_of_tags != 0:
                 continue
@@ -1231,6 +1256,7 @@ class Reconciler:
         return True
 
     def sync_mtu(self):
+        """Synchronize the VPP Dataplane configuration for interface MTU"""
         ret = True
         if not self.sync_link_mtu_direction(shrink=False):
             self.logger.warning(
@@ -1251,6 +1277,7 @@ class Reconciler:
         return ret
 
     def sync_addresses(self):
+        """Synchronize the VPP Dataplane configuration for interface addresses"""
         for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
             self.cfg
         ):
@@ -1279,6 +1306,7 @@ class Reconciler:
         return True
 
     def sync_admin_state(self):
+        """Synchronize the VPP Dataplane configuration for interface admin state"""
         for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
             self.cfg
         ):

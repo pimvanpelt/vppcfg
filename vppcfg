@@ -30,6 +30,7 @@ except ImportError:
 
 
 def main():
+    """ The main vppcfg program """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-d",
@@ -175,7 +176,7 @@ def main():
         sys.exit(0)
 
     reconciler = Reconciler(cfg)
-    if not reconciler.vpp_readconfig():
+    if not reconciler.vpp.readconfig():
         sys.exit(-3)
 
     if not reconciler.phys_exist_in_vpp():

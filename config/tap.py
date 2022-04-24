@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that validates taps """
 import logging
 from config import mac
 
@@ -54,6 +55,7 @@ def is_host_name_unique(yaml, hostname):
 
 
 def validate_taps(yaml):
+    """Validate the semantics of all YAML 'taps' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")

@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that handles bondethernets """
 import logging
 from config import interface
 from config import mac
@@ -162,6 +163,7 @@ def int_to_lb(loadbalance):
 
 
 def validate_bondethernets(yaml):
+    """Validate the semantics of all YAML 'bondethernets' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")

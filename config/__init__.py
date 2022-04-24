@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 # -*- coding: utf-8 -*-
+""" A vppcfg configuration module that exposes its semantic/syntax validators """
 from __future__ import (
     absolute_import,
     division,
@@ -66,6 +67,15 @@ class IPInterfaceWithPrefixLength(Validator):
 
 
 class Validator:
+    """The Validator class takes a schema filename (which may be None, in which
+    case a built-in default is used), and a given YAML file represented as a string,
+    and holds it against syntax and semantic validators, returning a tuple of (bool,list)
+    where the boolean signals success/failure, and the list of strings are messages
+    that were added when validating the YAML config.
+
+    The purpose is to  ensure that the YAML file is both syntactically correct,
+    which is ensured by Yamale, and semantically correct, which is ensured by a set
+    of built-in validators, and user-added validators (see the add_validator() method)."""
     def __init__(self, schema):
         self.logger = logging.getLogger("vppcfg.config")
         self.logger.addHandler(logging.NullHandler())
@@ -81,6 +91,8 @@ class Validator:
         ]
 
     def validate(self, yaml):
+        """Validate the semantics of all YAML maps, by calling self.validators in turn,
+        and then optionally calling validators that were added with add_validator()"""
         ret_retval = True
         ret_msgs = []
         if not yaml:

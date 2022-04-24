@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that validates loopbacks """
 import logging
 from config import lcp
 from config import address
@@ -53,6 +54,7 @@ def is_loopback(yaml, ifname):
 
 
 def validate_loopbacks(yaml):
+    """Validate the semantics of all YAML 'loopbacks' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")

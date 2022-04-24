@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+""" A vppcfg configuration module that handles bridgedomains """
 import logging
 from config import interface
 from config import loopback
@@ -81,6 +82,8 @@ def bvi_unique(yaml, bviname):
 
 
 def get_settings(yaml, ifname):
+    """Return a dictionary of 'settings' including their VPP defaults, for the
+    bridgedomain identified by 'ifname' (bd10)"""
     ifname, iface = get_by_name(yaml, ifname)
     if not iface:
         return None
@@ -115,6 +118,7 @@ def get_settings(yaml, ifname):
 
 
 def validate_bridgedomains(yaml):
+    """Validate the semantics of all YAML 'bridgedomains' entries"""
     result = True
     msgs = []
     logger = logging.getLogger("vppcfg.config")
