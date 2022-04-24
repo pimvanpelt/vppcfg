@@ -27,6 +27,7 @@ from vpp_papi import VPPApiClient
 
 class VPPApi:
     """The VPPApi class is a base class that abstracts the vpp_papi."""
+
     def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
         self.logger = logging.getLogger("vppcfg.vppapi")
         self.logger.addHandler(logging.NullHandler())
@@ -40,7 +41,7 @@ class VPPApi:
         self.lcp_enabled = False
 
     def connect(self):
-        """ Connect to the VPP Dataplane, if we're not already connected """
+        """Connect to the VPP Dataplane, if we're not already connected"""
         if self.connected:
             return True
 
@@ -81,7 +82,7 @@ class VPPApi:
         return True
 
     def cache_clear(self):
-        """ Remove the cached VPP configuration elements and return an empty dictionary"""
+        """Remove the cached VPP configuration elements and return an empty dictionary"""
         self.cache_read = False
         return {
             "lcps": {},

@@ -30,11 +30,12 @@ class Dumper(VPPApi):
 
     Note that not all running VPP configs are "valid" in vppcfg's eyes. It is not
     guaranteed that the output of the Dumper() will stand validation."""
+
     def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
         VPPApi.__init__(self, address, clientname)
 
     def write(self, outfile):
-        """ Emit the configuration to either stdout (outfile=='-') or a filename """
+        """Emit the configuration to either stdout (outfile=='-') or a filename"""
         if outfile and outfile == "-":
             file = sys.stdout
             outfile = "(stdout)"
@@ -50,7 +51,7 @@ class Dumper(VPPApi):
         self.logger.info(f"Wrote YAML config to {outfile}")
 
     def cache_to_config(self):
-        """ Convert the VPP configuration cache (previously read by readconfig() into
+        """Convert the VPP configuration cache (previously read by readconfig() into
         a YAML representation."""
         config = {
             "loopbacks": {},

@@ -30,7 +30,7 @@ except ImportError:
 
 
 def main():
-    """ The main vppcfg program """
+    """The main vppcfg program"""
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-d",

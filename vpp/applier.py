@@ -45,7 +45,9 @@ class Applier(VPPApi):
         """Delete a sub-int identified by name (ie GigabitEthernet3/0/0.100)"""
         pass
 
-    def set_interface_l2_tag_rewrite(self, ifname, vtr_op, vtr_push_dot1q, vtr_tag1, vtr_tag2):
+    def set_interface_l2_tag_rewrite(
+        self, ifname, vtr_op, vtr_push_dot1q, vtr_tag1, vtr_tag2
+    ):
         """Set l2 tag rewrite on an interface identified by name (ie GigabitEthernet3/0/0.100)
         into a certain operational mode. TODO(pim) clarify the vtr_* arguments."""
         ## somewhere in interface.api see vtr_* fields
@@ -141,7 +143,7 @@ class Applier(VPPApi):
         pass
 
     def set_interface_l2_bridge(self, bd_id, ifname):
-        """Set an interface given by name (ie 'GigabitEthernet3/0/0') into a bridge 
+        """Set an interface given by name (ie 'GigabitEthernet3/0/0') into a bridge
         domain identified by bd_id (ie 100)"""
         pass
 

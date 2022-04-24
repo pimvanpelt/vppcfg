@@ -76,6 +76,7 @@ class Validator:
     The purpose is to  ensure that the YAML file is both syntactically correct,
     which is ensured by Yamale, and semantically correct, which is ensured by a set
     of built-in validators, and user-added validators (see the add_validator() method)."""
+
     def __init__(self, schema):
         self.logger = logging.getLogger("vppcfg.config")
         self.logger.addHandler(logging.NullHandler())
