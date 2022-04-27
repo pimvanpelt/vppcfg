@@ -104,7 +104,13 @@ class Dumper(VPPApi):
                                 iface.sw_if_index
                             ]
                     config["loopbacks"][iface.interface_name] = loop
-                elif iface.interface_dev_type in ["bond", "VXLAN", "dpdk", "virtio"]:
+                elif iface.interface_dev_type in [
+                    "bond",
+                    "VXLAN",
+                    "dpdk",
+                    "virtio",
+                    "pg",
+                ]:
                     i = {"description": ""}
                     if iface.sw_if_index in self.cache["lcps"]:
                         i["lcp"] = self.cache["lcps"][iface.sw_if_index].host_if_name
