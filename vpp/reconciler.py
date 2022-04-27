@@ -38,11 +38,11 @@ class Reconciler:
     but not yet in the dataplane; and finally it syncs the configuration attributes of
     objects that can be changed at runtime."""
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, vpp_api_socket='/run/vpp/api.sock', vpp_json_dir='/usr/share/vpp/api/'):
         self.logger = logging.getLogger("vppcfg.reconciler")
         self.logger.addHandler(logging.NullHandler())
 
-        self.vpp = VPPApi()
+        self.vpp = VPPApi(vpp_api_socket, vpp_json_dir)
         self.cfg = cfg
 
         ## List of CLI calls emitted during the prune, create and sync phases.

@@ -86,6 +86,22 @@ def main():
         type=str,
         help="""Output file for YAML config, default stdout""",
     )
+    dump_p.add_argument(
+        "-j",
+        "--vpp-json-dir",
+        dest="vpp_json_dir",
+        required=False,
+        type=str,
+        help="""Directory where VPP API JSON files are located""",
+    )
+    dump_p.add_argument(
+        "-a",
+        "--vpp-api-socket",
+        dest="vpp_api_socket",
+        required=False,
+        type=str,
+        help="""Pathname of VPP API socket file""",
+    )
 
     plan_p = subparsers.add_parser(
         "plan",
@@ -115,6 +131,22 @@ def main():
         type=str,
         help="""Output file for VPP CLI commands, default stdout""",
     )
+    plan_p.add_argument(
+        "-j",
+        "--vpp-json-dir",
+        dest="vpp_json_dir",
+        required=False,
+        type=str,
+        help="""Directory where VPP API JSON files are located""",
+    )
+    plan_p.add_argument(
+        "-a",
+        "--vpp-api-socket",
+        dest="vpp_api_socket",
+        required=False,
+        type=str,
+        help="""Pathname of VPP API socket file""",
+    )
 
     apply_p = subparsers.add_parser(
         "apply", help="apply changes from current VPP dataplane to target config"
@@ -134,6 +166,22 @@ def main():
         type=str,
         help="""YAML configuration file for vppcfg""",
     )
+    apply_p.add_argument(
+        "-j",
+        "--vpp-json-dir",
+        dest="vpp_json_dir",
+        required=False,
+        type=str,
+        help="""Directory where VPP API JSON files are located""",
+    )
+    apply_p.add_argument(
+        "-a",
+        "--vpp-api-socket",
+        dest="vpp_api_socket",
+        required=False,
+        type=str,
+        help="""Pathname of VPP API socket file""",
+    )
 
     args = parser.parse_args()
     if not args.command:
@@ -150,8 +198,14 @@ def main():
         format="[%(levelname)-8s] %(name)s.%(funcName)s: %(message)s", level=level
     )
 
+    opt_kwargs = {}
+    if args.vpp_json_dir:
+        opt_kwargs["vpp_json_dir"] = args.vpp_json_dir
+    if args.vpp_api_socket:
+        opt_kwargs["vpp_api_socket"] = args.vpp_api_socket
+
     if args.command == "dump":
-        dumper = Dumper()
+        dumper = Dumper(**opt_kwargs)
         if not dumper.readconfig():
             logging.error("Could not retrieve config from VPP")
             sys.exit(-7)
@@ -175,7 +229,7 @@ def main():
     if args.command == "check":
         sys.exit(0)
 
-    reconciler = Reconciler(cfg)
+    reconciler = Reconciler(cfg, **opt_kwargs)
     if not reconciler.vpp.readconfig():
         sys.exit(-3)
 
