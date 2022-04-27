@@ -31,8 +31,13 @@ class Dumper(VPPApi):
     Note that not all running VPP configs are "valid" in vppcfg's eyes. It is not
     guaranteed that the output of the Dumper() will stand validation."""
 
-    def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
-        VPPApi.__init__(self, address, clientname)
+    def __init__(
+        self,
+        vpp_api_socket="/run/vpp/api.sock",
+        vpp_json_dir="/usr/share/vpp/api/",
+        clientname="vppcfg",
+    ):
+        VPPApi.__init__(self, vpp_api_socket, vpp_json_dir, clientname)
 
     def write(self, outfile):
         """Emit the configuration to either stdout (outfile=='-') or a filename"""

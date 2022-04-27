@@ -28,11 +28,22 @@ from vpp_papi import VPPApiClient
 class VPPApi:
     """The VPPApi class is a base class that abstracts the vpp_papi."""
 
-    def __init__(self, address="/run/vpp/api.sock", clientname="vppcfg"):
+    def __init__(
+        self,
+        vpp_api_socket="/run/vpp/api.sock",
+        vpp_json_dir="/usr/share/vpp/api/",
+        clientname="vppcfg",
+    ):
         self.logger = logging.getLogger("vppcfg.vppapi")
         self.logger.addHandler(logging.NullHandler())
 
-        self.address = address
+        if not os.path.exists(vpp_api_socket):
+            self.logger.error(f"VPP api socket file not found: {vpp_api_socket}")
+        if not os.path.isdir(vpp_json_dir):
+            self.logger.error(f"VPP api json directory not found: {vpp_json_dir}")
+
+        self.vpp_api_socket = vpp_api_socket
+        self.vpp_json_dir = vpp_json_dir
         self.connected = False
         self.clientname = clientname
         self.vpp = None
@@ -45,12 +56,9 @@ class VPPApi:
         if self.connected:
             return True
 
-        vpp_json_dir = "/usr/share/vpp/api/"
-        ## vpp_json_dir = "/home/pim/src/vpp/build-root/build-vpp_debug-native/vpp/CMakeFiles/"
-
         # construct a list of all the json api files
         jsonfiles = []
-        for root, _dirnames, filenames in os.walk(vpp_json_dir):
+        for root, _dirnames, filenames in os.walk(self.vpp_json_dir):
             for filename in fnmatch.filter(filenames, "*.api.json"):
                 jsonfiles.append(os.path.join(root, filename))
 
@@ -58,7 +66,7 @@ class VPPApi:
             self.logger.error("no json api files found")
             return False
 
-        self.vpp = VPPApiClient(apifiles=jsonfiles, server_address=self.address)
+        self.vpp = VPPApiClient(apifiles=jsonfiles, server_address=self.vpp_api_socket)
         try:
             self.logger.debug("Connecting to VPP")
             self.vpp.connect(self.clientname)
