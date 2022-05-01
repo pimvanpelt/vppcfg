@@ -199,9 +199,9 @@ def main():
     )
 
     opt_kwargs = {}
-    if args.vpp_json_dir:
+    if 'vpp_json_dir' in args:
         opt_kwargs["vpp_json_dir"] = args.vpp_json_dir
-    if args.vpp_api_socket:
+    if 'vpp_api_socket' in args:
         opt_kwargs["vpp_api_socket"] = args.vpp_api_socket
 
     if args.command == "dump":
