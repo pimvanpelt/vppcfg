@@ -1092,31 +1092,31 @@ class Reconciler:
 
             if "bvi" in config_bridge_iface:
                 bviname = config_bridge_iface["bvi"]
-                if (
+                if not (
                     bviname in self.vpp.cache["interface_names"]
                     and self.vpp.cache["interface_names"][bviname].sw_if_index
                     == bvi_sw_if_index
                 ):
-                    continue
-                cli = f"set interface l2 bridge {bviname} {int(instance)} bvi"
-                self.cli["sync"].append(cli)
+                    cli = f"set interface l2 bridge {bviname} {int(instance)} bvi"
+                    self.cli["sync"].append(cli)
 
-            if not "interfaces" in config_bridge_iface:
-                continue
-            for member_ifname in config_bridge_iface["interfaces"]:
-                member_ifname, _member_iface = interface.get_by_name(
-                    self.cfg, member_ifname
-                )
-                if not member_ifname in bridge_members:
-                    cli = f"set interface l2 bridge {member_ifname} {int(instance)}"
-                    self.cli["sync"].append(cli)
-                    operation = "disable"
-                    if interface.is_qinx(self.cfg, member_ifname):
-                        operation = "pop 2"
-                    elif interface.is_sub(self.cfg, member_ifname):
-                        operation = "pop 1"
-                    cli = f"set interface l2 tag-rewrite {member_ifname} {operation}"
-                    self.cli["sync"].append(cli)
+            if "interfaces" in config_bridge_iface:
+                for member_ifname in config_bridge_iface["interfaces"]:
+                    member_ifname, _member_iface = interface.get_by_name(
+                        self.cfg, member_ifname
+                    )
+                    if not member_ifname in bridge_members:
+                        cli = f"set interface l2 bridge {member_ifname} {int(instance)}"
+                        self.cli["sync"].append(cli)
+                        operation = "disable"
+                        if interface.is_qinx(self.cfg, member_ifname):
+                            operation = "pop 2"
+                        elif interface.is_sub(self.cfg, member_ifname):
+                            operation = "pop 1"
+                        cli = (
+                            f"set interface l2 tag-rewrite {member_ifname} {operation}"
+                        )
+                        self.cli["sync"].append(cli)
         return True
 
     def sync_l2xcs(self):
