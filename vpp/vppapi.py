@@ -22,6 +22,7 @@ import os
 import fnmatch
 import logging
 import socket
+import time
 from vpp_papi import VPPApiClient
 
 
@@ -51,7 +52,7 @@ class VPPApi:
         self.cache_read = False
         self.lcp_enabled = False
 
-    def connect(self):
+    def connect(self, retries=30):
         """Connect to the VPP Dataplane, if we're not already connected"""
         if self.connected:
             return True
@@ -67,17 +68,26 @@ class VPPApi:
             return False
 
         self.vpp = VPPApiClient(apifiles=jsonfiles, server_address=self.vpp_api_socket)
-        try:
-            self.logger.debug("Connecting to VPP")
-            self.vpp.connect(self.clientname)
-        except:
+        self.logger.debug("Connecting to VPP")
+        for i in range(retries):
+            try:
+                self.vpp.connect(self.clientname)
+                self.connected = True
+                break
+            except Exception as e:
+                self.logger.warning(
+                    f"Could not connect to VPP (attempt {i+1}/{retries}): {e}"
+                )
+                time.sleep(1)
+                self.connected = False
+        if not self.connected:
+            self.logger.error(f"Could not connect to VPP (tried {retries} times)")
             return False
 
         # pylint: disable=no-member
         api_response = self.vpp.api.show_version()
         self.logger.info(f"VPP version is {api_response.version}")
 
-        self.connected = True
         return True
 
     def disconnect(self):
