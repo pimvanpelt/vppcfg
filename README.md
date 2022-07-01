@@ -13,21 +13,20 @@ If you're interested in helping, reach out to &lt;pim at ipng dot ch&gt; to disc
 This program expects Python3 and PIP to be installed. It's known to work on OpenBSD and Debian.
 
 ```
-sudo pip3 install argparse
-sudo pip3 install yamale
-sudo pip3 install pyyaml
-sudo pip3 install netaddr
-sudo pip3 install ipaddress
-sudo pip3 install pyinstaller
-sudo pip3 install black
-sudo pip3 install pylint
+## Install python build dependencies 
+$ make install-deps
 
 ## Ensure all unittests pass.
-./tests.py -d -t unittest/yaml/*.yaml
+$ vppcfg/tests.py -d -t unittest/yaml/*.yaml
 
-## Build the tool
-pyinstaller vppcfg.spec --onefile
-dist/vppcfg -h
+## Build vppcfg
+$ make build
+
+## Install the tool with PIP
+$ make install
+
+###
+
 ```
 
 ## Running
