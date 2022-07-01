@@ -25,8 +25,9 @@ $ make build
 ## Install the tool with PIP
 $ make install
 
-###
-
+## To build & install debian packaging
+$ make pkg-deb
+$ sudo deb -i ../vppcfg_0.0.1_amd64.deb
 ```
 
 ## Running

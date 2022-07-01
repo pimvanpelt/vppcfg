@@ -1,0 +1,13 @@
+[Unit]
+Description=vppcfg
+BindsTo=vpp.service
+After=vpp.service
+ConditionPathExists=/etc/vpp/config.yaml
+
+[Service]
+Type=oneshot
+ExecStart=vppcfg apply -c /etc/vpp/config.yaml
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
