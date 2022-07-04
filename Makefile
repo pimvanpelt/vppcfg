@@ -3,9 +3,11 @@ VPPCFG:=vppcfg
 PYTHON?=python3
 PIP?=pip
 PIP_DEPENDS=build yamale netaddr pylint
-PIP_DEPENDS+=argparse pyyaml ipaddress pyinstaller black
+PIP_DEPENDS+=argparse pyyaml ipaddress black
+WIPE=dist $(VPPCFG).egg-info .pybuild debian/vppcfg debian/vppcfg.*.log
+WIPE+=debian/vppcfg.*.debhelper debian/.debhelper debian/files
+WIPE+=debian/vppcfg.substvars
 WHL_INSTALL=dist/$(VPPCFG)-$(VERSION)-py3-none-any.whl
-
 
 .PHONY: build
 build:
@@ -19,10 +21,14 @@ install-deps:
 install:
 	sudo $(PIP) install $(WHL_INSTALL)
 
+.PHONY: pkg-deb
+pkg-deb:
+	dpkg-buildpackage -uc -us -b
+
 .PHONY: uninstall
 uninstall:
 	sudo $(PIP) uninstall $(VPPCFG)
 
 .PHONY: wipe
 wipe:
-	$(RM) -rf dist $(VPPCFG).egg-info
+	$(RM) -rf $(WIPE)
