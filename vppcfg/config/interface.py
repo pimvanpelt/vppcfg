@@ -665,7 +665,7 @@ def validate_interfaces(yaml):
                     target_mtu = get_mtu(yaml, sub_iface["l2xc"])
                     if target_mtu != sub_mtu:
                         msgs.append(
-                            f"sub-interface {ifname} l2xc target MTU {int(target_mtu)} does not match source MTU {int(sub_mtu)}"
+                            f"sub-interface {sub_ifname} l2xc target MTU {int(target_mtu)} does not match source MTU {int(sub_mtu)}"
                         )
                         result = False
                     if not is_l2xc_target_interface_unique(yaml, sub_iface["l2xc"]):
