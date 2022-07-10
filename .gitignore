@@ -1,6 +1,14 @@
-build/
-dist/
 *.swp
 *.out
 *exec
 __pycache__
+
+dist
+vppcfg.egg-info
+.pybuild
+debian/vppcfg
+debian/vppcfg.*.log
+debian/vppcfg.*.debhelper
+debian/.debhelper
+debian/files
+debian/vppcfg.substvars
