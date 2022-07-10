@@ -27,7 +27,7 @@ $ make install
 
 ## To build & install debian packaging
 $ make pkg-deb
-$ sudo deb -i ../vppcfg_0.0.1_amd64.deb
+$ ls -l ../vppcfg_*_amd64.deb
 ```
 
 ## Running
