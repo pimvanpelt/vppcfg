@@ -17,7 +17,7 @@ The functions in this file interact with the VPP API to modify certain
 interface metadata.
 """
 
-from vpp.vppapi import VPPApi
+from .vppapi import VPPApi
 
 
 class Applier(VPPApi):

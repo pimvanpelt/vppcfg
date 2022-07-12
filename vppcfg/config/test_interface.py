@@ -15,12 +15,13 @@
 """ Unit tests for interfaces """
 import unittest
 import yaml
-import config.interface as interface
+from . import interface
+from .unittestyaml import UnitTestYaml
 
 
 class TestInterfaceMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_interface.yaml", "r") as f:
+        with UnitTestYaml("test_interface.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_enumerators(self):

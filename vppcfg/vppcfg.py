@@ -15,12 +15,20 @@
 # -*- coding: utf-8 -*-
 """vppcfg is a utility to configure a running VPP Dataplane using YAML
 config files. See http://github.com/pimvanpelt/vppcfg/README.md for details. """
+# pylint: disable=duplicate-code
+import os
 import sys
 import logging
 import yaml
-from config import Validator
-from vpp.reconciler import Reconciler
-from vpp.dumper import Dumper
+
+# Ensure the paths are correct when we execute from the source tree
+try:
+    from vppcfg.config import Validator
+except ModuleNotFoundError:
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from vppcfg.config import Validator
+from vppcfg.vpp.reconciler import Reconciler
+from vppcfg.vpp.dumper import Dumper
 
 try:
     import argparse

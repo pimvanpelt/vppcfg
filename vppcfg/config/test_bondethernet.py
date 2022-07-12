@@ -15,12 +15,13 @@
 """ Unit tests for bondethernet """
 import unittest
 import yaml
-import config.bondethernet as bondethernet
+from . import bondethernet
+from .unittestyaml import UnitTestYaml
 
 
 class TestBondEthernetMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_bondethernet.yaml", "r") as f:
+        with UnitTestYaml("test_bondethernet.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):

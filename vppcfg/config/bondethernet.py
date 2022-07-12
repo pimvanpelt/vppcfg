@@ -13,8 +13,8 @@
 #
 """ A vppcfg configuration module that handles bondethernets """
 import logging
-from config import interface
-from config import mac
+from . import interface
+from . import mac
 
 
 def get_bondethernets(yaml):

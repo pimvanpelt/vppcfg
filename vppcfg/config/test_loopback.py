@@ -15,12 +15,13 @@
 """ Unit tests for loopbacks """
 import unittest
 import yaml
-import config.loopback as loopback
+from . import loopback
+from .unittestyaml import UnitTestYaml
 
 
 class TestLoopbackMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_loopback.yaml", "r") as f:
+        with UnitTestYaml("test_loopback.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_lcp_name(self):

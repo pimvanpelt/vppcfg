@@ -13,9 +13,9 @@
 #
 """ A vppcfg configuration module that validates loopbacks """
 import logging
-from config import lcp
-from config import address
-from config import mac
+from . import lcp
+from . import address
+from . import mac
 
 
 def get_loopbacks(yaml):
