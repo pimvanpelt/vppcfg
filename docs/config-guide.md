@@ -13,7 +13,7 @@ types of validation:
     to a running VPP. *Note*: Some semantic checks are stricter than VPP, because applying
     them may leave the dataplane in a non-recoverable state.
 
-For the curious, the Yamale syntax validation lives in [this schema](../schema.yaml).
+For the curious, the Yamale syntax validation lives in [this schema](../vppcfg/schema.yaml).
 If you want to get started quickly and don't mind cargo-culting, take a look at [this example](../example.yaml).
 
 ### Basic structure

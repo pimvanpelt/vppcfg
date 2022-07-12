@@ -19,14 +19,14 @@ metadata, and plan configuration changes towards a given YAML target configurati
 """
 import sys
 import logging
-from config import loopback
-from config import interface
-from config import bondethernet
-from config import bridgedomain
-from config import vxlan_tunnel
-from config import lcp
-from config import tap
-from vpp.vppapi import VPPApi
+from vppcfg.config import loopback
+from vppcfg.config import interface
+from vppcfg.config import bondethernet
+from vppcfg.config import bridgedomain
+from vppcfg.config import vxlan_tunnel
+from vppcfg.config import lcp
+from vppcfg.config import tap
+from .vppapi import VPPApi
 
 
 class Reconciler:

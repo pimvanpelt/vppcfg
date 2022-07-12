@@ -13,14 +13,14 @@
 #
 """ A vppcfg configuration module that validates interfaces """
 import logging
-from config import bondethernet
-from config import bridgedomain
-from config import loopback
-from config import vxlan_tunnel
-from config import lcp
-from config import address
-from config import mac
-from config import tap
+from . import bondethernet
+from . import bridgedomain
+from . import loopback
+from . import vxlan_tunnel
+from . import lcp
+from . import address
+from . import mac
+from . import tap
 
 
 def get_qinx_parent_by_name(yaml, ifname):

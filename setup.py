@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+"""vppcfg setuptools setup.py for pip and deb pkg installations"""
+from setuptools import setup
 
 setup(
     name="vppcfg",
@@ -17,5 +18,5 @@ setup(
             "vppcfg = vppcfg.vppcfg:main",
         ]
     },
-    include_package_data=True,
+    package_data={"vppcfg": ["*.yaml"]},
 )

@@ -13,8 +13,8 @@
 #
 """ A vppcfg configuration module that handles bridgedomains """
 import logging
-from config import interface
-from config import loopback
+from . import interface
+from . import loopback
 
 
 def get_bridgedomains(yaml):

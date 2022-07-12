@@ -19,8 +19,8 @@ interface metadata and write it to a YAML file.
 
 import sys
 import yaml
-from vpp.vppapi import VPPApi
-from config import bondethernet
+from vppcfg.config import bondethernet
+from .vppapi import VPPApi
 
 
 class Dumper(VPPApi):

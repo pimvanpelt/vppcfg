@@ -14,7 +14,7 @@
 # -*- coding: utf-8 -*-
 """ Unit tests for MAC addresses """
 import unittest
-import config.mac as mac
+from . import mac
 
 
 class TestMACMethods(unittest.TestCase):

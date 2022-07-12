@@ -15,13 +15,14 @@
 """ Unit tests for LCPs """
 import unittest
 import yaml
-import config.lcp as lcp
-import config.interface as interface
+from . import lcp
+from . import interface
+from .unittestyaml import UnitTestYaml
 
 
 class TestLCPMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_lcp.yaml", "r") as f:
+        with UnitTestYaml("test_lcp.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_enumerators(self):

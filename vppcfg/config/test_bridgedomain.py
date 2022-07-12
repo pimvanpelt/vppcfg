@@ -15,12 +15,13 @@
 """ Unit tests for bridgedomains """
 import unittest
 import yaml
-import config.bridgedomain as bridgedomain
+from . import bridgedomain
+from .unittestyaml import UnitTestYaml
 
 
 class TestBridgeDomainMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_bridgedomain.yaml", "r") as f:
+        with UnitTestYaml("test_bridgedomain.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):

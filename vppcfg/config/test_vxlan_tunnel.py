@@ -15,12 +15,13 @@
 """ Unit tests for vxlan_tunnels """
 import unittest
 import yaml
-import config.vxlan_tunnel as vxlan_tunnel
+from . import vxlan_tunnel
+from .unittestyaml import UnitTestYaml
 
 
 class TestVXLANMethods(unittest.TestCase):
     def setUp(self):
-        with open("unittest/test_vxlan_tunnel.yaml", "r") as f:
+        with UnitTestYaml("test_vxlan_tunnel.yaml") as f:
             self.cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def test_get_by_name(self):

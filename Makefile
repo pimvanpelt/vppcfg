@@ -25,6 +25,10 @@ install:
 pkg-deb:
 	dpkg-buildpackage -uc -us -b
 
+.PHONY: check-style
+check-style:
+	PYTHONPATH=./$(VPPCFG) pylint ./$(VPPCFG)
+
 .PHONY: uninstall
 uninstall:
 	sudo $(PIP) uninstall $(VPPCFG)

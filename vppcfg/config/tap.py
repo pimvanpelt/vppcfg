@@ -13,7 +13,7 @@
 #
 """ A vppcfg configuration module that validates taps """
 import logging
-from config import mac
+from . import mac
 
 
 def get_taps(yaml):

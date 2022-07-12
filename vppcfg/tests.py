@@ -14,13 +14,19 @@
 #
 # -*- coding: utf-8 -*-
 """ This is a unit test suite for vppcfg """
-
+# pylint: disable=duplicate-code
+import os
 import sys
 import glob
 import re
 import unittest
 import yaml
-from config import Validator
+
+try:
+    from vppcfg.config import Validator
+except ModuleNotFoundError:
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from vppcfg.config import Validator
 
 try:
     import argparse

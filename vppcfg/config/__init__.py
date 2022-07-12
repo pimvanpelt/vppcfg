@@ -32,12 +32,12 @@ except ImportError:
     sys.exit(-2)
 from yamale.validators import DefaultValidators, Validator
 
-from config.loopback import validate_loopbacks
-from config.bondethernet import validate_bondethernets
-from config.interface import validate_interfaces
-from config.bridgedomain import validate_bridgedomains
-from config.vxlan_tunnel import validate_vxlan_tunnels
-from config.tap import validate_taps
+from .loopback import validate_loopbacks
+from .bondethernet import validate_bondethernets
+from .interface import validate_interfaces
+from .bridgedomain import validate_bridgedomains
+from .vxlan_tunnel import validate_vxlan_tunnels
+from .tap import validate_taps
 
 
 class IPInterfaceWithPrefixLength(Validator):
@@ -104,13 +104,12 @@ class Validator:
         if self.schema:
             fname = self.schema
             self.logger.debug(f"Validating against --schema {fname}")
-        elif hasattr(sys, "_MEIPASS"):
-            ## See vppcfg.spec data_files that includes schema.yaml into the bundle
-            self.logger.debug("Validating against built-in schema")
-            fname = os.path.join(sys._MEIPASS, "schema.yaml")
         else:
-            fname = "./schema.yaml"
-            self.logger.debug(f"Validating against fallthrough default schema {fname}")
+            ## See setup.py data files that includes schema.yaml into the bundle
+            self.logger.debug("Validating against built-in schema")
+            fname = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "schema.yaml")
+            )
 
         if not os.path.isfile(fname):
             self.logger.error(f"Cannot file schema file: {fname}")
