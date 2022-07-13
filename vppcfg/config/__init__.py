@@ -30,7 +30,7 @@ try:
 except ImportError:
     print("ERROR: install yamale manually: sudo pip install yamale")
     sys.exit(-2)
-from yamale.validators import DefaultValidators, Validator
+from yamale import validators
 
 from .loopback import validate_loopbacks
 from .bondethernet import validate_bondethernets
@@ -40,7 +40,7 @@ from .vxlan_tunnel import validate_vxlan_tunnels
 from .tap import validate_taps
 
 
-class IPInterfaceWithPrefixLength(Validator):
+class IPInterfaceWithPrefixLength(validators.Validator):
     """Custom IPAddress config - takes IP/prefixlen as input:
     192.0.2.1/29 or 2001:db8::1/64 are correct. The PrefixLength
     is required, and must be a number (0-32 for IPv4 and 0-128 for
@@ -52,7 +52,7 @@ class IPInterfaceWithPrefixLength(Validator):
     def _is_valid(self, value):
         try:
             _network = ipaddress.ip_interface(value)
-        except:
+        except ValueError:
             return False
         if not isinstance(value, str):
             return False
@@ -99,8 +99,8 @@ class Validator:
         if not yaml:
             return ret_retval, ret_msgs
 
-        validators = DefaultValidators.copy()
-        validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
+        _validators = validators.DefaultValidators.copy()
+        _validators[IPInterfaceWithPrefixLength.tag] = IPInterfaceWithPrefixLength
         if self.schema:
             fname = self.schema
             self.logger.debug(f"Validating against --schema {fname}")
@@ -116,13 +116,13 @@ class Validator:
             return False, ret_msgs
 
         try:
-            schema = yamale.make_schema(fname, validators=validators)
+            schema = yamale.make_schema(fname, validators=_validators)
             data = yamale.make_data(content=str(yaml))
             yamale.validate(schema, data)
             self.logger.debug("Schema correctly validated by yamale")
-        except ValueError as e:
+        except yamale.YamaleError as err:
             ret_retval = False
-            for result in e.results:
+            for result in err.results:
                 for error in result.errors:
                     ret_msgs.extend([f"yamale: {error}"])
             return ret_retval, ret_msgs
