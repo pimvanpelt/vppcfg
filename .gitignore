@@ -12,3 +12,4 @@ debian/vppcfg.*.debhelper
 debian/.debhelper
 debian/files
 debian/vppcfg.substvars
+.*.~undo-tree~
