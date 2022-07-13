@@ -18,5 +18,6 @@ setup(
             "vppcfg = vppcfg.vppcfg:main",
         ]
     },
+    test_suite="vppcfg.config",
     package_data={"vppcfg": ["*.yaml"]},
 )
