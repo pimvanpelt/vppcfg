@@ -2,6 +2,3 @@
 
 %:
 	dh $@ --with python3 --buildsystem=pybuild --with systemd
-
-# TODO: fix test.py to that unit tests can be automagically called.
-override_dh_auto_test:
