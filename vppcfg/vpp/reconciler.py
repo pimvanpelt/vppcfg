@@ -448,16 +448,8 @@ class Reconciler:
         for idx, vpp_vxlan in self.vpp.cache["vxlan_tunnels"].items():
             vpp_ifname = self.vpp.cache["interfaces"][idx].interface_name
             config_ifname, config_iface = vxlan_tunnel.get_by_name(self.cfg, vpp_ifname)
-            if not config_iface:
+            if not config_iface or self.__vxlan_tunnel_has_diff(config_ifname):
                 self.prune_addresses(vpp_ifname, [])
-                cli = (
-                    f"create vxlan tunnel instance {vpp_vxlan.instance} "
-                    f"src {vpp_vxlan.src_address} dst {vpp_vxlan.dst_address} vni {vpp_vxlan.vni} del"
-                )
-                self.cli["prune"].append(cli)
-                removed_interfaces.append(vpp_ifname)
-                continue
-            if self.__vxlan_tunnel_has_diff(config_ifname):
                 cli = (
                     f"create vxlan tunnel instance {vpp_vxlan.instance} "
                     f"src {vpp_vxlan.src_address} dst {vpp_vxlan.dst_address} vni {vpp_vxlan.vni} del"
