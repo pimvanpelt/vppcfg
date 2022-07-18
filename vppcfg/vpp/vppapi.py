@@ -74,9 +74,9 @@ class VPPApi:
                 self.vpp.connect(self.clientname)
                 self.connected = True
                 break
-            except Exception as e:
+            except ConnectionError as err:
                 self.logger.warning(
-                    f"Could not connect to VPP (attempt {i+1}/{retries}): {e}"
+                    f"Could not connect to VPP (attempt {i+1}/{retries}): {err}"
                 )
                 time.sleep(1)
                 self.connected = False
@@ -224,9 +224,9 @@ class VPPApi:
                         )
                     self.cache["lcps"][lcp.phy_sw_if_index] = lcp
                 self.lcp_enabled = True
-        except:
+        except AttributeError as err:
             self.logger.warning(
-                "linux-cp not found, will not reconcile Linux Control Plane"
+                f"linux-cp not found, will not reconcile Linux Control Plane: {err}"
             )
 
         self.logger.debug("Retrieving interfaces")
