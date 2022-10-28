@@ -42,7 +42,7 @@ class Reconciler:
         self,
         cfg,
         vpp_api_socket="/run/vpp/api.sock",
-        vpp_json_dir="/usr/share/vpp/api/",
+        vpp_json_dir=None,
     ):
         self.logger = logging.getLogger("vppcfg.reconciler")
         self.logger.addHandler(logging.NullHandler())
