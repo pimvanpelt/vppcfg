@@ -30,7 +30,7 @@ class Applier(VPPApi):
     def __init__(
         self,
         vpp_api_socket="/run/vpp/api.sock",
-        vpp_json_dir="/usr/share/vpp/api/",
+        vpp_json_dir=None,
         clientname="vppcfg",
     ):
         VPPApi.__init__(self, vpp_api_socket, vpp_json_dir, clientname)

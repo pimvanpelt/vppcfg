@@ -9,7 +9,6 @@ setup(
         'importlib-metadata; python_version == "3.8"',
         "yamale",
         "netaddr",
-        "ipaddress",
         "vpp_papi",
     ],
     packages=["vppcfg", "vppcfg/config", "vppcfg/vpp"],
