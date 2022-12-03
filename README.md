@@ -10,7 +10,7 @@ If you're interested in helping, reach out to &lt;pim at ipng dot ch&gt; to disc
 
 ## Building
 
-This program expects Python3 and PIP to be installed. It's known to work on Debian Bullseys and
+This program expects Python3 and PIP to be installed. It's known to work on Debian Bullseye and
 Ubuntu Focal/Jammy.
 
 ```
