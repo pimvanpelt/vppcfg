@@ -5,17 +5,21 @@ bondethernets:
 
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     mtu: 9000
     description: "LAG #1"
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     mtu: 9000
     description: "LAG #2"
 
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     mac: 02:ff:ba:12:00:00
     lcp: "ice0"
 
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     lcp: "ice1"
     mtu: 9000
     addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]

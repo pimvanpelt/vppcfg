@@ -447,6 +447,10 @@ def validate_interfaces(yaml):
             )
             result = False
 
+        if "device-type" in iface and not is_phy(yaml, ifname):
+            msgs.append(f"interface {ifname} is not a PHY, cannot set device-type")
+            result = False
+
         iface_mtu = get_mtu(yaml, ifname)
         iface_lcp = get_lcp(yaml, ifname)
         iface_address = has_address(yaml, ifname)

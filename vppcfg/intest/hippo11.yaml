@@ -4,17 +4,21 @@ bondethernets:
 
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     mtu: 9000
     description: "LAG #1"
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     mtu: 9000
     description: "LAG #2"
 
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     mtu: 1500
     description: "bridged with tap"
 
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     description: Not Used
 
   BondEthernet0:

@@ -1,0 +1,44 @@
+test:
+  description: "Device types can be set on physical interface only"
+  errors:
+    expected:
+     - ".*interface BondEthernet0 is not a PHY, cannot set device-type"
+     - ".*interface vxlan_tunnel0 is not a PHY, cannot set device-type"
+    count: 2
+---
+bondethernets:
+  BondEthernet0:
+    mac: 00:01:02:03:04:05
+    description: "Infra: xsw0.lab.ipng.ch LACP"
+    interfaces: [ GigabitEthernet2/0/0, GigabitEthernet2/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    device-type: 'dpdk'
+
+  GigabitEthernet2/0/0:
+    description: "Infra: LAG to xsw0"
+
+  GigabitEthernet2/0/1:
+    description: "Infra: LAG to xsw1"
+
+  BondEthernet0:
+    device-type: 'dpdk'  ## bond-ethernets cannot have device-type set
+    description: "Bond, James Bond!"
+
+  vxlan_tunnel0:
+    device-type: 'dpdk'
+    mtu: 1500
+
+vxlan_tunnels:
+  vxlan_tunnel0:
+    local: 192.0.2.1
+    remote: 192.0.2.2
+    vni: 100
+
+loopbacks:
+  loop0:
+    description: "Core: example.ipng.ch"
+    mtu: 9216
+    lcp: "loop0"
+    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]

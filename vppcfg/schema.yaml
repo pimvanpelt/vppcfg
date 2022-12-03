@@ -50,6 +50,7 @@ interface:
   sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
   l2xc: str(required=False)
   state: enum('up', 'down', required=False)
+  device-type: enum('dpdk', required=False)
 ---
 sub-interface:
   description: str(exclude='\'"',len=64,required=False)

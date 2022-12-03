@@ -1,5 +1,6 @@
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     sub-interfaces:
       100:
         description: "Sub-int"
@@ -20,6 +21,7 @@ interfaces:
           exact-match: true
 
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     sub-interfaces:
       100:
         description: "Sub-int"
@@ -34,6 +36,7 @@ interfaces:
           inner-dot1q: 100
 
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     sub-interfaces:
       100:
         description: "Sub-int"
@@ -48,6 +51,7 @@ interfaces:
           inner-dot1q: 100
 
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     sub-interfaces:
       100:
         description: "Sub-int"

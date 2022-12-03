@@ -1,5 +1,6 @@
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:
@@ -8,8 +9,10 @@ interfaces:
       101:
         mtu: 3000
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     description: Not Used
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:
@@ -21,6 +24,7 @@ interfaces:
           inner-dot1q: 200
           exact-match: True
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:

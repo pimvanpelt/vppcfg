@@ -1,5 +1,6 @@
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     mac: 12:00:ba:03:00:00
     mtu: 9216
     sub-interfaces:
@@ -7,8 +8,10 @@ interfaces:
         mtu: 2000
         l2xc: HundredGigabitEthernet13/0/1.100
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     description: Not Used
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:
@@ -20,6 +23,7 @@ interfaces:
           inner-dot1q: 200
           exact-match: True
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:

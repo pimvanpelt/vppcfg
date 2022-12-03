@@ -1,5 +1,6 @@
 interfaces:
   GigabitEthernet3/0/0:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:
@@ -9,9 +10,11 @@ interfaces:
         mtu: 1500
         l2xc: vxlan_tunnel1
   GigabitEthernet3/0/1:
+    device-type: "dpdk"
     lcp: "e3-0-1"
     addresses: [ 10.0.0.1/24 ]
   HundredGigabitEthernet13/0/0:
+    device-type: "dpdk"
     mtu: 9216
     sub-interfaces:
       100:
@@ -23,6 +26,7 @@ interfaces:
           inner-dot1q: 200
           exact-match: True
   HundredGigabitEthernet13/0/1:
+    device-type: "dpdk"
     mtu: 9216
   vxlan_tunnel0:
     mtu: 2000
