@@ -23,7 +23,7 @@ import fnmatch
 import logging
 import socket
 import time
-from vpp_papi import VPPApiClient
+from vpp_papi import VPPApiClient, VPPApiJSONFiles
 
 
 class VPPApi:
@@ -32,11 +32,14 @@ class VPPApi:
     def __init__(
         self,
         vpp_api_socket="/run/vpp/api.sock",
-        vpp_json_dir="/usr/share/vpp/api/",
+        vpp_json_dir=None,
         clientname="vppcfg",
     ):
         self.logger = logging.getLogger("vppcfg.vppapi")
         self.logger.addHandler(logging.NullHandler())
+
+        if vpp_json_dir is None:
+            vpp_json_dir = VPPApiJSONFiles.find_api_dir([])
 
         if not os.path.exists(vpp_api_socket):
             self.logger.error(f"VPP api socket file not found: {vpp_api_socket}")
@@ -58,11 +61,7 @@ class VPPApi:
             return True
 
         # construct a list of all the json api files
-        jsonfiles = []
-        for root, _dirnames, filenames in os.walk(self.vpp_json_dir):
-            for filename in fnmatch.filter(filenames, "*.api.json"):
-                jsonfiles.append(os.path.join(root, filename))
-
+        jsonfiles = VPPApiJSONFiles.find_api_files(api_dir=self.vpp_json_dir)
         if not jsonfiles:
             self.logger.error("no json api files found")
             return False
