@@ -6,7 +6,7 @@ setup(
     version="0.0.3",
     install_requires=[
         "requests",
-        'importlib-metadata; python_version > "3.8"',
+        'importlib-metadata; python_version >= "3.8"',
         "yamale",
         "netaddr",
         "vpp_papi",
