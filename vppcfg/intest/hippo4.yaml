@@ -5,10 +5,10 @@ interfaces:
     sub-interfaces:
       100:
         mtu: 2000
-        l2xc: HundredGigabitEthernet12/0/1.100
+        l2xc: HundredGigabitEthernet13/0/1.100
   GigabitEthernet3/0/1:
     description: Not Used
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     mtu: 9216
     sub-interfaces:
       100:
@@ -19,7 +19,7 @@ interfaces:
           dot1q: 100
           inner-dot1q: 200
           exact-match: True
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     mtu: 9216
     sub-interfaces:
       100:
@@ -30,5 +30,5 @@ bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 2000
-    interfaces: [ HundredGigabitEthernet12/0/0.101 ]
+    interfaces: [ HundredGigabitEthernet13/0/0.101 ]
 

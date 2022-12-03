@@ -10,7 +10,7 @@ interfaces:
   GigabitEthernet3/0/1:
     lcp: "e3-0-1"
     addresses: [ 10.0.0.1/24 ]
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     mtu: 9216
     sub-interfaces:
       100:
@@ -21,7 +21,7 @@ interfaces:
           dot1q: 100
           inner-dot1q: 200
           exact-match: True
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     mtu: 9216
   vxlan_tunnel0:
     mtu: 2000
@@ -33,7 +33,7 @@ bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 3000
-    interfaces: [ HundredGigabitEthernet12/0/0.101, GigabitEthernet3/0/0.101, vxlan_tunnel1 ]
+    interfaces: [ HundredGigabitEthernet13/0/0.101, GigabitEthernet3/0/0.101, vxlan_tunnel1 ]
 
 vxlan_tunnels:
   vxlan_tunnel0:

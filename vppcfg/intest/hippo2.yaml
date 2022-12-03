@@ -33,7 +33,7 @@ interfaces:
           dot1ad: 100
           inner-dot1q: 100
 
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     sub-interfaces:
       100:
         description: "Sub-int"
@@ -47,7 +47,7 @@ interfaces:
           dot1ad: 100
           inner-dot1q: 100
 
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     sub-interfaces:
       100:
         description: "Sub-int"

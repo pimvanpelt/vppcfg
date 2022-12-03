@@ -10,11 +10,11 @@ interfaces:
     mtu: 9000
     description: "LAG #2"
 
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     mtu: 1500
     description: "bridged with tap"
 
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     description: Not Used
 
   BondEthernet0:
@@ -56,7 +56,7 @@ bridgedomains:
     description: "Bridge Domain 100"
     mtu: 1500
     bvi: loop100
-    interfaces: [ HundredGigabitEthernet12/0/0, tap100 ]
+    interfaces: [ HundredGigabitEthernet13/0/0, tap100 ]
 
 taps:
   tap100:

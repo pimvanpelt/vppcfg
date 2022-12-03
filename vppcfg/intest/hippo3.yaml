@@ -11,9 +11,9 @@ interfaces:
   GigabitEthernet3/0/1:
     mtu: 9000
     description: LAG
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     mtu: 2500
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     description: Not Used
 
   BondEthernet1:
@@ -47,5 +47,5 @@ bridgedomains:
   bd10:
     description: "Bridge Domain 10"
     mtu: 2500
-    interfaces: [ BondEthernet1.203, HundredGigabitEthernet12/0/0 ]
+    interfaces: [ BondEthernet1.203, HundredGigabitEthernet13/0/0 ]
 

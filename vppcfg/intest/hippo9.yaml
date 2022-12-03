@@ -11,11 +11,11 @@ interfaces:
     mtu: 9000
     description: "LAG #2"
 
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     mac: 02:ff:ba:12:00:00
     lcp: "ice0"
 
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     lcp: "ice1"
     mtu: 9000
     addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]

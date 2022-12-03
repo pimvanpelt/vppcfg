@@ -12,7 +12,7 @@ interfaces:
     mtu: 9000
     description: "LAG #2"
 
-  HundredGigabitEthernet12/0/0:
+  HundredGigabitEthernet13/0/0:
     lcp: "ice0"
     mtu: 9000
     addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]
@@ -31,7 +31,7 @@ interfaces:
           inner-dot1q: 1000
           exact-match: True
 
-  HundredGigabitEthernet12/0/1:
+  HundredGigabitEthernet13/0/1:
     mtu: 2000
     description: "Bridged"
 
@@ -81,7 +81,7 @@ bridgedomains:
   bd1:
     mtu: 2000
     bvi: loop1
-    interfaces: [ BondEthernet0.500, BondEthernet0.501, HundredGigabitEthernet12/0/1, vxlan_tunnel1 ]
+    interfaces: [ BondEthernet0.500, BondEthernet0.501, HundredGigabitEthernet13/0/1, vxlan_tunnel1 ]
   bd11:
     mtu: 1500
 
