@@ -8,7 +8,7 @@ WIPE=dist $(VPPCFG).egg-info .pybuild debian/vppcfg debian/vppcfg.*.log
 WIPE+=debian/vppcfg.*.debhelper debian/.debhelper debian/files
 WIPE+=debian/vppcfg.substvars
 WHL_INSTALL=dist/$(VPPCFG)-$(VERSION)-py3-none-any.whl
-TESTS=$(VPPCFG)/tests.py
+TESTS=tests.py
 
 .PHONY: build
 build:
@@ -32,7 +32,7 @@ check-style:
 
 .PHONY: test
 test:
-	PYTHONPATH=./$(VPPCFG) $(PYTHON) $(TESTS)
+	@cd $(VPPCFG); PYTHONPATH=./$(VPPCFG) $(PYTHON) tests.py
 
 .PHONY: uninstall
 uninstall:
