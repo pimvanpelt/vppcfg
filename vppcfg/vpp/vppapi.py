@@ -128,13 +128,14 @@ class VPPApi:
 
     def cache_remove_bondethernet_member(self, ifname):
         """Removes the bonderthernet member interface, identified by name, from the VPP config cache"""
-        if not ifname in self.cache["interface_names"]:
+
+        iface = self.get_interface_by_name(ifname)
+        if not iface:
             self.logger.warning(
                 f"Trying to remove a bondethernet member interface which is not in the config: {ifname}"
             )
             return False
 
-        iface = self.cache["interface_names"][ifname]
         for bond_idx, members in self.cache["bondethernet_members"].items():
             if iface.sw_if_index in members:
                 self.cache["bondethernet_members"][bond_idx].remove(iface.sw_if_index)
@@ -143,36 +144,40 @@ class VPPApi:
 
     def cache_remove_l2xc(self, ifname):
         """Remvoes the l2xc from the VPP config cache"""
-        if not ifname in self.cache["interface_names"]:
+
+        iface = self.get_interface_by_name(ifname)
+        if not iface:
             self.logger.warning(
                 f"Trying to remove an L2XC which is not in the config: {ifname}"
             )
             return False
-        iface = self.cache["interface_names"][ifname]
+
         self.cache["l2xcs"].pop(iface.sw_if_index, None)
         return True
 
     def cache_remove_vxlan_tunnel(self, ifname):
         """Removes a vxlan_tunnel from the VPP config cache"""
-        if not ifname in self.cache["interface_names"]:
+
+        iface = self.get_interface_by_name(ifname)
+        if not iface:
             self.logger.warning(
                 f"Trying to remove a VXLAN Tunnel which is not in the config: {ifname}"
             )
             return False
 
-        iface = self.cache["interface_names"][ifname]
         self.cache["vxlan_tunnels"].pop(iface.sw_if_index, None)
         return True
 
     def cache_remove_interface(self, ifname):
         """Removes the interface, identified by name, from the VPP config cache"""
-        if not ifname in self.cache["interface_names"]:
+
+        iface = self.get_interface_by_name(ifname)
+        if not iface:
             self.logger.warning(
                 f"Trying to remove an interface which is not in the config: {ifname}"
             )
             return False
 
-        iface = self.cache["interface_names"][ifname]
         del self.cache["interfaces"][iface.sw_if_index]
         if len(self.cache["interface_addresses"][iface.sw_if_index]) > 0:
             self.logger.warning(f"Not all addresses were removed on {ifname}")
@@ -219,7 +224,7 @@ class VPPApi:
         api_response = self.vpp.api.sw_interface_dump()
         for iface in api_response:
             self.cache["interfaces"][iface.sw_if_index] = iface
-            self.cache["interface_names"][iface.interface_name] = iface
+            self.cache["interface_names"][iface.interface_name] = iface.sw_if_index
             self.cache["interface_addresses"][iface.sw_if_index] = []
             self.logger.debug(f"Retrieving IPv4 addresses for {iface.interface_name}")
             ipr = self.vpp.api.ip_address_dump(
@@ -282,6 +287,15 @@ class VPPApi:
                 self.logger.warning(f"Interface {ifname} does not exist in VPP")
                 ret = False
         return ret
+
+    def get_interface_by_name(self, name):
+        """Return the VPP interface specified by name, or None if it cannot be found"""
+        try:
+            idx = self.cache["interface_names"][name]
+            return self.cache["interfaces"][idx]
+        except KeyError:
+            pass
+        return None
 
     def get_sub_interfaces(self):
         """Return all interfaces which have a sub-id and one or more tags"""
@@ -362,11 +376,9 @@ class VPPApi:
     def tap_is_lcp(self, tap_ifname):
         """Returns True if the given tap_ifname is a TAP interface belonging to an LCP,
         or False otherwise."""
-        if not tap_ifname in self.cache["interface_names"]:
-            return False
 
-        vpp_iface = self.cache["interface_names"][tap_ifname]
-        if not vpp_iface.interface_dev_type == "virtio":
+        vpp_iface = self.get_interface_by_name(tap_ifname)
+        if not vpp_iface or not vpp_iface.interface_dev_type == "virtio":
             return False
 
         for _idx, lcp in self.cache["lcps"].items():
