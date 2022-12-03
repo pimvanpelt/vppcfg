@@ -1015,7 +1015,10 @@ class Reconciler:
                 )
                 member_iface = self.vpp.get_interface_by_name(member_ifname)
                 if not member_iface or member_ifname not in vpp_members:
-                    if len(vpp_members) == 0:
+                    if (
+                        len(vpp_members) == 0
+                        and member_iface.l2_address != "00:00:00:00:00:00"
+                    ):
                         bondmac = member_iface.l2_address
                     cli = f"bond add {config_bond_ifname} {member_iface.interface_name}"
                     self.cli["sync"].append(cli)

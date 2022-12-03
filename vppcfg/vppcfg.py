@@ -131,6 +131,12 @@ def main():
         help="""YAML configuration file for vppcfg""",
     )
     plan_p.add_argument(
+        "--novpp",
+        dest="novpp",
+        action="store_true",
+        help="""Don't query VPP API, assume 'empty' dataplane config""",
+    )
+    plan_p.add_argument(
         "-o",
         "--output",
         dest="outfile",
@@ -238,22 +244,26 @@ def main():
         sys.exit(0)
 
     reconciler = Reconciler(cfg, **opt_kwargs)
-    if not reconciler.vpp.readconfig():
-        sys.exit(-3)
+    if args.novpp:
+        if not reconciler.vpp.mockconfig(cfg):
+            sys.exit(-7)
+    else:
+        if not reconciler.vpp.readconfig():
+            sys.exit(-3)
 
-    if not reconciler.phys_exist_in_vpp():
-        logging.error("Not all PHYs in the config exist in VPP")
-        sys.exit(-4)
+        if not reconciler.phys_exist_in_vpp():
+            logging.error("Not all PHYs in the config exist in VPP")
+            sys.exit(-4)
 
-    if not reconciler.phys_exist_in_config():
-        logging.error("Not all PHYs in VPP exist in the config")
-        sys.exit(-5)
+        if not reconciler.phys_exist_in_config():
+            logging.error("Not all PHYs in VPP exist in the config")
+            sys.exit(-5)
 
-    if not reconciler.lcps_exist_with_lcp_enabled():
-        logging.error(
-            "Linux Control Plane is needed, but linux-cp API is not available"
-        )
-        sys.exit(-6)
+        if not reconciler.lcps_exist_with_lcp_enabled():
+            logging.error(
+                "Linux Control Plane is needed, but linux-cp API is not available"
+            )
+            sys.exit(-6)
 
     failed = False
     if not reconciler.prune():

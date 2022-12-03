@@ -218,6 +218,9 @@ a set of CLI commands that could be pasted into a `vppctl` shell in the order th
 Alternatively, the output file can be consumed by VPP by issuing `vppctl exec <filename>`, noting
 that the filename has to be an absolute path.
 
+For an in-depth discussion on path-planning and how `vppcfg` operates, see
+[this post](https://ipng.ch/s/articles/2022/04/02/vppcfg-2.html).
+
 Users are not encouraged to program VPP this way (see the **apply** module for that), however
 for the sake of completeness:
 
@@ -241,8 +244,32 @@ $ vppcfg plan -c example.yaml
 [INFO    ] root.main: Planning succeeded
 ```
 
-For an in-depth discussion on path-planning and how `vppcfg` operates, see
-[this post](https://ipng.ch/s/articles/2022/04/02/vppcfg-2.html).
+#### Stateless planning
+
+A special feature of `vppcfg` is to plan a configuration without reading from the VPP Dataplane.
+In this mode, the configuration file is read and validated in the same way as `check` or `plan`,
+but then instead of retrieving the running state from the VPP API, a state is re-created using
+the physical interfaces specified in the YAML config. This is useful for operators who wish to
+pre-compute a configuration snippet and include it in VPP's `startup.conf`, like so:
+
+```
+$ mkdir /etc/vpp/config/
+$ cat << EOF > /etc/vpp/config/bootstrap.vpp
+exec /etc/vpp/config/head.vpp
+exec /etc/vpp/config/vppcfg.vpp
+exec /etc/vpp/config/tail.vpp
+EOF
+
+$ touch /etc/vpp/config/head.vpp /etc/vpp/config/tail.vpp
+$ vppcfg plan --novpp -c /etc/vpp/vppcfg.yaml -o /etc/vpp/config/vppcfg.vpp
+```
+
+After adding `unix { startup /etc/vpp/config/bootstrap.vpp }`, the VPP dataplane will execute
+all of the commands it finds, so in turn executing `head.vpp`, then the generated `vppcfg.vpp`
+and finally `tail.vpp`. This pattern is useful to be able to pre-flight set up the dataplane
+with `head.vpp` (think of things like custom logging, plugin defaults, DPDK affinity, and so on),
+then letting `vppcfg` do its part, and finally leaving the ability to also program the dataplane
+with things that `vppcfg` does not (yet) support in `tail.vpp`.
 
 ### vppcfg apply
 

@@ -19,11 +19,9 @@ derived classes VPPApiDumper() and VPPApiApplier()
 """
 
 import os
-import fnmatch
 import logging
-import socket
 import time
-from vpp_papi import VPPApiClient, VPPApiJSONFiles
+from vpp_papi import VPPApiClient, VPPApiJSONFiles, MACAddress
 
 
 class VPPApi:
@@ -41,23 +39,34 @@ class VPPApi:
         self.vpp_api_socket = vpp_api_socket
         self.vpp_json_dir = vpp_json_dir
         self.vpp_jsonfiles = []
+        self.vpp_messages = {}
         self.connected = False
         self.clientname = clientname
         self.vpp = None
+        self.cache_read = False
         self.cache_clear()
         self.lcp_enabled = False
 
         if self.vpp_json_dir is None:
             self.vpp_json_dir = VPPApiJSONFiles.find_api_dir([])
         elif not os.path.isdir(self.vpp_json_dir):
-            self.logger.error(f"VPP api json directory not found: {self.vpp_json_dir}")
-            return False
+            self.logger.error(f"VPP API JSON directory not found: {self.vpp_json_dir}")
 
-        # construct a list of all the json api files
+        # Construct a list of all the JSON API files
         self.vpp_jsonfiles = VPPApiJSONFiles.find_api_files(api_dir=self.vpp_json_dir)
         if not self.vpp_jsonfiles:
-            self.logger.error("no json api files found")
-            return False
+            self.logger.error("No JSON API files found")
+
+        # Enumerate all VPPMessage signatures from the JSON API files, and give their
+        # API namedtuple defaults so creating instances can set only those fields which
+        # are relevant.
+        for json_filename in self.vpp_jsonfiles:
+            with open(json_filename, "r", encoding="utf-8") as file_handle:
+                for name, msg in VPPApiJSONFiles.process_json_file(file_handle)[
+                    0
+                ].items():
+                    msg.tuple.__new__.__defaults__ = (None,) * len(msg.tuple._fields)
+                    self.vpp_messages[name] = msg
 
     def connect(self, retries=30):
         """Connect to the VPP Dataplane, if we're not already connected"""
@@ -199,6 +208,82 @@ class VPPApi:
                 del self.cache["bondethernet_members"][iface.sw_if_index]
         self.cache["bondethernets"].pop(iface.sw_if_index, None)
         self.cache["taps"].pop(iface.sw_if_index, None)
+        return True
+
+    def mockconfig(self, yaml_config):
+        """Mock a minimal configuration cache without talking to a running VPP Dataplane, by
+        enumerating the 'interfaces' scope from yaml_config"""
+
+        if not "interfaces" in yaml_config:
+            self.logger.error(f"YAML config does not contain any interfaces")
+            return False
+        self.logger.debug(f"config: {yaml_config['interfaces']}")
+
+        self.cache_clear()
+        ## Add mock local0
+        idx = 0
+        self.cache["interfaces"][idx] = self.vpp_messages["sw_interface_details"].tuple(
+            sw_if_index=idx,
+            sup_sw_if_index=idx,
+            l2_address=MACAddress("00:00:00:00:00:00"),
+            flags=0,
+            type=0,
+            link_duplex=0,
+            link_speed=0,
+            sub_id=0,
+            sub_number_of_tags=0,
+            sub_outer_vlan_id=0,
+            sub_inner_vlan_id=0,
+            sub_if_flags=0,
+            vtr_op=0,
+            vtr_push_dot1q=0,
+            vtr_tag1=0,
+            vtr_tag2=0,
+            outer_tag=0,
+            link_mtu=0,
+            mtu=[0, 0, 0, 0],
+            interface_name="local0",
+            interface_dev_type="local",
+            tag="mock",
+        )
+        ## Add mock PHYs
+        for ifname, iface in yaml_config["interfaces"].items():
+            if not "device-type" in iface or iface["device-type"] not in ["dpdk"]:
+                continue
+            idx += 1
+            self.cache["interfaces"][idx] = self.vpp_messages[
+                "sw_interface_details"
+            ].tuple(
+                sw_if_index=idx,
+                sup_sw_if_index=idx,
+                l2_address=MACAddress("00:00:00:00:00:00"),
+                flags=0,
+                type=0,
+                link_duplex=0,
+                link_speed=0,
+                sub_id=0,
+                sub_number_of_tags=0,
+                sub_outer_vlan_id=0,
+                sub_inner_vlan_id=0,
+                sub_if_flags=0,
+                vtr_op=0,
+                vtr_push_dot1q=0,
+                vtr_tag1=0,
+                vtr_tag2=0,
+                outer_tag=0,
+                link_mtu=64,
+                mtu=[64, 0, 0, 0],
+                interface_name=ifname,
+                interface_dev_type=iface["device-type"],
+                tag="mock",
+            )
+
+        ## Create interface_names and interface_address indexes
+        for idx, iface in self.cache["interfaces"].items():
+            self.cache["interface_names"][iface.interface_name] = idx
+            self.cache["interface_addresses"][idx] = []
+
+        self.logger.debug(f"cache(mock): {self.cache}")
         return True
 
     def readconfig(self):
