@@ -209,19 +209,6 @@ class VPPApi:
             api_response = self.vpp.api.lcp_itf_pair_get()
             if isinstance(api_response, tuple) and api_response[0].retval == 0:
                 for lcp in api_response[1]:
-                    if lcp.phy_sw_if_index > 65535 or lcp.host_sw_if_index > 65535:
-                        ## Work around endianness bug: https://gerrit.fd.io/r/c/vpp/+/35479
-                        ## TODO(pim) - remove this when 22.06 ships
-                        lcp = lcp._replace(
-                            phy_sw_if_index=socket.ntohl(lcp.phy_sw_if_index)
-                        )
-                        lcp = lcp._replace(
-                            host_sw_if_index=socket.ntohl(lcp.host_sw_if_index)
-                        )
-                        lcp = lcp._replace(vif_index=socket.ntohl(lcp.vif_index))
-                        self.logger.warning(
-                            f"LCP workaround for endianness issue on {lcp.host_if_name}"
-                        )
                     self.cache["lcps"][lcp.phy_sw_if_index] = lcp
                 self.lcp_enabled = True
         except AttributeError as err:
