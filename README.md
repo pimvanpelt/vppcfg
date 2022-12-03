@@ -10,7 +10,8 @@ If you're interested in helping, reach out to &lt;pim at ipng dot ch&gt; to disc
 
 ## Building
 
-This program expects Python3 and PIP to be installed. It's known to work on OpenBSD and Debian.
+This program expects Python3 and PIP to be installed. It's known to work on Debian Bullseys and
+Ubuntu Focal/Jammy.
 
 ```
 ## Install python build dependencies 
