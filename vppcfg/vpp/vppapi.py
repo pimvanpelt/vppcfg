@@ -51,8 +51,7 @@ class VPPApi:
         self.connected = False
         self.clientname = clientname
         self.vpp = None
-        self.cache = self.cache_clear()
-        self.cache_read = False
+        self.cache_clear()
         self.lcp_enabled = False
 
     def connect(self, retries=30):
@@ -99,9 +98,9 @@ class VPPApi:
         return True
 
     def cache_clear(self):
-        """Remove the cached VPP configuration elements and return an empty dictionary"""
+        """Remove the cached VPP configuration elements and return True"""
         self.cache_read = False
-        return {
+        self.cache = {
             "lcps": {},
             "interface_names": {},
             "interfaces": {},
@@ -113,6 +112,7 @@ class VPPApi:
             "l2xcs": {},
             "taps": {},
         }
+        return True
 
     def cache_remove_lcp(self, lcpname):
         """Removes the LCP and TAP interface, identified by lcpname, from the VPP config cache"""
@@ -204,7 +204,7 @@ class VPPApi:
             self.logger.error("Could not connect to VPP")
             return False
 
-        self.cache_read = False
+        self.cache_clear()
 
         ## Workaround LCPng and linux-cp, in order.
         self.lcp_enabled = False
