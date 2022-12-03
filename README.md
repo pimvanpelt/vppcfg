@@ -17,7 +17,7 @@ This program expects Python3 and PIP to be installed. It's known to work on Open
 $ make install-deps
 
 ## Ensure all unittests pass.
-$ vppcfg/tests.py -d -t vppcfg/unittest/yaml/*.yaml
+$ make test
 
 ## Build vppcfg
 $ make build
