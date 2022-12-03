@@ -38,34 +38,39 @@ class VPPApi:
         self.logger = logging.getLogger("vppcfg.vppapi")
         self.logger.addHandler(logging.NullHandler())
 
-        if vpp_json_dir is None:
-            vpp_json_dir = VPPApiJSONFiles.find_api_dir([])
-
-        if not os.path.exists(vpp_api_socket):
-            self.logger.error(f"VPP api socket file not found: {vpp_api_socket}")
-        if not os.path.isdir(vpp_json_dir):
-            self.logger.error(f"VPP api json directory not found: {vpp_json_dir}")
-
         self.vpp_api_socket = vpp_api_socket
         self.vpp_json_dir = vpp_json_dir
+        self.vpp_jsonfiles = []
         self.connected = False
         self.clientname = clientname
         self.vpp = None
         self.cache_clear()
         self.lcp_enabled = False
 
+        if self.vpp_json_dir is None:
+            self.vpp_json_dir = VPPApiJSONFiles.find_api_dir([])
+        elif not os.path.isdir(self.vpp_json_dir):
+            self.logger.error(f"VPP api json directory not found: {self.vpp_json_dir}")
+            return False
+
+        # construct a list of all the json api files
+        self.vpp_jsonfiles = VPPApiJSONFiles.find_api_files(api_dir=self.vpp_json_dir)
+        if not self.vpp_jsonfiles:
+            self.logger.error("no json api files found")
+            return False
+
     def connect(self, retries=30):
         """Connect to the VPP Dataplane, if we're not already connected"""
         if self.connected:
             return True
 
-        # construct a list of all the json api files
-        jsonfiles = VPPApiJSONFiles.find_api_files(api_dir=self.vpp_json_dir)
-        if not jsonfiles:
-            self.logger.error("no json api files found")
+        if not os.path.exists(self.vpp_api_socket):
+            self.logger.error(f"VPP api socket file not found: {self.vpp_api_socket}")
             return False
 
-        self.vpp = VPPApiClient(apifiles=jsonfiles, server_address=self.vpp_api_socket)
+        self.vpp = VPPApiClient(
+            apifiles=self.vpp_jsonfiles, server_address=self.vpp_api_socket
+        )
         self.logger.debug("Connecting to VPP")
         for i in range(retries):
             try:
@@ -206,7 +211,6 @@ class VPPApi:
 
         self.cache_clear()
 
-        ## Workaround LCPng and linux-cp, in order.
         self.lcp_enabled = False
         try:
             self.logger.debug("Retrieving LCPs")
