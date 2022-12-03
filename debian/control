@@ -7,6 +7,6 @@ Standards-Version: 3.9.5
 
 Package: vppcfg
 Architecture: any
-Pre-Depends: dpkg (>= 1.16.1), python3.8, ${misc:Pre-Depends}
+Pre-Depends: dpkg (>= 1.16.1), python3 (>= 3.8), ${misc:Pre-Depends}
 Depends: python3-netaddr, python3-ipaddr, ${misc:Depends}
 Description: A configuration tool for FD.io VPP

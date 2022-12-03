@@ -1,4 +1,4 @@
-VERSION=0.0.2
+VERSION=0.0.3
 VPPCFG:=vppcfg
 PYTHON?=python3
 PIP?=pip

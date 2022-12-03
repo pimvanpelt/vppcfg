@@ -1,3 +1,15 @@
+vppcfg (0.0.3) unstable; urgency=low
+
+  Feature release:
+    * Allow the ability to set --novpp flag on planners. See user-guide for
+      details.
+    * Add device-type to the schema, which allows the configuratoin to specify
+      'dpdk' type interfaces. This paves the way for RDMA and AVF interfaces
+      in a later release.
+    * Some small bugfixes and refactors
+    * Lint: address a few pylint errors
+
+ -- Pim van Pelt <pim@ipng.nl>  Sat, 03 Dec 2022 14:15:00 +0000
 vppcfg (0.0.2) unstable; urgency=low
 
   Bugfix release:
