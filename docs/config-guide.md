@@ -358,3 +358,79 @@ interfaces:
            dot1q: 200
            exact-match: False
 ```
+
+### Access Control Lists
+
+In VPP, a common firewall function is provided by the `acl-plugin`. The anatomy of this plugin
+is as follows. First, an ACL consists of one or more Access Control Elements or `ACE`s. These
+can match on IPv4 or IPv6 source/destination, an IP protocol, and then for TCP/UDP a range
+of source- and destination ports, and for ICMP a range of ICMP type and codes. Any matching
+packets then either perform an action of `permit` or `deny` (for stateless) or `permit+reflect`
+(stateful). The full syntax is as follows:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***terms***: A list of Access Control Elements:
+    *   ***action***: What to do upon match, can be either `permit`, `deny` or `permit+reflect`.
+        This is the only required field.
+    *   ***family***: Which IP address family to match, can be either `ipv4`, or `ipv6` or `any`,
+        which is the default. If `any` is used, this term will also operate on any source and
+        destination addresses, and it will emit two ACEs, one for each address family.
+    *   ***source***: The IPv4 or IPv6 source prefix, eg. `192.0.2.0/24` or `2001:db8::/64`. If
+        left empty, this means any (ie. `0.0.0.0/0` or `::/0`).
+    *   ***destination***: Similar to `source`, but for the destination field of the packets.
+    *   ***protocol***: The L4 protocol, can be either a numeric value (eg. `6`), or a symbolic
+        string value from `/etc/protocols` (eg. `tcp`). If omitted, only L3 matches are performed.
+    *   ***source-port***: When `TCP` or `UDP` are specified, this field specified which source
+        port(s) are matched. It can be either a numeric value (eg. `80`), a symbolic string value
+        from `/etc/services` (eg. `www`), a numeric range with start and/or end ranges (eg. `-1024`
+        for all ports from 0-1024 inclusive; or `1024-` for all ports from 1024-65535 inclusive,
+        or an actual range `49152-65535`). The default keyword `any` is also permitted, which results
+        in range `0-65535`, and is the default if the field is not specified.
+    *   ***destination-port***: Similar to `source-port` but for the destination port field in the
+        `TCP` or `UDP` header.
+    *   ***icmp-type***: It can be either a numeric value (eg. `3`), a numeric range with start
+        and/or end ranges (eg. `-10` for all types from 0-10 inclusive; or `10-` for all types from
+        10-255 inclusive, or an actual range `10-15`). The default keyword `any` is also permitted,
+        which results in range `0-255`, and is the default if the field is not specified. This field
+        can only be specified if the `protocol` field is `icmp` (or `1`).
+    *   ***icmp-code***: Similar to `icmp-type` but for the ICMP code field. This field can only be
+        specified if the `protocol` field is `icmp` (or `1`).
+
+An example ACL with three ACE terms:
+```
+acls:
+  acl01:
+     description: "Test ACL"
+     terms:
+       - description: "Allow a specific IPv6 TCP flow"
+         action: permit
+         source: 2001:db8::/64
+         destination: 2001:db8:1::/64
+         protocol: tcp
+         destination-port: www
+         source-port: "1024-65535"
+       - description: "Allow IPv4 ICMP Destination Unreachable, any code"
+         family: ipv4
+         action: permit
+         protocol: icmp
+         icmp-type: 3
+         icmp-code: any
+       - description: "Deny any IPv4 or IPv6"
+         action: deny
+```
+
+One or more of these ACLs are then applied to an interface in either the `input` or the `output`
+direction:
+
+```
+interfaces:
+  GigabitEthernet3/0/0:
+    acls:
+      input: acl01
+      output: [ acl02, acl03 ]
+```
+The configuration here is tolerant of either a singleton (a literal string referring to the one
+ACL that must be applied), or a _list_ of strings to more than one ACL, in which case they will
+be tested in order (with a first-match return value).
