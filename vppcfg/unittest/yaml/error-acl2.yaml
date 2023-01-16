@@ -3,7 +3,9 @@ test:
   errors:
     expected:
       - "acl .* term .* source and destination family do not overlap"
-    count: 6
+      - "acl .* term .* family any has no source"
+      - "acl .* term .* family any has no destination"
+    count: 8
 ---
 prefixlists:
   v4only:
@@ -15,6 +17,8 @@ prefixlists:
      - 2001:db8::1
      - 2001:db8::/64
      - 2001:db8::/48
+  empty:
+    members: []
 
 acls:
   acl01:
@@ -42,6 +46,14 @@ acls:
      - description: "Error, source is IPv6 and destination is IPv4"
        source: ::/0
        destination: 192.168.0.0/16
+       action: permit
+     - description: "Error, can never match an empty prefixlist"
+       source: empty
+       destination: 192.0.2.1
+       action: permit
+     - description: "Error, can never match an empty prefixlist"
+       source: 2001:db8::1
+       destination: empty
        action: permit
      - description: "OK"
        source: ::/0
