@@ -13,7 +13,6 @@
 #
 """ A vppcfg configuration module that validates prefixlists """
 import logging
-import socket
 import ipaddress
 
 
@@ -41,11 +40,11 @@ def get_network_list(yaml, plname, want_ipv4=True, want_ipv6=True):
     in a prefixlist of given name. Return the empty list if the prefixlist doesn't
     exist. Optionally, want_ipv4 or want_ipv6 can be set to False to filter the list."""
     ret = []
-    plname, pl = get_by_name(yaml, plname)
-    if not pl:
+    plname, plist = get_by_name(yaml, plname)
+    if not plist:
         return ret
-    for m in pl["members"]:
-        ipn = ipaddress.ip_network(m, strict=False)
+    for member in plist["members"]:
+        ipn = ipaddress.ip_network(member, strict=False)
         if ipn.version == 4 and want_ipv4:
             ret.append(ipn)
         if ipn.version == 6 and want_ipv6:
@@ -56,49 +55,49 @@ def get_network_list(yaml, plname, want_ipv4=True, want_ipv6=True):
 def count(yaml, plname):
     """Return the number of IPv4 and IPv6 entries in the prefixlist.
     Returns 0, 0 if it doesn't exist"""
-    v4, v6 = 0, 0
+    ipv4, ipv6 = 0, 0
 
-    plname, pl = get_by_name(yaml, plname)
-    if not pl:
+    plname, plist = get_by_name(yaml, plname)
+    if not plist:
         return 0, 0
-    for m in pl["members"]:
-        ipn = ipaddress.ip_network(m, strict=False)
+    for member in plist["members"]:
+        ipn = ipaddress.ip_network(member, strict=False)
         if ipn.version == 4:
-            v4 += 1
+            ipv4 += 1
         elif ipn.version == 6:
-            v6 += 1
+            ipv6 += 1
 
-    return v4, v6
+    return ipv4, ipv6
 
 
 def count_ipv4(yaml, plname):
     """Return the number of IPv4 entries in the prefixlist."""
-    v4, v6 = count(yaml, plname)
-    return v4
+    ipv4, _ = count(yaml, plname)
+    return ipv4
 
 
 def count_ipv6(yaml, plname):
     """Return the number of IPv6 entries in the prefixlist."""
-    v4, v6 = count(yaml, plname)
-    return v6
+    _, ipv6 = count(yaml, plname)
+    return ipv6
 
 
 def has_ipv4(yaml, plname):
     """Return True if the prefixlist has at least one IPv4 entry."""
-    v4, v6 = count(yaml, plname)
-    return v4 > 0
+    ipv4, _ = count(yaml, plname)
+    return ipv4 > 0
 
 
 def has_ipv6(yaml, plname):
     """Return True if the prefixlist has at least one IPv6 entry."""
-    v4, v6 = count(yaml, plname)
-    return v6 > 0
+    _, ipv6 = count(yaml, plname)
+    return ipv6 > 0
 
 
 def is_empty(yaml, plname):
     """Return True if the prefixlist has no entries."""
-    v4, v6 = count(yaml, plname)
-    return v4 + v6 == 0
+    ipv4, ipv6 = count(yaml, plname)
+    return ipv4 + ipv6 == 0
 
 
 def validate_prefixlists(yaml):
@@ -111,8 +110,8 @@ def validate_prefixlists(yaml):
     if not "prefixlists" in yaml:
         return result, msgs
 
-    for plname, pl in yaml["prefixlists"].items():
-        logger.debug(f"prefixlist {plname}: {pl}")
+    for plname, plist in yaml["prefixlists"].items():
+        logger.debug(f"prefixlist {plname}: {plist}")
         if plname in ["any"]:
             ## Note: ACL 'source' and 'destination', when they are empty, will resolve
             ## to 'any', and can thus never refer to a prefixlist called 'any'.
@@ -120,7 +119,7 @@ def validate_prefixlists(yaml):
             result = False
 
         members = 0
-        for pl_member in pl["members"]:
+        for pl_member in plist["members"]:
             members += 1
             logger.debug(f"prefixlist {plname} member {members} is {pl_member}")
 
