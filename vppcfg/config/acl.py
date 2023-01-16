@@ -192,13 +192,19 @@ def validate_acls(yaml):
             terms += 1
             orig_acl_term = acl_term.copy()
             acl_term = hydrate_term(acl_term)
-            logger.debug(f"acl {aclname} term {terms} orig {orig_acl_term} hydrated {acl_term}")
+            logger.debug(
+                f"acl {aclname} term {terms} orig {orig_acl_term} hydrated {acl_term}"
+            )
             if acl_term["family"] == "any":
                 if "source" in acl_term:
-                    msgs.append(f"acl {aclname} term {terms} family any cannot have source")
+                    msgs.append(
+                        f"acl {aclname} term {terms} family any cannot have source"
+                    )
                     result = False
                 if "destination" in acl_term:
-                    msgs.append(f"acl {aclname} term {terms} family any cannot have destination")
+                    msgs.append(
+                        f"acl {aclname} term {terms} family any cannot have destination"
+                    )
                     result = False
             else:
                 src = ipaddress.ip_network(acl_term["source"])
@@ -233,7 +239,9 @@ def validate_acls(yaml):
                 )
 
                 if src_low_port is None or src_high_port is None:
-                    msgs.append(f"acl {aclname} term {terms} could not understand source port")
+                    msgs.append(
+                        f"acl {aclname} term {terms} could not understand source port"
+                    )
                     result = False
                 else:
                     if src_low_port > src_high_port:
@@ -289,10 +297,14 @@ def validate_acls(yaml):
                 icmp_code_low, icmp_code_high = get_icmp_low_high(acl_term["icmp-code"])
                 icmp_type_low, icmp_type_high = get_icmp_low_high(acl_term["icmp-type"])
                 if icmp_code_low > icmp_code_high:
-                    msgs.append(f"acl {aclname} term {terms} icmp-code low value is higher than high value")
+                    msgs.append(
+                        f"acl {aclname} term {terms} icmp-code low value is higher than high value"
+                    )
                     result = False
                 if icmp_type_low > icmp_type_high:
-                    msgs.append(f"acl {aclname} term {terms} icmp-type low value is higher than high value")
+                    msgs.append(
+                        f"acl {aclname} term {terms} icmp-type low value is higher than high value"
+                    )
                     result = False
 
     return result, msgs
