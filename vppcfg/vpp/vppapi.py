@@ -218,7 +218,7 @@ class VPPApi:
         enumerating the 'interfaces' scope from yaml_config"""
 
         if not "interfaces" in yaml_config:
-            self.logger.error(f"YAML config does not contain any interfaces")
+            self.logger.error("YAML config does not contain any interfaces")
             return False
         self.logger.debug(f"config: {yaml_config['interfaces']}")
 
