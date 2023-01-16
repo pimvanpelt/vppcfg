@@ -3,8 +3,7 @@ test:
   errors:
     expected:
       - "acl .* term .* source and destination family do not overlap"
-      - "acl .* term .* family any has no source"
-      - "acl .* term .* family any has no destination"
+      - "acl .* term .* family any has no (source|destination)"
     count: 8
 ---
 prefixlists:
