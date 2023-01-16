@@ -5,7 +5,7 @@ bridgedomains: map(include('bridgedomain'),key=str(matches='bd[0-9]+'),required=
 vxlan_tunnels: map(include('vxlan'),key=str(matches='vxlan_tunnel[0-9]+'),required=False)
 taps: map(include('tap'),key=str(matches='tap[0-9]+'),required=False)
 prefixlists: map(include('prefixlist'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=64),required=False)
-acls: map(include('acl'),key=str(matches='[a-z][a-z0-9\-]+'),required=False)
+acls: map(include('acl'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=56),required=False)
 ---
 vxlan:
   description: str(exclude='\'"',len=64,required=False)
@@ -96,11 +96,11 @@ acl-term:
   description: str(exclude='\'"',len=64,required=False)
   action: enum('permit','deny','permit+reflect')
   family: enum('ipv4','ipv6','any',required=False)
-  source: any(ip(), ip_interface(),required=False)
-  destination: any(ip(), ip_interface(),required=False)
+  source: any(ip(),ip_interface(),str(min=1,max=56),required=False)
+  destination: any(ip(),ip_interface(),str(min=1,max=56),required=False)
   protocol: any(int(min=1,max=255),regex('^[a-z][a-z0-9-]*$'),required=False)
-  source-port: include('acl-term-port-int-range-symbolic', required=False)
-  destination-port: include('acl-term-port-int-range-symbolic', required=False)
+  source-port: include('acl-term-port-int-range-symbolic',required=False)
+  destination-port: include('acl-term-port-int-range-symbolic',required=False)
   icmp-type: include('acl-term-icmp-int-range',required=False)
   icmp-code: include('acl-term-icmp-int-range',required=False)
 ---

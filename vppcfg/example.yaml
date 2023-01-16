@@ -126,6 +126,7 @@ prefixlists:
       - 192.0.2.0/24
       - 2001:db8::1
       - 2001:db8::/64
+      - 2001:db8::/48
   empty:
     description: "An empty prefixlist"
     members: []
@@ -134,6 +135,13 @@ acls:
   acl01:
      description: "Test ACL"
      terms:
+       - description: "Allow a prefixlist"
+         action: permit
+         source: trusted
+       - description: "Allow a prefixlist for one family only"
+         family: ipv4
+         action: permit
+         source: trusted
        - description: "Allow a specific IPv6 TCP flow"
          action: permit
          source: 2001:db8::/64

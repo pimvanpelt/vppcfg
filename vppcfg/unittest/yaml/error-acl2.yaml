@@ -2,15 +2,34 @@ test:
   description: "Source and Destination must have the same address family"
   errors:
     expected:
-      - "acl .* term .* source and destination have different address family"
-    count: 4
+      - "acl .* term .* source and destination family do not overlap"
+    count: 6
 ---
+prefixlists:
+  v4only:
+    members:
+     - 192.0.2.1
+     - 192.0.2.0/24
+  v6only:
+    members:
+     - 2001:db8::1
+     - 2001:db8::/64
+     - 2001:db8::/48
+
 acls:
   acl01:
     terms:
      - description: "Error, source is IPv4 and destination is IPv6"
        source: 0.0.0.0/0
        destination: ::/0
+       action: permit
+     - description: "Error, source prefixlist is IPv4 and destination prefixlist is IPv6"
+       source: v4only
+       destination: v6only
+       action: permit
+     - description: "Error, source prefixlist is IPv6 and destination is IPv4"
+       source: v6only
+       destination: 0.0.0.0/0
        action: permit
      - description: "Error, source is IPv6 and destination is IPv4"
        source: ::/0
@@ -31,4 +50,14 @@ acls:
      - description: "OK"
        source: 192.168.0.1
        destination: 10.0.0.0/8
+       action: permit
+     - description: "OK"
+       source: v4only
+       action: permit
+     - description: "OK"
+       source: v6only
+       action: permit
+     - description: "OK"
+       source: v4only
+       destination: v4only
        action: permit
