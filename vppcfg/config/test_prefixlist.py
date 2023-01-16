@@ -75,3 +75,12 @@ class TestACLMethods(unittest.TestCase):
         self.assertFalse(prefixlist.is_empty(self.cfg, "trusted"))
         self.assertTrue(prefixlist.is_empty(self.cfg, "empty"))
         self.assertTrue(prefixlist.is_empty(self.cfg, "pl-noexist"))
+
+    def test_get_network_list(self):
+        l = prefixlist.get_network_list(self.cfg, "trusted")
+        self.assertIsInstance(l, list)
+        self.assertEquals(4, len(l))
+
+        l = prefixlist.get_network_list(self.cfg, "pl-notexist")
+        self.assertIsInstance(l, list)
+        self.assertEquals(0, len(l))
