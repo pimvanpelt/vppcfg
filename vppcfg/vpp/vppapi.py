@@ -381,6 +381,18 @@ class VPPApi:
             self.logger.warning(
                 f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
+=======
+        self.logger.debug("Retrieving ACLs")
+        api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
+        for acl in api_response:
+            self.cache["acls"][acl.acl_index] = acl
+            if acl.tag in self.cache["acl_tags"]:
+                self.logger.error(
+                    f"Duplicate ACL tag '{acl.tag}' found - cannot safely preoceed, bailing"
+                )
+                return False
+            self.cache["acl_tags"][acl.tag] = acl.acl_index
+>>>>>>> ace08ac (Refuse to work with ACLs if there are duplicate tags -- it means something/somebody has been inserting them outside of vppcfg, and this breaks the requirement that vppcfg.acls. is the same uniquely identified vpp.acl.tag)
 
         try:
             self.logger.debug("Retrieving ACLs")
