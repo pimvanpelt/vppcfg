@@ -2,7 +2,7 @@ test:
   description: "Source and Destination must have the same address family"
   errors:
     expected:
-      - "acl term .* source and destination have different address family"
+      - "acl .* term .* source and destination have different address family"
     count: 4
 ---
 acls:

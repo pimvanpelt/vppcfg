@@ -2,13 +2,13 @@ test:
   description: "Ways in which port ranges can fail"
   errors:
     expected:
-      - "acl term .* could not understand source port"
-      - "acl term .* could not understand destination port"
-      - "acl term .* source low port is higher than source high port"
-      - "acl term .* source (high|low) port is not between \\[0,65535\\]"
-      - "acl term .* destination (high|low) port is not between \\[0,65535\\]"
-      - "acl term .* source-port can only be specified for protocol tcp or udp"
-      - "acl term .* destination-port can only be specified for protocol tcp or udp"
+      - "acl .* term .* could not understand source port"
+      - "acl .* term .* could not understand destination port"
+      - "acl .* term .* source low port is higher than source high port"
+      - "acl .* term .* source (high|low) port is not between \\[0,65535\\]"
+      - "acl .* term .* destination (high|low) port is not between \\[0,65535\\]"
+      - "acl .* term .* source-port can only be specified for protocol tcp or udp"
+      - "acl .* term .* destination-port can only be specified for protocol tcp or udp"
     count: 7
 ---
 acls:

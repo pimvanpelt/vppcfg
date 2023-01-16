@@ -2,10 +2,10 @@ test:
   description: "Ways in which ICMP code and type can fail"
   errors:
     expected:
-      - "acl term .* icmp-type can only be specified for protocol icmp or icmp-ipv6"
-      - "acl term .* icmp-code can only be specified for protocol icmp or icmp-ipv6"
-      - "acl term .* icmp-code low value is higher than high value"
-      - "acl term .* icmp-type low value is higher than high value"
+      - "acl .* term .* icmp-type can only be specified for protocol icmp or icmp-ipv6"
+      - "acl .* term .* icmp-code can only be specified for protocol icmp or icmp-ipv6"
+      - "acl .* term .* icmp-code low value is higher than high value"
+      - "acl .* term .* icmp-type low value is higher than high value"
     count: 8
 ---
 acls:

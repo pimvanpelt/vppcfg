@@ -2,7 +2,7 @@ test:
   description: "Family any precludes source/destination"
   errors:
     expected:
-      - "acl term .* family any cannot have (source|destination)"
+      - "acl .* term .* family any cannot have (source|destination)"
     count: 4
 ---
 acls:

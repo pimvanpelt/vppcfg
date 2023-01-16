@@ -2,7 +2,7 @@ test:
   description: "Ways in which ACE protocol can fail"
   errors:
     expected:
-      - "acl term .* could not understand protocol"
+      - "acl .* term .* could not understand protocol"
     count: 1
 ---
 acls:
