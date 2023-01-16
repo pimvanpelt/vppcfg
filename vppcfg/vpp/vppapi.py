@@ -127,6 +127,7 @@ class VPPApi:
             "l2xcs": {},
             "taps": {},
             "acls": {},
+            "acl_tags": {},
         }
         return True
 
@@ -355,6 +356,12 @@ class VPPApi:
         api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
         for acl in api_response:
             self.cache["acls"][acl.acl_index] = acl
+            if acl.tag in self.cache["acl_tags"]:
+                self.logger.error(
+                    f"Duplicate ACL tag '{acl.tag}' found - cannot safely preoceed, bailing"
+                )
+                return False
+            self.cache["acl_tags"][acl.tag] = acl.acl_index
 
         self.logger.debug("Retrieving interface ACLs")
         api_response = self.vpp.api.acl_interface_list_dump()
