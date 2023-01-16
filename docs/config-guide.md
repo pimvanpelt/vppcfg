@@ -429,9 +429,9 @@ packets then either perform an action of `permit` or `deny` (for stateless) or `
         and/or end ranges (eg. `-10` for all types from 0-10 inclusive; or `10-` for all types from
         10-255 inclusive, or an actual range `10-15`). The default keyword `any` is also permitted,
         which results in range `0-255`, and is the default if the field is not specified. This field
-        can only be specified if the `protocol` field is `icmp` (or `1`).
+        can only be specified if the `protocol` field is `icmp` (1) or `ipv6-icmp` (58).
     *   ***icmp-code***: Similar to `icmp-type` but for the ICMP code field. This field can only be
-        specified if the `protocol` field is `icmp` (or `1`).
+        specified if the `protocol` field is `icmp` (1) or `ipv6-icmp` (58).
 
 An example ACL with four ACE terms:
 ```
