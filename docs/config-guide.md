@@ -433,12 +433,25 @@ packets then either perform an action of `permit` or `deny` (for stateless) or `
     *   ***icmp-code***: Similar to `icmp-type` but for the ICMP code field. This field can only be
         specified if the `protocol` field is `icmp` (or `1`).
 
-An example ACL with three ACE terms:
+An example ACL with four ACE terms:
 ```
+prefixlists:
+  example:
+    description: "An example prefixlist with hosts and prefixes"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+      - 2001:db8::1
+      - 2001:db8::/64
+
 acls:
   acl01:
      description: "Test ACL"
      terms:
+       - description: "Allow a prefixlist, but only for IPv6"
+         family: ipv6
+         action: permit
+         source: example
        - description: "Allow a specific IPv6 TCP flow"
          action: permit
          source: 2001:db8::/64
