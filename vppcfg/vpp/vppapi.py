@@ -119,8 +119,8 @@ class VPPApi:
             "interface_names": {},
             "interfaces": {},
             "interface_addresses": {},
-            "interface_acls": {},
             "interface_mpls": {},
+            "interface_acls": {},
             "bondethernets": {},
             "bondethernet_members": {},
             "bridgedomains": {},
@@ -381,6 +381,19 @@ class VPPApi:
             self.logger.warning(
                 f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
+
+        try:
+            self.logger.debug("Retrieving ACLs")
+            api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
+            for acl in api_response:
+                self.cache["acls"][acl.acl_index] = acl
+
+            self.logger.debug("Retrieving interface ACLs")
+            api_response = self.vpp.api.acl_interface_list_dump()
+            for iface in api_response:
+                self.cache["interface_acls"][iface.sw_if_index] = iface
+        except AttributeError:
+            self.logger.warning(f"ACL API not found - missing plugin: {err}")
 
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
