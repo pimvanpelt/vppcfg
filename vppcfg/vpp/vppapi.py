@@ -382,30 +382,6 @@ class VPPApi:
                 f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
 
-        try:  ## TODO(pim): Remove after 23.10 release
-            self.logger.debug("Retrieving interface MPLS state")
-            api_response = self.vpp.api.mpls_interface_dump()
-            for iface in api_response:
-                self.cache["interface_mpls"][iface.sw_if_index] = True
-        except AttributeError:
-            self.logger.warning(
-                f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
-            )
-
-        try:
-            self.logger.debug("Retrieving ACLs")
-            api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
-            for acl in api_response:
-                self.cache["acls"][acl.acl_index] = acl
-                if acl.tag in self.cache["acl_tags"]:
-                    self.logger.error(
-                        f"Duplicate ACL tag '{acl.tag}' found - cannot safely preoceed, bailing"
-                    )
-                    return False
-                self.cache["acl_tags"][acl.tag] = acl.acl_index
-        except AttributeError as err:
-            self.logger.warning(f"ACL API not found - missing plugin: {err}")
-
         try:
             self.logger.debug("Retrieving ACLs")
             api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
@@ -419,8 +395,6 @@ class VPPApi:
         except AttributeError:
             self.logger.warning(f"ACL API not found - missing plugin: {err}")
 
-=======
->>>>>>> 0cf4473 (Set MPLS for loopback and interface. Allow for --novpp and VPP changes)
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
         for iface in api_response:
