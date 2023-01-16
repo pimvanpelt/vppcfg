@@ -251,7 +251,12 @@ class Dumper(VPPApi):
         for idx, acl in self.cache["acls"].items():
             aclname = f"vppacl{acl.acl_index}"
 
-            descr = "tag " + acl.tag.replace('"', "").replace("'", "")
+            descr = acl.tag.replace('"', "").replace("'", "")
+            if descr != acl.tag:
+                self.logger.warning(
+                    f"acl tag {acl.tag} has invalid characters, stripping"
+                )
+            descr = "tag " + descr
             config_acl = {"description": descr, "terms": []}
             terms = 0
             for acl_rule in acl.r:
