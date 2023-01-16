@@ -17,7 +17,7 @@ import socket
 import ipaddress
 
 
-def get_aclx(yaml):
+def get_acls(yaml):
     """Return a list of all acls."""
     ret = []
     if "acls" in yaml:

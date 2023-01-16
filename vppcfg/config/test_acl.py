@@ -14,10 +14,30 @@
 # -*- coding: utf-8 -*-
 """ Unit tests for taps """
 import unittest
+import yaml
 from . import acl
+from .unittestyaml import UnitTestYaml
 
 
 class TestACLMethods(unittest.TestCase):
+    def setUp(self):
+        with UnitTestYaml("test_acl.yaml") as f:
+            self.cfg = yaml.load(f, Loader=yaml.FullLoader)
+
+    def test_get_acls(self):
+        acllist = acl.get_acls(self.cfg)
+        self.assertIsInstance(acllist, list)
+        self.assertEqual(2, len(acllist))
+
+    def test_get_by_name(self):
+        aclname, _acl = acl.get_by_name(self.cfg, "deny-all")
+        self.assertIsNotNone(_acl)
+        self.assertEqual("deny-all", aclname)
+
+        aclname, _acl = acl.get_by_name(self.cfg, "acl-noexist")
+        self.assertIsNone(aclname)
+        self.assertIsNone(_acl)
+
     def test_get_port_low_high(self):
         lo, hi = acl.get_port_low_high(80)
         self.assertEqual(80, lo)
