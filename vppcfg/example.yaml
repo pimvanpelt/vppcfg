@@ -118,6 +118,18 @@ taps:
       mtu: 1500
       bridge: br1
 
+prefixlists:
+  trusted:
+    description: "All IPv4 and IPv6 trusted networks"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+      - 2001:db8::1
+      - 2001:db8::/64
+  empty:
+    description: "An empty prefixlist"
+    members: []
+
 acls:
   acl01:
      description: "Test ACL"
