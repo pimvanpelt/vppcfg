@@ -121,7 +121,6 @@ class VPPApi:
             "interface_addresses": {},
             "interface_mpls": {},
             "interface_acls": {},
-            "interface_mpls": {},
             "bondethernets": {},
             "bondethernet_members": {},
             "bridgedomains": {},
