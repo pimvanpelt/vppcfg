@@ -251,7 +251,8 @@ class Dumper(VPPApi):
         for idx, acl in self.cache["acls"].items():
             aclname = f"vppacl{acl.acl_index}"
 
-            config_acl = {"description": "", "terms": []}
+            descr = "tag " + acl.tag.replace('"', "").replace("'", "")
+            config_acl = {"description": descr, "terms": []}
             terms = 0
             for acl_rule in acl.r:
                 terms += 1

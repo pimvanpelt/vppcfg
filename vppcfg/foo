@@ -1,0 +1,115 @@
+acls:
+  vppacl0:
+    description: tag tag0
+    terms:
+    - action: permit
+      destination: 0.0.0.0/0
+      source: 0.0.0.0/0
+  vppacl1:
+    description: tag tag1
+    terms:
+    - action: deny
+      destination: 0.0.0.0/0
+      source: 0.0.0.0/0
+  vppacl2:
+    description: tag tag2
+    terms:
+    - action: permit
+      destination: 0.0.0.0/0
+      icmp-code: 0-255
+      icmp-type: 0-255
+      protocol: icmp
+      source: 0.0.0.0/0
+  vppacl3:
+    description: tag tag3
+    terms:
+    - action: permit
+      destination: 0.0.0.0/0
+      destination-port: 80
+      protocol: tcp
+      source: 0.0.0.0/0
+      source-port: 1024-65535
+  vppacl4:
+    description: tag tag4
+    terms:
+    - action: permit
+      destination: 0.0.0.0/0
+      destination-port: 80
+      protocol: tcp
+      source: 0.0.0.0/0
+      source-port: 1024-65535
+  vppacl5:
+    description: tag tag5
+    terms:
+    - action: permit
+      destination: 2001:db8::1/128
+      destination-port: 80
+      protocol: tcp
+      source: ::/0
+      source-port: 1024-65535
+    - action: permit
+      destination: 0.0.0.0/0
+      source: 0.0.0.0/0
+bondethernets:
+  BondEthernet0:
+    description: ''
+    interfaces:
+    - GigabitEthernet3/0/0
+    - GigabitEthernet3/0/1
+    load-balance: l2
+    mac: 02:fe:0f:f0:a7:bb
+    mode: lacp
+bridgedomains: {}
+interfaces:
+  BondEthernet0:
+    description: ''
+    lcp: be0
+    mtu: 9000
+    sub-interfaces:
+      100:
+        description: ''
+        encapsulation:
+          dot1q: 100
+          exact-match: false
+        l2xc: BondEthernet0.200
+        mtu: 2500
+      200:
+        description: ''
+        encapsulation:
+          dot1q: 200
+          exact-match: false
+        l2xc: BondEthernet0.100
+        mtu: 2500
+      500:
+        description: ''
+        encapsulation:
+          dot1ad: 500
+          exact-match: false
+        mtu: 2000
+      501:
+        description: ''
+        encapsulation:
+          dot1ad: 501
+          exact-match: false
+        mtu: 2000
+  GigabitEthernet3/0/0:
+    description: ''
+    mac: 00:25:90:0c:05:00
+    mtu: 9000
+  GigabitEthernet3/0/1:
+    description: ''
+    mac: 00:25:90:0c:05:00
+    mtu: 9000
+  HundredGigabitEthernet13/0/0:
+    description: ''
+    mac: b4:96:91:b3:b1:10
+    mtu: 1500
+  HundredGigabitEthernet13/0/1:
+    description: ''
+    mac: b4:96:91:b3:b1:11
+    mtu: 1500
+loopbacks: {}
+prefixlists: {}
+taps: {}
+vxlan_tunnels: {}
+
