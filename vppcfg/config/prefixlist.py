@@ -113,6 +113,12 @@ def validate_prefixlists(yaml):
 
     for plname, pl in yaml["prefixlists"].items():
         logger.debug(f"prefixlist {plname}: {pl}")
+        if plname in ["any"]:
+            ## Note: ACL 'source' and 'destination', when they are empty, will resolve
+            ## to 'any', and can thus never refer to a prefixlist called 'any'.
+            msgs.append(f"prefixlist {plname} is a reserved name")
+            result = False
+
         members = 0
         for pl_member in pl["members"]:
             members += 1

@@ -363,7 +363,7 @@ interfaces:
 
 This construct allows to enumerate a list of IPv4 or IPv6 host addresses and/or networks. Each
 prefixlist has a name which consists of anywhere between 1 and 56 characters, and it must start
-with a letter. The syntax is straight forward:
+with a letter. The prefixlist name `any` is reserved. The syntax is straight forward:
 
 *   ***description***: A string, no longer than 64 characters, and excluding the single quote '
     and double quote ". This string is currently not used anywhere, and serves for enduser

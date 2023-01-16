@@ -1,0 +1,18 @@
+test:
+  description: "Some prefixlist names are reserved"
+  errors:
+    expected:
+      - "prefixlist any is a reserved name"
+    count: 1
+---
+prefixlists:
+  any:
+    description: "any is a reserved name"
+    members:
+     - 192.0.2.1
+     - 192.0.2.0/24
+  v6only:
+    members:
+     - 2001:db8::1
+     - 2001:db8::/64
+     - 2001:db8::/48
