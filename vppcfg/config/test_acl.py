@@ -113,3 +113,30 @@ class TestACLMethods(unittest.TestCase):
         lo, hi = acl.get_icmp_low_high("10-20")
         self.assertEqual(10, lo)
         self.assertEqual(20, hi)
+
+    def test_is_ip(self):
+        self.assertTrue(acl.is_ip("192.0.2.1"))
+        self.assertTrue(acl.is_ip("192.0.2.1/24"))
+        self.assertTrue(acl.is_ip("192.0.2.0/24"))
+        self.assertTrue(acl.is_ip("2001:db8::1"))
+        self.assertTrue(acl.is_ip("2001:db8::1/64"))
+        self.assertTrue(acl.is_ip("2001:db8::/64"))
+        self.assertFalse(acl.is_ip(True))
+        self.assertFalse(acl.is_ip("String"))
+        self.assertFalse(acl.is_ip([]))
+        self.assertFalse(acl.is_ip({}))
+
+    def test_get_network_list(self):
+        for s in ["192.0.2.1", "192.0.2.1/24", "2001:db8::1", "2001:db8::1/64"]:
+            l = acl.get_network_list(self.cfg, s)
+            self.assertIsInstance(l, list)
+            self.assertEquals(1, len(l))
+            n = l[0]
+
+        l = acl.get_network_list(self.cfg, "trusted")
+        self.assertIsInstance(l, list)
+        self.assertEquals(4, len(l))
+
+        l = acl.get_network_list(self.cfg, "pl-notexist")
+        self.assertIsInstance(l, list)
+        self.assertEquals(0, len(l))

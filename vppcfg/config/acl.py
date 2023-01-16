@@ -15,6 +15,7 @@
 import logging
 import socket
 import ipaddress
+from . import prefixlist
 
 
 def get_acls(yaml):
@@ -149,6 +150,32 @@ def get_port_low_high(portstring):
         pass
 
     return None, None
+
+
+def is_ip(ip_string):
+    """Return True if the given ip_string is either an IPv4/IPv6 address or prefix."""
+    if not isinstance(ip_string, str):
+        return False
+
+    try:
+        ipn = ipaddress.ip_network(ip_string, strict=False)
+        return True
+    except:
+        pass
+    return False
+
+
+def get_network_list(yaml, network_string):
+    """Return the full list of source or destination address(es). This function resolves the
+    'source' or 'destination' field, which can either be an IP address, a Prefix, or the name
+    of a Prefix List. It returns a list of ip_network() objects, including prefix. IP addresses
+    will receive prefixlen /32 or /128."""
+
+    if is_ip(network_string):
+        ipn = ipaddress.ip_network(network_string, strict=False)
+        return [ipn]
+
+    return prefixlist.get_network_list(yaml, network_string)
 
 
 def get_protocol(protostring):

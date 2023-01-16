@@ -359,6 +359,39 @@ interfaces:
            exact-match: False
 ```
 
+### Prefix Lists
+
+This construct allows to enumerate a list of IPv4 or IPv6 host addresses and/or networks. Each
+prefixlist has a name which consists of anywhere between 1 and 56 characters, and it must start
+with a letter. The syntax is straight forward:
+
+*   ***description***: A string, no longer than 64 characters, and excluding the single quote '
+    and double quote ". This string is currently not used anywhere, and serves for enduser
+    documentation purposes.
+*   ***members***: A list of zero or more entries which can take the form:
+    *    ***IPv4 Host***: an IPv4 address, eg. `192.0.2.1`
+    *    ***IPv4 Prefix***: an IPv6 prefix, eg. `192.0.2.0/24`
+    *    ***IPv6 Host***: an IPv4 address, eg. `2001:db8::1`
+    *    ***IPv6 Prefix***: an IPv6 prefix, eg. `2001:db8::0/64`
+
+***NOTE***: It is valid to have host addresses with prefixlen, for example `192.168.1.1/24`
+in other words, the prefix can be either a network or a host.
+
+A few examples:
+```
+prefixlists:
+  example:
+    description: "An example prefixlist with hosts and prefixes"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+      - 2001:db8::1
+      - 2001:db8::/64
+  empty:
+    description: "An empty prefixlist"
+    members: []
+```
+
 ### Access Control Lists
 
 In VPP, a common firewall function is provided by the `acl-plugin`. The anatomy of this plugin
@@ -377,8 +410,10 @@ packets then either perform an action of `permit` or `deny` (for stateless) or `
     *   ***family***: Which IP address family to match, can be either `ipv4`, or `ipv6` or `any`,
         which is the default. If `any` is used, this term will also operate on any source and
         destination addresses, and it will emit two ACEs, one for each address family.
-    *   ***source***: The IPv4 or IPv6 source prefix, eg. `192.0.2.0/24` or `2001:db8::/64`. If
-        left empty, this means any (ie. `0.0.0.0/0` or `::/0`).
+    *   ***source***: Either an IPv4 or IPv6 host (without prefixlen, eg. `192.0.2.1` or
+        `2001:db8::1`), an IPv4 or IPv6 prefix (with prefixlen, eg. `192.0.2.0/24` or
+        `2001:db8::/64`), or a reference to the name of an existing _prefixlist_ (eg. `trusted`).
+        If left empty, this means all IPv4 and IPv6 (ie. `[ 0.0.0.0/0, ::/0 ]`).
     *   ***destination***: Similar to `source`, but for the destination field of the packets.
     *   ***protocol***: The L4 protocol, can be either a numeric value (eg. `6`), or a symbolic
         string value from `/etc/protocols` (eg. `tcp`). If omitted, only L3 matches are performed.
