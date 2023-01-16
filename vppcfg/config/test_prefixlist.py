@@ -41,7 +41,7 @@ class TestACLMethods(unittest.TestCase):
     def test_count(self):
         v4, v6 = prefixlist.count(self.cfg, "trusted")
         self.assertEqual(2, v4)
-        self.assertEqual(2, v6)
+        self.assertEqual(3, v6)
 
         v4, v6 = prefixlist.count(self.cfg, "empty")
         self.assertEqual(0, v4)
@@ -57,7 +57,7 @@ class TestACLMethods(unittest.TestCase):
         self.assertEqual(0, prefixlist.count_ipv4(self.cfg, "pl-noexist"))
 
     def test_count_ipv6(self):
-        self.assertEqual(2, prefixlist.count_ipv6(self.cfg, "trusted"))
+        self.assertEqual(3, prefixlist.count_ipv6(self.cfg, "trusted"))
         self.assertEqual(0, prefixlist.count_ipv6(self.cfg, "empty"))
         self.assertEqual(0, prefixlist.count_ipv6(self.cfg, "pl-noexist"))
 
@@ -79,7 +79,21 @@ class TestACLMethods(unittest.TestCase):
     def test_get_network_list(self):
         l = prefixlist.get_network_list(self.cfg, "trusted")
         self.assertIsInstance(l, list)
-        self.assertEquals(4, len(l))
+        self.assertEquals(5, len(l))
+
+        l = prefixlist.get_network_list(self.cfg, "trusted", want_ipv6=False)
+        self.assertIsInstance(l, list)
+        self.assertEquals(2, len(l))
+
+        l = prefixlist.get_network_list(self.cfg, "trusted", want_ipv4=False)
+        self.assertIsInstance(l, list)
+        self.assertEquals(3, len(l))
+
+        l = prefixlist.get_network_list(
+            self.cfg, "trusted", want_ipv4=False, want_ipv6=False
+        )
+        self.assertIsInstance(l, list)
+        self.assertEquals(0, len(l))
 
         l = prefixlist.get_network_list(self.cfg, "pl-notexist")
         self.assertIsInstance(l, list)

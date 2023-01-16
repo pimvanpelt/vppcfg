@@ -165,17 +165,25 @@ def is_ip(ip_string):
     return False
 
 
-def get_network_list(yaml, network_string):
+def get_network_list(yaml, network_string, want_ipv4=True, want_ipv6=True):
     """Return the full list of source or destination address(es). This function resolves the
     'source' or 'destination' field, which can either be an IP address, a Prefix, or the name
     of a Prefix List. It returns a list of ip_network() objects, including prefix. IP addresses
-    will receive prefixlen /32 or /128."""
+    will receive prefixlen /32 or /128. Optionally, want_ipv4 or want_ipv6 can be set to False
+    to filter the list."""
 
+    ret = []
     if is_ip(network_string):
         ipn = ipaddress.ip_network(network_string, strict=False)
-        return [ipn]
+        if ipn.version == 4 and want_ipv4:
+            ret = [ipn]
+        if ipn.version == 6 and want_ipv6:
+            ret = [ipn]
+        return ret
 
-    return prefixlist.get_network_list(yaml, network_string)
+    return prefixlist.get_network_list(
+        yaml, network_string, want_ipv4=want_ipv4, want_ipv6=want_ipv6
+    )
 
 
 def get_protocol(protostring):

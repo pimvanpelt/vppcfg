@@ -36,17 +36,20 @@ def get_by_name(yaml, plname):
     return None, None
 
 
-def get_network_list(yaml, plname):
+def get_network_list(yaml, plname, want_ipv4=True, want_ipv6=True):
     """Returns a list of 0 or more ip_network elements, that represent the members
     in a prefixlist of given name. Return the empty list if the prefixlist doesn't
-    exist"""
+    exist. Optionally, want_ipv4 or want_ipv6 can be set to False to filter the list."""
     ret = []
     plname, pl = get_by_name(yaml, plname)
     if not pl:
         return ret
     for m in pl["members"]:
         ipn = ipaddress.ip_network(m, strict=False)
-        ret.append(ipn)
+        if ipn.version == 4 and want_ipv4:
+            ret.append(ipn)
+        if ipn.version == 6 and want_ipv6:
+            ret.append(ipn)
     return ret
 
 
