@@ -271,6 +271,9 @@ with `head.vpp` (think of things like custom logging, plugin defaults, DPDK affi
 then letting `vppcfg` do its part, and finally leaving the ability to also program the dataplane
 with things that `vppcfg` does not (yet) support in `tail.vpp`.
 
+***NOTE***: For MTU values to be generated in `--novpp` mode, the interface device type must be
+set (typically using `device-type: dpdk` in the PHY interface definition).
+
 ### vppcfg apply
 
 Applying state is not (yet) implemented. Don't worry, it's not much work, but this is punted until

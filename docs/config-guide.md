@@ -304,6 +304,8 @@ exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `Bo
     target interface.
 *   ***state***: An optional string that configures the link admin state, either `up` or `down`.
     If it is not specified, the link is considered admin 'up'.
+*   ***device-type***: An optional interface type in VPP. Currently the only supported vlaue is
+    `dpdk`, and it is used to generate correct mock interfaces if the `--novpp` flag is used.
 
 Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
 to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further
@@ -324,6 +326,7 @@ Examples:
 ```
 interfaces:
   HundredGigabitEthernet12/0/0:
+    device-type: dpdk
     lcp: "ice0"
     mtu: 9000
     addresses: [ 192.0.2.1/30, 2001:db8:1::1/64 ]
