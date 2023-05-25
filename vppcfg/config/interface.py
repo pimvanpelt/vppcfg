@@ -13,6 +13,7 @@
 #
 """ A vppcfg configuration module that validates interfaces """
 import logging
+import ipaddress
 from . import bondethernet
 from . import bridgedomain
 from . import loopback
@@ -498,6 +499,12 @@ def validate_interfaces(yaml):
                 if not address.is_allowed(yaml, ifname, iface["addresses"], addr):
                     msgs.append(
                         f"interface {ifname} IP address {addr} conflicts with another"
+                    )
+                    result = False
+                if not address.is_canonical(addr):
+                    canonical = address.get_canonical(addr)
+                    msgs.append(
+                        f"interface {ifname} IP address {addr} is not canonical, use {canonical}"
                     )
                     result = False
 

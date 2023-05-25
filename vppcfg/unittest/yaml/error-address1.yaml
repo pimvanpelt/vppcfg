@@ -5,7 +5,8 @@ test:
       - "interface .* IP address .* conflicts with another"
       - "sub-interface .* IP address .* conflicts with another"
       - "loopback .* IP address .* conflicts with another"
-    count: 14
+      - "interface .* IP address .* is not canonical, use .*"
+    count: 15
 ---
 interfaces:
   GigabitEthernet1/0/0:
@@ -15,7 +16,7 @@ interfaces:
 
   GigabitEthernet1/0/1:
     lcp: e1-0-1
-    addresses: [ 192.0.2.1/29, 2001:db8:1::1/64 ]
+    addresses: [ 192.0.2.1/29, 2001:DB8:1::1/64 ]
     sub-interfaces:
       100:
         description: "These addresses overlap with Gi1/0/1"
@@ -23,6 +24,9 @@ interfaces:
       101:
         description: "These addresses overlap with loop0"
         addresses: [ 192.0.2.10/29, 2001:db8:2::2/64 ]
+      102:
+        description: "This address is not canonical"
+        addresses: [ 2001:DB8:5::1/64 ]
 
   GigabitEthernet1/0/2:
     lcp: e0-2
