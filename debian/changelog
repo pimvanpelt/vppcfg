@@ -1,3 +1,10 @@
+vppcfg (0.0.4) unstable; urgency=low
+
+  Feature release:
+    * Bugfix, ensuring IPv6 addresses are in their canonical form, to avoid
+      spurious diffs when comparing to VPP dataplane addresses.
+    * Document the 'device-type' field for interfaces
+ -- Pim van Pelt <pim@ipng.nl>  Sat, 03 Dec 2022 14:15:00 +0000
 vppcfg (0.0.3) unstable; urgency=low
 
   Feature release:
