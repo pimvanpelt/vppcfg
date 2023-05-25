@@ -125,7 +125,8 @@ class Applier(VPPApi):
 
     def lcp_create(self, ifname, host_if_name):
         """Create a linux control plane interface pair for an interface given by name
-        (ie GigabitEthernet3/0/0) under a Linux TAP device name host_if_name (ie e3-0-0)"""
+        (ie GigabitEthernet3/0/0) under a Linux TAP device name host_if_name (ie e3-0-0)
+        """
         pass
 
     def set_interface_mac(self, ifname, mac):
