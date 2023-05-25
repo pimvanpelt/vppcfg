@@ -83,6 +83,12 @@ def validate_loopbacks(yaml):
                         f"loopback {ifname} IP address {addr} conflicts with another"
                     )
                     result = False
+                if not address.is_canonical(addr):
+                    canonical = address.get_canonical(addr)
+                    msgs.append(
+                        f"loopback {ifname} IP address {addr} is not canonical, use {canonical}"
+                    )
+                    result = False
         if "mac" in iface and mac.is_multicast(iface["mac"]):
             msgs.append(
                 f"loopback {ifname} MAC address {iface['mac']} cannot be multicast"
