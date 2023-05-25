@@ -13,7 +13,7 @@ interfaces:
   GigabitEthernet1/0/0:
     description: "Infra: nikhef-core-1.nl.switch.coloclue.net e1/34"
     lcp: e0-0
-    addresses: [ 94.142.244.85/24, 2A02:898::146:1/64 ]
+    addresses: [ 94.142.244.85/24, 2a02:898::146:1/64 ]
     sub-interfaces:
       100:
         description: "Cust: hvn0.nlams0.ipng.ch"

@@ -113,3 +113,33 @@ def is_allowed(yaml, ifname, iface_addresses, ip_interface):
             return False
 
     return True
+
+
+def get_canonical(iface_address):
+    """Returns the canonical form of an interface address, which can be either an address
+    '2001:db8::1' or a prefix '2001:db8::1/64' for either IPv4 of IPv6.
+
+    This function the string representation of the canonical address."""
+
+    is_prefix = "/" in iface_address
+    if is_prefix:
+        iface_address, prefixlen = iface_address.split("/")
+
+    ip_address = ipaddress.ip_address(iface_address)
+    if is_prefix:
+        return str(ip_address) + "/" + prefixlen
+    return str(ip_address)
+
+
+def is_canonical(iface_address):
+    """Checks to see that the interface address is written in a canonical form, useful to
+    ensure that IPv6 addresses are written in such a way that they don't trigger spurious
+    diffs when comparing to VPP. As an example, '2001:DB8:0:0::1/64' is fine, but VPP will
+    show this as '2001:db8::1/64'.
+
+    Input can be either an address 2001:db8::1 or a prefix 2001:db8::1/128
+
+    This function returns False if the iface_address isn't canonical, and True otherwise.
+    """
+    can = get_canonical(iface_address)
+    return can == iface_address
