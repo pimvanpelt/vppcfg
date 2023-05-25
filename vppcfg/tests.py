@@ -44,7 +44,8 @@ def example_validator(_yaml):
 
 class YAMLTest(unittest.TestCase):
     """This test suite takes a YAML configuration file and holds it against the syntax
-    (Yamale) and semantic validators, returning errors in case of validation failures."""
+    (Yamale) and semantic validators, returning errors in case of validation failures.
+    """
 
     def __init__(self, testName, yaml_filename, yaml_schema):
         # calling the super class init varies for different python versions.  This works for 2.7

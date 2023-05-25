@@ -181,7 +181,8 @@ class Reconciler:
 
     def __prune_bridgedomains(self):
         """Remove bridge-domains from VPP, if they do not occur in the config. If any interfaces are
-        found in to-be removed bridge-domains, they are returned to L3 mode, and tag-rewrites removed."""
+        found in to-be removed bridge-domains, they are returned to L3 mode, and tag-rewrites removed.
+        """
         for idx, bridge in self.vpp.cache["bridgedomains"].items():
             bridgename = f"bd{int(idx)}"
             _config_ifname, config_iface = bridgedomain.get_by_name(
