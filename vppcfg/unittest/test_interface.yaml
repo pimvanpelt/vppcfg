@@ -23,6 +23,7 @@ interfaces:
     mtu: 9216
     lcp: "e1"
     addresses: [ "192.0.2.1/30", "2001:db8:1::1/64" ]
+    mpls: true
     sub-interfaces:
       100:
         lcp: "foo"
@@ -33,6 +34,7 @@ interfaces:
           exact-match: True
         lcp: "e1.100"
         addresses: [ "10.0.2.1/30" ]
+        mpls: true
       102:
         encapsulation:
           dot1ad: 100

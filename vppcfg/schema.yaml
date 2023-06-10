@@ -52,6 +52,7 @@ interface:
   sub-interfaces: map(include('sub-interface'),key=int(min=1,max=4294967295),required=False)
   l2xc: str(required=False)
   state: enum('up', 'down', required=False)
+  mpls: bool(required=False)
   device-type: enum('dpdk', required=False)
 ---
 sub-interface:
@@ -62,6 +63,7 @@ sub-interface:
   encapsulation: include('encapsulation',required=False)
   l2xc: str(required=False)
   state: enum('up', 'down', required=False)
+  mpls: bool(required=False)
 ---
 encapsulation:
   dot1q: int(min=1,max=4095,required=False)
