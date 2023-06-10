@@ -701,3 +701,14 @@ def validate_interfaces(yaml):
                         result = False
 
     return result, msgs
+
+
+def is_mpls(yaml, ifname):
+    """Returns True if the interface exists and has mpls enabled. Returns false otherwise."""
+    ifname, iface = get_by_name(yaml, ifname)
+    try:
+        if iface["mpls"] == True:
+            return True
+    except:
+        pass
+    return False
