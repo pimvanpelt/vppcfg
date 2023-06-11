@@ -73,6 +73,9 @@ following fields:
     in CIDR format. VPP requires IP addresses to be unique in the entire dataplane, with one
     notable exception: Multiple IP addresses in the same prefix/len can be added on one and the
     same interface.
+*   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
+    default value is `false`, if the field is not specified, which means MPLS will not be enabled.
+    This allows BVIs, represented by Loopbacks, to participate in MPLS .
 
 Although VPP would allow it, `vppcfg` does not allow for loopbacks to have sub-interfaces.
 
@@ -87,6 +90,7 @@ loopbacks:
     lcp: bvi1
     mtu: 9000
     addresses: [ 10.0.1.1/24, 10.0.1.2/24, 2001:db8:1::1/64 ]
+    mpls: true
 ```
 
 ### Bridge Domains
