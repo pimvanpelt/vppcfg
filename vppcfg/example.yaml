@@ -91,6 +91,7 @@ loopbacks:
     mtu: 1500
     mac: 02:de:ad:11:be:ef
     addresses: [ 10.0.2.1/24, 2001:db8:2::1/64 ]
+    mpls: true
 
 bridgedomains:
   bd1:
