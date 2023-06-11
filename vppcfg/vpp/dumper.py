@@ -110,6 +110,8 @@ class Dumper(VPPApi):
                             loop["addresses"] = self.cache["interface_addresses"][
                                 iface.sw_if_index
                             ]
+                    if iface.sw_if_index in self.cache["interface_mpls"]:
+                        loop["mpls"] = self.cache["interface_mpls"][iface.sw_if_index]
                     config["loopbacks"][iface.interface_name] = loop
                 elif iface.interface_dev_type in [
                     "bond",

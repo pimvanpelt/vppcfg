@@ -120,6 +120,7 @@ class VPPApi:
             "interfaces": {},
             "interface_addresses": {},
             "interface_acls": {},
+            "interface_mpls": {},
             "bondethernets": {},
             "bondethernet_members": {},
             "bridgedomains": {},
@@ -367,6 +368,11 @@ class VPPApi:
         api_response = self.vpp.api.acl_interface_list_dump()
         for iface in api_response:
             self.cache["interface_acls"][iface.sw_if_index] = iface
+
+        self.logger.debug("Retrieving interface MPLS state")
+        api_response = self.vpp.api.mpls_interface_dump()
+        for iface in api_response:
+            self.cache["interface_mpls"][iface.sw_if_index] = True
 
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
