@@ -382,6 +382,16 @@ class VPPApi:
                 f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
 
+        try:  ## TODO(pim): Remove after 23.10 release
+            self.logger.debug("Retrieving interface MPLS state")
+            api_response = self.vpp.api.mpls_interface_dump()
+            for iface in api_response:
+                self.cache["interface_mpls"][iface.sw_if_index] = True
+        except AttributeError:
+            self.logger.warning(
+                f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
+            )
+
         try:
             self.logger.debug("Retrieving ACLs")
             api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
