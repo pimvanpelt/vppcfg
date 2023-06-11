@@ -119,6 +119,7 @@ class VPPApi:
             "interface_names": {},
             "interfaces": {},
             "interface_addresses": {},
+            "interface_mpls": {},
             "bondethernets": {},
             "bondethernet_members": {},
             "bridgedomains": {},
@@ -215,7 +216,7 @@ class VPPApi:
         enumerating the 'interfaces' scope from yaml_config"""
 
         if not "interfaces" in yaml_config:
-            self.logger.error(f"YAML config does not contain any interfaces")
+            self.logger.error("YAML config does not contain any interfaces")
             return False
         self.logger.debug(f"config: {yaml_config['interfaces']}")
 
@@ -331,6 +332,11 @@ class VPPApi:
                 self.cache["interface_addresses"][iface.sw_if_index].append(
                     str(addr.prefix)
                 )
+
+        self.logger.debug("Retrieving interface MPLS state")
+        api_response = self.vpp.api.mpls_interface_dump()
+        for iface in api_response:
+            self.cache["interface_mpls"][iface.sw_if_index] = True
 
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
