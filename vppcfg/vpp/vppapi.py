@@ -409,6 +409,8 @@ class VPPApi:
         except AttributeError:
             self.logger.warning(f"ACL API not found - missing plugin: {err}")
 
+=======
+>>>>>>> 0cf4473 (Set MPLS for loopback and interface. Allow for --novpp and VPP changes)
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
         for iface in api_response:
