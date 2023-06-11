@@ -326,9 +326,7 @@ class VPPApi:
                     self.cache["lcps"][lcp.phy_sw_if_index] = lcp
                 self.lcp_enabled = True
         except AttributeError as err:
-            self.logger.warning(
-                f"linux-cp not found, will not reconcile Linux Control Plane: {err}"
-            )
+            self.logger.warning(f"LinuxCP API not found - missing plugin: {err}")
 
         self.logger.debug("Retrieving interfaces")
         api_response = self.vpp.api.sw_interface_dump()
@@ -374,6 +372,16 @@ class VPPApi:
         for iface in api_response:
             self.cache["interface_mpls"][iface.sw_if_index] = True
 
+        try:  ## TODO(pim): Remove after 23.10 release
+            self.logger.debug("Retrieving interface MPLS state")
+            api_response = self.vpp.api.mpls_interface_dump()
+            for iface in api_response:
+                self.cache["interface_mpls"][iface.sw_if_index] = True
+        except AttributeError:
+            self.logger.warning(
+                f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
+            )
+
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()
         for iface in api_response:
@@ -391,10 +399,13 @@ class VPPApi:
         for bridge in api_response:
             self.cache["bridgedomains"][bridge.bd_id] = bridge
 
-        self.logger.debug("Retrieving vxlan_tunnels")
-        api_response = self.vpp.api.vxlan_tunnel_v2_dump()
-        for vxlan in api_response:
-            self.cache["vxlan_tunnels"][vxlan.sw_if_index] = vxlan
+        try:
+            self.logger.debug("Retrieving vxlan_tunnels")
+            api_response = self.vpp.api.vxlan_tunnel_v2_dump()
+            for vxlan in api_response:
+                self.cache["vxlan_tunnels"][vxlan.sw_if_index] = vxlan
+        except AttributeError as err:
+            self.logger.warning(f"VXLAN API not found - missing plugin: {err}")
 
         self.logger.debug("Retrieving L2 Cross Connects")
         api_response = self.vpp.api.l2_xconnect_dump()
