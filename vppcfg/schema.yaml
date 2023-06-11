@@ -33,6 +33,7 @@ loopback:
   lcp: str(max=15,matches='[a-z]+[a-z0-9-]*',required=False)
   mtu: int(min=128,max=9216,required=False)
   addresses: list(ip_interface(),min=1,max=6,required=False)
+  mpls: bool(required=False)
 ---
 bondethernet:
   description: str(exclude='\'"',len=64,required=False)

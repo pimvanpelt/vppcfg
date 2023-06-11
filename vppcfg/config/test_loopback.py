@@ -50,3 +50,8 @@ class TestLoopbackMethods(unittest.TestCase):
         self.assertIn("loop1", ifs)
         self.assertIn("loop2", ifs)
         self.assertNotIn("loop-noexist", ifs)
+
+    def test_is_mpls(self):
+        self.assertTrue(loopback.is_mpls(self.cfg, "loop1"))
+        self.assertFalse(loopback.is_mpls(self.cfg, "loop2"))
+        self.assertFalse(loopback.is_mpls(self.cfg, "loop-noexist"))
