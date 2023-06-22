@@ -371,7 +371,7 @@ class VPPApi:
             api_response = self.vpp.api.acl_interface_list_dump()
             for iface in api_response:
                 self.cache["interface_acls"][iface.sw_if_index] = iface
-        except AttributeError:
+        except AttributeError as err:
             self.logger.warning(f"ACL API not found - missing plugin: {err}")
 
         self.logger.debug("Retrieving bondethernets")
