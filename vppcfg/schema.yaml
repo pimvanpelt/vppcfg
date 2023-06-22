@@ -37,7 +37,7 @@ loopback:
 bondethernet:
   description: str(exclude='\'"',len=64,required=False)
   mac: mac(required=False)
-  interfaces: list(str(matches='.*GigabitEthernet[0-9]+/[0-9]+/[0-9]+'),required=False)
+  interfaces: list(str(matches='.*GigabitEthernet[0-9a-z]+/[0-9]+/[0-9]+'),required=False)
   mode: enum('round-robin','active-backup','broadcast','lacp','xor',required=False)
   load-balance: enum('l2','l23','l34',required=False)
 ---
