@@ -947,6 +947,9 @@ class Reconciler:
         if not self.__sync_phys():
             self.logger.warning("Could not sync PHYs in VPP")
             ret = False
+        if not self.__sync_mpls_state():
+            self.logger.warning("Could not sync interface MPLS state in VPP")
+            ret = False
         if not self.__sync_admin_state():
             self.logger.warning("Could not sync interface adminstate in VPP")
             ret = False
@@ -1290,6 +1293,36 @@ class Reconciler:
             self.logger.warning("Could not sync growing interface MTU in VPP")
             ret = False
         return ret
+
+    def __sync_mpls_state(self):
+        """Synchronize the VPP Dataplane configuration for interface and loopback MPLS state"""
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+            self.cfg
+        ):
+            if ifname.startswith("loop"):
+                vpp_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+            else:
+                vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+
+            try:
+                config_mpls = config_iface["mpls"]
+            except KeyError:
+                config_mpls = False
+
+            vpp_mpls = False
+            if vpp_ifname in self.vpp.cache["interface_names"]:
+                sw_if_index = self.vpp.cache["interface_names"][vpp_ifname]
+                try:
+                    vpp_mpls = self.vpp.cache["interface_mpls"][sw_if_index]
+                except KeyError:
+                    pass
+            if vpp_mpls != config_mpls:
+                state = "disable"
+                if config_mpls:
+                    state = "enable"
+                cli = f"set interface mpls {vpp_ifname} {state}"
+                self.cli["sync"].append(cli)
+        return True
 
     def __sync_addresses(self):
         """Synchronize the VPP Dataplane configuration for interface addresses"""

@@ -73,6 +73,9 @@ following fields:
     in CIDR format. VPP requires IP addresses to be unique in the entire dataplane, with one
     notable exception: Multiple IP addresses in the same prefix/len can be added on one and the
     same interface.
+*   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
+    default value is `false`, if the field is not specified, which means MPLS will not be enabled.
+    This allows BVIs, represented by Loopbacks, to participate in MPLS .
 
 Although VPP would allow it, `vppcfg` does not allow for loopbacks to have sub-interfaces.
 
@@ -87,6 +90,7 @@ loopbacks:
     lcp: bvi1
     mtu: 9000
     addresses: [ 10.0.1.1/24, 10.0.1.2/24, 2001:db8:1::1/64 ]
+    mpls: true
 ```
 
 ### Bridge Domains
@@ -306,6 +310,8 @@ exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `Bo
     If it is not specified, the link is considered admin 'up'.
 *   ***device-type***: An optional interface type in VPP. Currently the only supported vlaue is
     `dpdk`, and it is used to generate correct mock interfaces if the `--novpp` flag is used.
+*   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
+    default value is `false`, if the field is not specified, which means MPLS will not be enabled.
 
 Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
 to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further
@@ -330,6 +336,7 @@ interfaces:
     lcp: "ice0"
     mtu: 9000
     addresses: [ 192.0.2.1/30, 2001:db8:1::1/64 ]
+    mpls: true
     sub-interfaces:
       1234:
         mtu: 9000
@@ -338,6 +345,7 @@ interfaces:
       1235:
         mtu: 1500
         lcp: "ice0.qinq"
+        mpls: true
         addresses: [ 192.0.2.9/30, 2001:db8:3::1/64 ]
         encapsulation:
           dot1q: 1234

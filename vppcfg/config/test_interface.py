@@ -277,3 +277,10 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertFalse(
             interface.get_admin_state(self.cfg, "GigabitEthernet1/0/0.102")
         )
+
+    def test_is_mpls(self):
+        self.assertTrue(interface.is_mpls(self.cfg, "GigabitEthernet1/0/1"))
+        self.assertTrue(interface.is_mpls(self.cfg, "GigabitEthernet1/0/1.101"))
+        self.assertFalse(interface.is_mpls(self.cfg, "GigabitEthernet1/0/0"))
+        self.assertFalse(interface.is_mpls(self.cfg, "GigabitEthernet1/0/0.100"))
+        self.assertFalse(interface.is_mpls(self.cfg, "notexist"))

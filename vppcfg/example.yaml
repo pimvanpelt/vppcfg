@@ -20,7 +20,8 @@ interfaces:
     lcp: "ice12-0-0"
     mac: f2:01:00:12:00:00
     mtu: 9000
-    addresses: [ 192.0.2.17/30, 2001:DB8:3::1/64 ]
+    addresses: [ 192.0.2.17/30, 2001:db8:3::1/64 ]
+    mpls: true
     sub-interfaces:
       1234:
         mtu: 1200
@@ -90,6 +91,7 @@ loopbacks:
     mtu: 1500
     mac: 02:de:ad:11:be:ef
     addresses: [ 10.0.2.1/24, 2001:db8:2::1/64 ]
+    mpls: true
 
 bridgedomains:
   bd1:
