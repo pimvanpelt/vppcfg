@@ -1,0 +1,13 @@
+test:
+  description: "Ways in which ACE protocol can fail"
+  errors:
+    expected:
+      - "acl .* term .* could not understand protocol"
+    count: 1
+---
+acls:
+  acl01:
+    terms:
+     - description: "Protocol is not known in /etc/protocols"
+       action: permit
+       protocol: "unknown"

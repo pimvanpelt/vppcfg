@@ -123,3 +123,43 @@ taps:
       name: vpp-tap101
       mtu: 1500
       bridge: br1
+
+prefixlists:
+  trusted:
+    description: "All IPv4 and IPv6 trusted networks"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+      - 2001:db8::1
+      - 2001:db8::/64
+      - 2001:db8::/48
+  empty:
+    description: "An empty prefixlist"
+    members: []
+
+acls:
+  acl01:
+     description: "Test ACL"
+     terms:
+       - description: "Allow a prefixlist"
+         action: permit
+         source: trusted
+       - description: "Allow a prefixlist for one family only"
+         family: ipv4
+         action: permit
+         source: trusted
+       - description: "Allow a specific IPv6 TCP flow"
+         action: permit
+         source: 2001:db8::/64
+         destination: 2001:db8:1::/64
+         protocol: tcp
+         destination-port: www
+         source-port: "1024-65535"
+       - description: "Allow IPv4 ICMP Destination Unreachable, any code"
+         family: ipv4
+         action: permit
+         protocol: icmp
+         icmp-type: 3
+         icmp-code: any
+       - description: "Deny any IPv4 or IPv6"
+         action: deny

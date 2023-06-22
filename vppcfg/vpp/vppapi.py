@@ -120,12 +120,15 @@ class VPPApi:
             "interfaces": {},
             "interface_addresses": {},
             "interface_mpls": {},
+            "interface_acls": {},
             "bondethernets": {},
             "bondethernet_members": {},
             "bridgedomains": {},
             "vxlan_tunnels": {},
             "l2xcs": {},
             "taps": {},
+            "acls": {},
+            "acl_tags": {},
         }
         return True
 
@@ -197,6 +200,7 @@ class VPPApi:
         if len(self.cache["interface_addresses"][iface.sw_if_index]) > 0:
             self.logger.warning(f"Not all addresses were removed on {ifname}")
         del self.cache["interface_addresses"][iface.sw_if_index]
+        del self.cache["interface_acls"][iface.sw_if_index]
         del self.cache["interface_names"][ifname]
 
         ## Use my_dict.pop('key', None), as it allows 'key' to be absent
@@ -247,6 +251,14 @@ class VPPApi:
             interface_dev_type="local",
             tag="mock",
         )
+        self.cache["interface_acls"][idx] = self.vpp_messages[
+            "acl_interface_list_details"
+        ].tuple(
+            sw_if_index=idx,
+            count=0,
+            n_input=0,
+            acls=[],
+        )
         ## Add mock PHYs
         for ifname, iface in yaml_config["interfaces"].items():
             if not "device-type" in iface or iface["device-type"] not in ["dpdk"]:
@@ -277,6 +289,14 @@ class VPPApi:
                 interface_name=ifname,
                 interface_dev_type=iface["device-type"],
                 tag="mock",
+            )
+            self.cache["interface_acls"][idx] = self.vpp_messages[
+                "acl_interface_list_details"
+            ].tuple(
+                sw_if_index=idx,
+                count=0,
+                n_input=0,
+                acls=[],
             )
 
         ## Create interface_names and interface_address indexes
@@ -340,6 +360,19 @@ class VPPApi:
             self.logger.warning(
                 f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
+
+        try:
+            self.logger.debug("Retrieving ACLs")
+            api_response = self.vpp.api.acl_dump(acl_index=0xFFFFFFFF)
+            for acl in api_response:
+                self.cache["acls"][acl.acl_index] = acl
+
+            self.logger.debug("Retrieving interface ACLs")
+            api_response = self.vpp.api.acl_interface_list_dump()
+            for iface in api_response:
+                self.cache["interface_acls"][iface.sw_if_index] = iface
+        except AttributeError:
+            self.logger.warning(f"ACL API not found - missing plugin: {err}")
 
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()

@@ -4,6 +4,8 @@ loopbacks: map(include('loopback'),key=str(matches='loop[0-9]+'),required=False)
 bridgedomains: map(include('bridgedomain'),key=str(matches='bd[0-9]+'),required=False)
 vxlan_tunnels: map(include('vxlan'),key=str(matches='vxlan_tunnel[0-9]+'),required=False)
 taps: map(include('tap'),key=str(matches='tap[0-9]+'),required=False)
+prefixlists: map(include('prefixlist'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=64),required=False)
+acls: map(include('acl'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=56),required=False)
 ---
 vxlan:
   description: str(exclude='\'"',len=64,required=False)
@@ -82,3 +84,29 @@ tap:
     namespace-create: bool(required=False)
   rx-ring-size: int(min=8,max=32768,required=False)
   tx-ring-size: int(min=8,max=32768,required=False)
+---
+prefixlist:
+  description: str(exclude='\'"',len=64,required=False)
+  members: list(any(ip_interface(),ip()))
+---
+# Valid: 80 "www" "-1024" "1024-" "1024-65535", and "any"
+acl-term-port-int-range-symbolic: any(int(min=1,max=65535),str(equals="any"),regex('^([1-9][0-9]*-|-[1-9][0-9]*|[1-9][0-9]*-[1-9][0-9]*)$'),regex('^[a-z][a-z0-9-]*$'))
+---
+# Valid: 80 "-245" "10-" "10-245", and "any"
+acl-term-icmp-int-range: any(int(min=0,max=255),str(equals="any"),regex('^([0-9]+-|-[1-9][0-9]*|[0-9]*-[1-9][0-9]*)$'))
+---
+acl-term:
+  description: str(exclude='\'"',len=64,required=False)
+  action: enum('permit','deny','permit+reflect')
+  family: enum('ipv4','ipv6','any',required=False)
+  source: any(ip(),ip_interface(),str(min=1,max=56),required=False)
+  destination: any(ip(),ip_interface(),str(min=1,max=56),required=False)
+  protocol: any(int(min=1,max=255),regex('^[a-z][a-z0-9-]*$'),required=False)
+  source-port: include('acl-term-port-int-range-symbolic',required=False)
+  destination-port: include('acl-term-port-int-range-symbolic',required=False)
+  icmp-type: include('acl-term-icmp-int-range',required=False)
+  icmp-code: include('acl-term-icmp-int-range',required=False)
+---
+acl:
+  description: str(exclude='\'"',len=64,required=False)
+  terms: list(include('acl-term'), min=1, max=100, required=True)

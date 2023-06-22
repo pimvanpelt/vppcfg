@@ -1,0 +1,39 @@
+test:
+  description: "Ways in which port ranges can fail"
+  errors:
+    expected:
+      - "acl .* term .* could not understand (source|destination)-port"
+      - "acl .* term .* (source|destination)-port low value is greater than high value"
+      - "acl .* term .* (source|destination)-port (low|high) value is not between \\[0,65535\\]"
+      - "acl .* term .* (source|destination)-port can only be specified for protocol tcp or udp"
+    count: 7
+---
+acls:
+  acl01:
+    terms:
+     - description: "Port is not known in /etc/services"
+       action: permit
+       protocol: tcp
+       source-port: "unknown"
+     - description: "Port is not known in /etc/services"
+       action: permit
+       destination-port: "unknown-range"
+       protocol: tcp
+     - description: "Low port is higher than High port"
+       action: permit
+       source-port: "20-10"
+       protocol: udp
+     - description: "High port is > 65535"
+       action: permit
+       source-port: "10-65536"
+       protocol: udp
+     - description: "High port is > 65535"
+       action: permit
+       protocol: tcp
+       destination-port: "10-65536"
+     - description: "ports are not allowed if protocol is not TCP or UDP"
+       action: permit
+       source-port: 80
+     - description: "ports are not allowed if protocol is not TCP or UDP"
+       action: permit
+       destination-port: 80-1024

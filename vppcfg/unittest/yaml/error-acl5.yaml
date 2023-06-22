@@ -1,0 +1,40 @@
+test:
+  description: "Ways in which ICMP code and type can fail"
+  errors:
+    expected:
+      - "acl .* term .* icmp-(type|code) can only be specified for protocol icmp or ipv6-icmp"
+      - "acl .* term .* icmp-(type|code) low value is greater than high value"
+    count: 8
+---
+acls:
+  acl01:
+    terms:
+     - description: "code and type are not allowed if protocol is not icmp or icmp-ipv6"
+       action: permit
+       icmp-code: 1
+       icmp-type: 1
+     - description: "code and type are not allowed if protocol is not icmp or icmp-ipv6"
+       action: permit
+       protocol: udp
+       icmp-code: 1
+       icmp-type: 1
+     - description: "code and type are not allowed if protocol is not icmp or icmp-ipv6"
+       action: permit
+       protocol: tcp
+       icmp-code: 1
+       icmp-type: 1
+     - description: "Ranges invalid"
+       action: permit
+       protocol: icmp
+       icmp-code: 5-4
+       icmp-type: 20-10
+     - description: "OK"
+       action: permit
+       protocol: icmp
+       icmp-code: 1
+       icmp-type: 1
+     - description: "OK"
+       action: permit
+       protocol: ipv6-icmp
+       icmp-code: 1
+       icmp-type: 1

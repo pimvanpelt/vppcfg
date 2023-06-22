@@ -38,6 +38,8 @@ from .interface import validate_interfaces
 from .bridgedomain import validate_bridgedomains
 from .vxlan_tunnel import validate_vxlan_tunnels
 from .tap import validate_taps
+from .prefixlist import validate_prefixlists
+from .acl import validate_acls
 
 
 class IPInterfaceWithPrefixLength(validators.Validator):
@@ -90,6 +92,8 @@ class Validator:
             validate_bridgedomains,
             validate_vxlan_tunnels,
             validate_taps,
+            validate_prefixlists,
+            validate_acls,
         ]
 
     def validate(self, yaml):

@@ -1,0 +1,27 @@
+prefixlists:
+  trusted:
+    description: "All IPv4 and IPv6 trusted networks"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+      - 2001:db8::1
+      - 2001:db8::/64
+      - 2001:db8::/48
+  deny-all:
+    description: "Default for IPv4 and IPv6"
+    members:
+      - 0.0.0.0/0
+      - ::/0
+  ipv4-only:
+    description: "Only contains IPv4"
+    members:
+      - 192.0.2.1
+      - 192.0.2.0/24
+  ipv6-only:
+    description: "Only contains IPv6"
+    members:
+      - 2001:db8::1
+      - 2001:db8::/64
+  empty:
+    description: "An empty list"
+    members: []
