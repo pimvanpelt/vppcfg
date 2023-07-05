@@ -244,7 +244,7 @@ def main():
         sys.exit(0)
 
     reconciler = Reconciler(cfg, **opt_kwargs)
-    if args.novpp:
+    if args.command == "plan" and args.novpp:
         if not reconciler.vpp.mockconfig(cfg):
             sys.exit(-7)
     else:
