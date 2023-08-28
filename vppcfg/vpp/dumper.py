@@ -239,7 +239,6 @@ class Dumper(VPPApi):
                     bvi
                     and bvi.interface_name
                     == self.cache["interfaces"][member.sw_if_index].interface_name
-                    == bvi.interface_name
                 ):
                     continue
                 members.append(
