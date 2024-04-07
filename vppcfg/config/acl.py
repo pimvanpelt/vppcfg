@@ -142,7 +142,7 @@ def is_ip(ip_string):
         return False
 
     try:
-        ipn = ipaddress.ip_network(ip_string, strict=False)
+        _ = ipaddress.ip_network(ip_string, strict=False)
         return True
     except:
         pass
