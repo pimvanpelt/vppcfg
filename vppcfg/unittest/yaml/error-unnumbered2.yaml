@@ -6,7 +6,7 @@ test:
       - "(sub-)?interface .* unnumbered target .* cannot also be unnumbered"
       - "loopback .* unnumbered target cannot point to itself"
       - "loopback .* unnumbered target .* cannot also be unnumbered"
-    count: 12
+    count: 16
 ---
 loopbacks:
   loop0:
@@ -15,6 +15,10 @@ loopbacks:
     unnumbered: loop0
   loop2:
     unnumbered: loop2
+  loop3:
+    unnumbered: GigabitEthernet2/0/0
+  loop4:
+    unnumbered: GigabitEthernet1/0/0.100
 
 interfaces:
   GigabitEthernet1/0/0:
@@ -31,6 +35,9 @@ interfaces:
   GigabitEthernet2/0/1:
     description: "Cannot point to Gi2/0/0, as that interface is itself unnumbered"
     unnumbered: GigabitEthernet2/0/0
+  GigabitEthernet2/0/2:
+    description: "Cannot point to Gi2/0/0, as that interface is itself unnumbered"
+    unnumbered: loop0
 
   GigabitEthernet3/0/0:
     sub-interfaces:
@@ -40,3 +47,6 @@ interfaces:
       101:
         description: "Cannot point to Gi3/0/0.100, as that interface is itself unnumbered"
         unnumbered: GigabitEthernet3/0/0.100
+      102:
+        description: "Cannot point to Gi3/0/0.100, as that interface is itself unnumbered"
+        unnumbered: loop0

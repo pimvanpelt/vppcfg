@@ -113,7 +113,7 @@ def validate_loopbacks(yaml):
                     f"loopback {ifname} unnumbered target {target} does not exist"
                 )
                 result = False
-            if is_unnumbered(yaml, target):
+            if is_unnumbered(yaml, target) or interface.is_unnumbered(yaml, target):
                 msgs.append(
                     f"loopback {ifname} unnumbered target {target} cannot also be unnumbered"
                 )
