@@ -152,6 +152,23 @@ def get_l2xc_interfaces(yaml):
     return ret
 
 
+def get_unnumbered_interfaces(yaml):
+    """Returns a list of all interfaces that are unnumbered"""
+    ret = []
+    if not "interfaces" in yaml:
+        return ret
+    for ifname, iface in yaml["interfaces"].items():
+        if "unnumbered" in iface:
+            ret.append(ifname)
+        if "sub-interfaces" in iface:
+            for subid, sub_iface in iface["sub-interfaces"].items():
+                sub_ifname = f"{ifname}.{int(subid)}"
+                if "unnumbered" in sub_iface:
+                    ret.append(sub_ifname)
+
+    return ret
+
+
 def is_l2xc_interface(yaml, ifname):
     """Returns True if this interface has an L2 CrossConnect"""
 
@@ -381,6 +398,11 @@ def is_l3(yaml, ifname):
     return not is_l2(yaml, ifname)
 
 
+def is_unnumbered(yaml, ifname):
+    """Returns True if the interface exists and is unnumbered"""
+    return ifname in get_unnumbered_interfaces(yaml)
+
+
 def get_lcp(yaml, ifname):
     """Returns the LCP of the interface. If the interface is a sub-interface with L3
     enabled, synthesize it based on its parent, using smart QinQ syntax.
@@ -493,6 +515,37 @@ def validate_interfaces(yaml):
                 f"interface {ifname} does not have a unique LCP name {iface_lcp}"
             )
             result = False
+
+        if "unnumbered" in iface:
+            target = iface["unnumbered"]
+            _, target_iface = loopback.get_by_name(yaml, target)
+            if not target_iface:
+                _, target_iface = get_by_name(yaml, target)
+            if not target_iface:
+                msgs.append(
+                    f"interface {ifname} unnumbered target {target} does not exist"
+                )
+                result = False
+            if is_l2(yaml, target):
+                msgs.append(
+                    f"interface {ifname} unnumbered target {target} cannot be in L2 mode"
+                )
+                result = False
+            if is_unnumbered(yaml, target):
+                msgs.append(
+                    f"interface {ifname} unnumbered target {target} cannot also be unnumbered"
+                )
+                result = False
+            if ifname == target:
+                msgs.append(
+                    f"interface {ifname} unnumbered target cannot point to itself"
+                )
+                result = False
+            if has_address(yaml, ifname):
+                msgs.append(
+                    f"interface {ifname} cannot also have addresses when it is unnumbered"
+                )
+                result = False
 
         if "addresses" in iface:
             for addr in iface["addresses"]:
@@ -624,6 +677,37 @@ def validate_interfaces(yaml):
                         f"sub-interface {sub_ifname} has LCP name {sub_lcp} but its encapsulation is not exact-match"
                     )
                     result = False
+
+                if "unnumbered" in sub_iface:
+                    target = sub_iface["unnumbered"]
+                    _, target_iface = loopback.get_by_name(yaml, target)
+                    if not target_iface:
+                        _, target_iface = get_by_name(yaml, target)
+                    if not target_iface:
+                        msgs.append(
+                            f"sub-interface {sub_ifname} unnumbered target {target} does not exist"
+                        )
+                        result = False
+                    if is_l2(yaml, target):
+                        msgs.append(
+                            f"sub-interface {sub_ifname} unnumbered target {target} cannot be in L2 mode"
+                        )
+                        result = False
+                    if is_unnumbered(yaml, target):
+                        msgs.append(
+                            f"sub-interface {sub_ifname} unnumbered target {target} cannot also be unnumbered"
+                        )
+                        result = False
+                    if sub_ifname == target:
+                        msgs.append(
+                            f"sub-interface {sub_ifname} unnumbered target cannot point to itself"
+                        )
+                        result = False
+                    if has_address(yaml, sub_ifname):
+                        msgs.append(
+                            f"sub-interface {sub_ifname} cannot also have addresses when it is unnumbered"
+                        )
+                        result = False
 
                 if has_address(yaml, sub_ifname):
                     if not encap or not encap["exact-match"]:

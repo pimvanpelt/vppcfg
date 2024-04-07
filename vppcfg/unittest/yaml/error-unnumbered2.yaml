@@ -1,0 +1,32 @@
+test:
+  description: "Unnumbered cannot point to self; Unnumbered cannot be a target of another unnumbered"
+  errors:
+    expected:
+      - "(sub-)?interface .* unnumbered target cannot point to itself"
+      - "(sub-)?interface .* unnumbered target .* cannot also be unnumbered"
+    count: 8
+---
+interfaces:
+  GigabitEthernet1/0/0:
+    description: "Cannot point to the same interface"
+    unnumbered: GigabitEthernet1/0/0
+    sub-interfaces:
+      100:
+        description: "Cannot point to the same sub-interface"
+        unnumbered: GigabitEthernet1/0/0.100
+
+  GigabitEthernet2/0/0:
+    description: "Cannot point to Gi2/0/1, as that interface is itself unnumbered"
+    unnumbered: GigabitEthernet2/0/1
+  GigabitEthernet2/0/1:
+    description: "Cannot point to Gi2/0/0, as that interface is itself unnumbered"
+    unnumbered: GigabitEthernet2/0/0
+
+  GigabitEthernet3/0/0:
+    sub-interfaces:
+      100:
+        description: "Cannot point to Gi3/0/0.101, as that interface is itself unnumbered"
+        unnumbered: GigabitEthernet3/0/0.101
+      101:
+        description: "Cannot point to Gi3/0/0.100, as that interface is itself unnumbered"
+        unnumbered: GigabitEthernet3/0/0.100

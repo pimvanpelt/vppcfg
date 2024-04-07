@@ -26,12 +26,12 @@ class TestInterfaceMethods(unittest.TestCase):
 
     def test_enumerators(self):
         ifs = interface.get_interfaces(self.cfg)
-        self.assertEqual(len(ifs), 19)
+        self.assertEqual(len(ifs), 27)
         self.assertIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
 
         ifs = interface.get_sub_interfaces(self.cfg)
-        self.assertEqual(len(ifs), 13)
+        self.assertEqual(len(ifs), 17)
         self.assertNotIn("GigabitEthernet1/0/1", ifs)
         self.assertIn("GigabitEthernet1/0/1.200", ifs)
         self.assertIn("GigabitEthernet1/0/1.201", ifs)
@@ -261,7 +261,7 @@ class TestInterfaceMethods(unittest.TestCase):
 
     def test_get_phys(self):
         phys = interface.get_phys(self.cfg)
-        self.assertEqual(len(phys), 6)
+        self.assertEqual(len(phys), 10)
         self.assertIn("GigabitEthernet1/0/0", phys)
         self.assertNotIn("GigabitEthernet1/0/0.100", phys)
 
@@ -284,3 +284,20 @@ class TestInterfaceMethods(unittest.TestCase):
         self.assertFalse(interface.is_mpls(self.cfg, "GigabitEthernet1/0/0"))
         self.assertFalse(interface.is_mpls(self.cfg, "GigabitEthernet1/0/0.100"))
         self.assertFalse(interface.is_mpls(self.cfg, "notexist"))
+
+    def test_get_unnumbered_interfaces(self):
+        unnumbered_ifaces = interface.get_unnumbered_interfaces(self.cfg)
+        self.assertEqual(len(unnumbered_ifaces), 5)
+        self.assertNotIn("GigabitEthernet4/0/0", unnumbered_ifaces)
+        self.assertIn("GigabitEthernet4/0/1", unnumbered_ifaces)
+        self.assertNotIn("GigabitEthernet4/0/3.100", unnumbered_ifaces)
+        self.assertIn("GigabitEthernet4/0/3.101", unnumbered_ifaces)
+
+    def test_is_unnumbered(self):
+        self.assertFalse(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/0"))
+        self.assertTrue(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/1"))
+        self.assertTrue(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/2"))
+        self.assertFalse(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/3.100"))
+        self.assertTrue(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/3.101"))
+        self.assertTrue(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/3.102"))
+        self.assertTrue(interface.is_unnumbered(self.cfg, "GigabitEthernet4/0/3.103"))

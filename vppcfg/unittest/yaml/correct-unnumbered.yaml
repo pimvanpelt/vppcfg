@@ -1,0 +1,43 @@
+test:
+  description: "Test that is meant to pass"
+  errors:
+    count: 0
+---
+loopbacks:
+  loop0:
+    mtu: 9216
+    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    addresses: [ 94.142.244.85/24, 2a02:898::146:1/64 ]
+    sub-interfaces:
+      100:
+        addresses: [ 94.142.241.185/29, 2a02:898:146::1/64 ]
+      101:
+        unnumbered: loop0
+
+  GigabitEthernet2/0/0:
+    addresses: [ 192.0.2.5/30, 2001:db8:2::1/64 ]
+  GigabitEthernet2/0/1:
+    unnumbered: GigabitEthernet2/0/0
+
+  GigabitEthernet3/0/0:
+    sub-interfaces:
+      100:
+        addresses: [ 192.0.2.9/30, 2001:db8:3::1/64 ]
+      101:
+        unnumbered: loop0
+
+  GigabitEthernet3/0/1:
+    unnumbered: GigabitEthernet3/0/0.100
+
+  GigabitEthernet4/0/0:
+    addresses: [ 192.0.2.13/30, 2001:db8:4::1/64 ]
+
+  GigabitEthernet4/0/1:
+    sub-interfaces:
+      100:
+        unnumbered: GigabitEthernet4/0/0
+      101:
+        unnumbered: loop0

@@ -1,3 +1,7 @@
+loopbacks:
+  loop0:
+    addresses: [ 192.0.2.1/32, 2001:db8::1/128 ]
+
 interfaces:
   GigabitEthernet1/0/0:
     sub-interfaces:
@@ -75,3 +79,20 @@ interfaces:
         l2xc: GigabitEthernet3/0/2.200
       200:
         description: "This interface does not connect back to Gi3/0/2.100. Strange, but valid."
+
+  GigabitEthernet4/0/0:
+    addresses: [ 192.0.2.129/30, 2001:db8:10::1/64 ]
+  GigabitEthernet4/0/1:
+    unnumbered: GigabitEthernet4/0/0
+  GigabitEthernet4/0/2:
+    unnumbered: loop0
+  GigabitEthernet4/0/3:
+    sub-interfaces:
+      100:
+        addresses: [ 192.168.2.133/30, 2001:db8:11::1/64 ]
+      101:
+        unnumbered: loop0
+      102:
+        unnumbered: GigabitEthernet4/0/1
+      103:
+        unnumbered: GigabitEthernet4/0/3.100

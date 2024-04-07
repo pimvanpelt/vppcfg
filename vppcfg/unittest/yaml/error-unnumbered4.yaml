@@ -1,0 +1,91 @@
+test:
+  description: "Unnumbered targets cannot be in l2 mode"
+  errors:
+    expected:
+      - "(sub-)?interface .* unnumbered target .* cannot be in L2 mode"
+    count: 2
+---
+loopbacks:
+  loop0:
+    lcp: "loop0"
+    mtu: 3000
+    addresses: [ 192.0.2.1/30, 2001:db8::1/64 ]
+
+bondethernets:
+  BondEthernet0:
+    interfaces: [ GigabitEthernet3/0/0, GigabitEthernet3/0/1 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    mtu: 3000
+  GigabitEthernet1/0/1:
+    mtu: 3000
+
+  GigabitEthernet2/0/0:
+    mtu: 9000
+    sub-interfaces:
+      100:
+        mtu: 2000
+  GigabitEthernet2/0/1:
+    mtu: 9000
+    sub-interfaces:
+      100:
+        mtu: 2000
+
+  GigabitEthernet3/0/0:
+    mtu: 3000
+  GigabitEthernet3/0/1:
+    mtu: 3000
+  GigabitEthernet3/0/2:
+    mtu: 5000
+    l2xc: GigabitEthernet3/0/3
+  GigabitEthernet3/0/3:
+    mtu: 5000
+    l2xc: GigabitEthernet3/0/2
+
+  GigabitEthernet4/0/0:
+    mtu: 3000
+    description: "Cannot be unnumbered off of a bond-member"
+    unnumbered: GigabitEthernet3/0/0
+  GigabitEthernet4/0/0:
+    mtu: 2000
+    description: "Cannot be unnumbered off of an l2xc"
+    unnumbered: GigabitEthernet3/0/2
+  GigabitEthernet4/0/2:
+    mtu: 3000
+    description: "Cannot be unnumbered off of a bridge-domain member"
+    unnumbered: BondEthernet0.100
+    sub-interfaces:
+      10:
+        description: "Cannot be unnumbered off of a bond member"
+        unnumbered: GigabitEthernet3/0/1
+      100:
+        description: "Cannot be unnumbered off of a bridge-domain member"
+        unnumbered: BondEthernet0.100
+      200:
+        description: "Cannot be unnumbered off of an l2xc"
+        unnumbered: BondEthernet0.200
+
+  BondEthernet0:
+    mtu: 3000
+    sub-interfaces:
+      100:
+        mtu: 2000
+      200:
+        mtu: 2000
+        l2xc: BondEthernet0.201
+      201:
+        mtu: 2000
+        l2xc: BondEthernet0.200
+
+bridgedomains:
+  bd10:
+    description: "Bridge Domain 10"
+    mtu: 3000
+    bvi: loop0
+    interfaces: [ GigabitEthernet1/0/0, GigabitEthernet1/0/1, BondEthernet0 ]
+  bd11:
+    description: "Bridge Domain 11"
+    mtu: 2000
+    interfaces: [ GigabitEthernet2/0/0.100, GigabitEthernet2/0/1.100 ]
+

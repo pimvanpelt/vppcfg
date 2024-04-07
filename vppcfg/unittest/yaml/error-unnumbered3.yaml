@@ -1,0 +1,32 @@
+test:
+  description: "Unnumbered targets cannot have addresses"
+  errors:
+    expected:
+      - "(sub-)?interface .* cannot also have addresses when it is unnumbered"
+    count: 3
+---
+loopbacks:
+  loop0:
+    mtu: 9216
+    addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+
+interfaces:
+  GigabitEthernet1/0/0:
+    sub-interfaces:
+      101:
+        addresses: [ 192.0.2.129/30, 2001:db8:10::1/128 ]
+        unnumbered: loop0
+
+  GigabitEthernet2/0/0:
+    addresses: [ 192.0.2.5/30, 2001:db8:2::1/64 ]
+  GigabitEthernet2/0/1:
+    addresses: [ 192.0.2.133/30, 2001:db8:11::1/128 ]
+    unnumbered: GigabitEthernet2/0/0
+
+  GigabitEthernet3/0/0:
+    sub-interfaces:
+      100:
+        addresses: [ 192.0.2.9/30, 2001:db8:3::1/64 ]
+      101:
+        addresses: [ 192.0.2.137/30, 2001:db8:12::1/128 ]
+        unnumbered: GigabitEthernet3/0/0.100
