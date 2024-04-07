@@ -13,7 +13,6 @@
 #
 """ A vppcfg configuration module that validates interfaces """
 import logging
-import ipaddress
 from . import bondethernet
 from . import bridgedomain
 from . import loopback
