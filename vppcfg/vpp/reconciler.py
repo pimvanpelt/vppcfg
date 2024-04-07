@@ -906,7 +906,7 @@ class Reconciler:
         ]
 
         ## First create untagged ...
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+        for ifname in loopback.get_loopbacks(self.cfg) + interface.get_interfaces(
             self.cfg
         ):
             if interface.is_sub(self.cfg, ifname):
@@ -1195,7 +1195,7 @@ class Reconciler:
             tag_list = [0, 1, 2]
 
         for numtags in tag_list:
-            for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+            for ifname in loopback.get_loopbacks(self.cfg) + interface.get_interfaces(
                 self.cfg
             ):
                 if numtags == 0 and interface.is_sub(self.cfg, ifname):
@@ -1313,7 +1313,7 @@ class Reconciler:
 
     def __sync_mpls_state(self):
         """Synchronize the VPP Dataplane configuration for interface and loopback MPLS state"""
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+        for ifname in loopback.get_loopbacks(self.cfg) + interface.get_interfaces(
             self.cfg
         ):
             if ifname.startswith("loop"):
@@ -1343,7 +1343,7 @@ class Reconciler:
 
     def __sync_unnumbered(self):
         """Synchronize the VPP Dataplane configuration for unnumbered interface"""
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+        for ifname in loopback.get_loopbacks(self.cfg) + interface.get_interfaces(
             self.cfg
         ):
             if ifname.startswith("loop"):
@@ -1395,7 +1395,7 @@ class Reconciler:
 
     def __sync_addresses(self):
         """Synchronize the VPP Dataplane configuration for interface addresses"""
-        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+        for ifname in loopback.get_loopbacks(self.cfg) + interface.get_interfaces(
             self.cfg
         ):
             config_addresses = []
