@@ -122,6 +122,17 @@ class Reconciler:
             ret = False
         return ret
 
+    def __prune_unnumbered_usage(self, target_ifname):
+        """Remove the unnumbered use of all VPP interfaces that are using the given 'target_ifname'."""
+        target_iface = self.vpp.get_interface_by_name(target_ifname)
+
+        for idx, target_idx in self.vpp.cache["interface_unnumbered"].items():
+            if target_idx == target_iface.sw_if_index:
+                unnumbered_ifname = self.vpp.cache["interfaces"][idx].interface_name
+                cli = f"set interface unnumbered del {unnumbered_ifname}"
+                self.cli["prune"].append(cli)
+        return True
+
     def __prune_addresses(self, ifname, address_list):
         """Remove all addresses from interface ifname, except those in address_list,
         which may be an empty list, in which case all addresses are removed.
@@ -159,6 +170,7 @@ class Reconciler:
                 )
                 if not config_iface:
                     self.__prune_addresses(vpp_iface.interface_name, [])
+                    self.__prune_unnumbered_usage(vpp_iface.interface_name)
                     if numtags == 0:
                         cli = f"delete loopback interface intfc {vpp_iface.interface_name}"
                         self.cli["prune"].append(cli)
@@ -417,6 +429,7 @@ class Reconciler:
 
             if self.__bond_has_diff(vpp_ifname):
                 self.__prune_addresses(vpp_ifname, [])
+                self.__prune_unnumbered_usage(vpp_ifname)
                 for member in self.vpp.cache["bondethernet_members"][idx]:
                     member_ifname = self.vpp.cache["interfaces"][member].interface_name
                     cli = f"bond del {member_ifname}"
@@ -518,6 +531,7 @@ class Reconciler:
 
                 if prune:
                     self.__prune_addresses(vpp_ifname, [])
+                    self.__prune_unnumbered_usage(vpp_ifname)
                     cli = f"delete sub {vpp_ifname}"
                     self.cli["prune"].append(cli)
                     removed_interfaces.append(vpp_ifname)
@@ -944,6 +958,9 @@ class Reconciler:
         if not self.__sync_addresses():
             self.logger.warning("Could not sync interface addresses in VPP")
             ret = False
+        if not self.__sync_unnumbered():
+            self.logger.warning("Could not sync unnumbered interfaces in VPP")
+            ret = False
         if not self.__sync_phys():
             self.logger.warning("Could not sync PHYs in VPP")
             ret = False
@@ -1322,6 +1339,58 @@ class Reconciler:
                     state = "enable"
                 cli = f"set interface mpls {vpp_ifname} {state}"
                 self.cli["sync"].append(cli)
+        return True
+
+    def __sync_unnumbered(self):
+        """Synchronize the VPP Dataplane configuration for unnumbered interface"""
+        for ifname in interface.get_interfaces(self.cfg) + loopback.get_loopbacks(
+            self.cfg
+        ):
+            if ifname.startswith("loop"):
+                config_ifname, config_iface = loopback.get_by_name(self.cfg, ifname)
+            else:
+                config_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+
+            config_unnumbered_ifname = None
+            if "unnumbered" in config_iface:
+                config_unnumbered_ifname = config_iface["unnumbered"]
+            self.logger.debug(
+                f"unnumbered iface {config_ifname} use {config_unnumbered_ifname}"
+            )
+
+            vpp_iface = self.vpp.get_interface_by_name(config_ifname)
+            vpp_iface_unnumbered = self.vpp.get_interface_by_name(
+                config_unnumbered_ifname
+            )
+            self.logger.debug(
+                f"unnumbered iface {vpp_iface} use {vpp_iface_unnumbered}"
+            )
+
+            if not config_unnumbered_ifname:
+                if (
+                    vpp_iface
+                    and vpp_iface.sw_if_index in self.vpp.cache["interface_unnumbered"]
+                ):
+                    cli = f"set interface unnumbered del {config_ifname}"
+                    self.cli["sync"].append(cli)
+                    del self.vpp.cache["interface_unnumbered"][vpp_iface.sw_if_index]
+                    continue
+                continue
+
+            if (
+                vpp_iface_unnumbered
+                and vpp_iface
+                and vpp_iface.sw_if_index in self.vpp.cache["interface_unnumbered"]
+            ):
+                if (
+                    self.vpp.cache["interface_unnumbered"][vpp_iface.sw_if_index]
+                    == vpp_iface_unnumbered.sw_if_index
+                ):
+                    continue
+
+            cli = f"set interface unnumbered {config_ifname} use {config_unnumbered_ifname}"
+            self.cli["sync"].append(cli)
+
         return True
 
     def __sync_addresses(self):
