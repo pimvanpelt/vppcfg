@@ -76,6 +76,9 @@ following fields:
 *   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
     default value is `false`, if the field is not specified, which means MPLS will not be enabled.
     This allows BVIs, represented by Loopbacks, to participate in MPLS .
+*   ***unnumbered***: An interface name from which this loopback interface will borrow IPv4 and
+    IPv6 addresses. The interface can be either a loopback, an interface or a sub-interface. if
+    the interface is unnumbered, it can't be L2 and it can't have addresses.
 
 Although VPP would allow it, `vppcfg` does not allow for loopbacks to have sub-interfaces.
 
@@ -312,6 +315,10 @@ exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `Bo
     `dpdk`, and it is used to generate correct mock interfaces if the `--novpp` flag is used.
 *   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
     default value is `false`, if the field is not specified, which means MPLS will not be enabled.
+*   ***unnumbered***: An interface name from which this (sub-)interface will borrow IPv4 and
+    IPv6 addresses. The interface can be either a loopback, an interface or a sub-interface. if
+    the interface is unnumbered, it can't be L2 and it can't have addresses.
+
 
 Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
 to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further
@@ -351,10 +358,14 @@ interfaces:
           dot1q: 1234
           inner-dot1q: 1000
           exact-match: True
+      1236:
+        mtu: 1500
+        unnumbered: HundredGigabitEthernet12/0/0.1235
 
   BondEthernet0:
     mtu: 9000
     lcp: "bond0"
+    unnumbered: loop0
     sub-interfaces:
       100:
         mtu: 2500
@@ -368,6 +379,9 @@ interfaces:
         encapsulation:
            dot1q: 200
            exact-match: False
+      300:
+        mtu: 1500
+        unnumbered: loop0
 ```
 
 ### Prefix Lists
