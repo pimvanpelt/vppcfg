@@ -692,7 +692,9 @@ def validate_interfaces(yaml):
                             f"sub-interface {sub_ifname} unnumbered target {target} cannot be in L2 mode"
                         )
                         result = False
-                    if is_unnumbered(yaml, target) or loopback.is_unnumbered(yaml, target):
+                    if is_unnumbered(yaml, target) or loopback.is_unnumbered(
+                        yaml, target
+                    ):
                         msgs.append(
                             f"sub-interface {sub_ifname} unnumbered target {target} cannot also be unnumbered"
                         )
