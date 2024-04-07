@@ -1,11 +1,10 @@
 [MASTER]
-init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
+#init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
 ignore-patterns=test_.*
 
 [MESSAGES CONTROL]
 
 # Pointless whinging
-#   R0201 = Method could be a function
 #   W0212 = Accessing protected attribute of client class
 #   W0613 = Unused argument
 #   C0301 = Line too long
@@ -14,7 +13,7 @@ ignore-patterns=test_.*
 #   W1203 = Use lazy % formatting in logging functions
 
 # Disable the message(s) with the given id(s).
-disable=R0201,W0212,W0613,C0301,R0914,W1203
+disable=W0212,W0613,C0301,R0914,W1203
 
 [FORMAT]
 max-line-length=148
