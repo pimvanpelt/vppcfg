@@ -791,7 +791,7 @@ def is_mpls(yaml, ifname):
     """Returns True if the interface exists and has mpls enabled. Returns false otherwise."""
     ifname, iface = get_by_name(yaml, ifname)
     try:
-        if iface["mpls"] == True:
+        if iface["mpls"]:
             return True
     except:
         pass
