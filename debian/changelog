@@ -1,3 +1,8 @@
+vppcfg (0.0.5) unstable; urgency=low
+
+  Feature release:
+    * Allow for 'unnumbered' interfaces.
+ -- Pim van Pelt <pim@ipng.nl>  Sun, 07 APr 2024 12:15:00 +0000
 vppcfg (0.0.4) unstable; urgency=low
 
   Feature release:
