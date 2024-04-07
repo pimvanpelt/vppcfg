@@ -119,6 +119,7 @@ class VPPApi:
             "interface_names": {},
             "interfaces": {},
             "interface_addresses": {},
+            "interface_unnumbered": {},
             "interface_mpls": {},
             "interface_acls": {},
             "bondethernets": {},
@@ -373,6 +374,11 @@ class VPPApi:
                 self.cache["interface_acls"][iface.sw_if_index] = iface
         except AttributeError as err:
             self.logger.warning(f"ACL API not found - missing plugin: {err}")
+
+        self.logger.debug("Retrieving interface Unnumbered state")
+        api_response = self.vpp.api.ip_unnumbered_dump()
+        for iface in api_response:
+            self.cache["interface_unnumbered"][iface.sw_if_index] = iface.ip_sw_if_index
 
         self.logger.debug("Retrieving bondethernets")
         api_response = self.vpp.api.sw_bond_interface_dump()

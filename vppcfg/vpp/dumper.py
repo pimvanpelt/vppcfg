@@ -102,6 +102,11 @@ class Dumper(VPPApi):
                     loop["mac"] = str(iface.l2_address)
                     if iface.sw_if_index in self.cache["lcps"]:
                         loop["lcp"] = self.cache["lcps"][iface.sw_if_index].host_if_name
+                    if iface.sw_if_index in self.cache["interface_unnumbered"]:
+                        target = self.cache["interface_unnumbered"][iface.sw_if_index]
+                        loop["unnumbered"] = self.cache["interfaces"][
+                            target
+                        ].interface_name
                     if iface.sw_if_index in self.cache["interface_addresses"]:
                         if (
                             len(self.cache["interface_addresses"][iface.sw_if_index])
@@ -123,6 +128,11 @@ class Dumper(VPPApi):
                     i = {"description": ""}
                     if iface.sw_if_index in self.cache["lcps"]:
                         i["lcp"] = self.cache["lcps"][iface.sw_if_index].host_if_name
+                    if iface.sw_if_index in self.cache["interface_unnumbered"]:
+                        target = self.cache["interface_unnumbered"][iface.sw_if_index]
+                        i["unnumbered"] = self.cache["interfaces"][
+                            target
+                        ].interface_name
                     if iface.sw_if_index in self.cache["interface_addresses"]:
                         if (
                             len(self.cache["interface_addresses"][iface.sw_if_index])
