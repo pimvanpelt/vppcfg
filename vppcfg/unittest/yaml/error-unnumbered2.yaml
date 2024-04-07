@@ -4,8 +4,18 @@ test:
     expected:
       - "(sub-)?interface .* unnumbered target cannot point to itself"
       - "(sub-)?interface .* unnumbered target .* cannot also be unnumbered"
-    count: 8
+      - "loopback .* unnumbered target cannot point to itself"
+      - "loopback .* unnumbered target .* cannot also be unnumbered"
+    count: 12
 ---
+loopbacks:
+  loop0:
+    unnumbered: loop1
+  loop1:
+    unnumbered: loop0
+  loop2:
+    unnumbered: loop2
+
 interfaces:
   GigabitEthernet1/0/0:
     description: "Cannot point to the same interface"

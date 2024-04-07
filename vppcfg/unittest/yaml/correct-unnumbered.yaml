@@ -7,6 +7,18 @@ loopbacks:
   loop0:
     mtu: 9216
     addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+  loop1:
+    mtu: 1500
+    addresses: [ 192.0.2.17/32, 2001:db8:10::1/128 ]
+  loop2:
+    mtu: 1500
+    unnumbered: loop1
+  loop3:
+    mtu: 1500
+    unnumbered: GigabitEthernet1/0/0
+  loop4:
+    mtu: 1500
+    unnumbered: GigabitEthernet3/0/0.100
 
 interfaces:
   GigabitEthernet1/0/0:

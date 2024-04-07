@@ -16,6 +16,7 @@ import logging
 from . import lcp
 from . import address
 from . import mac
+from . import interface
 
 
 def get_loopbacks(yaml):
@@ -53,6 +54,32 @@ def is_loopback(yaml, ifname):
     return iface is not None
 
 
+def get_unnumbered_loopbacks(yaml):
+    """Returns a list of all loopbacks that are unnumbered"""
+    ret = []
+    if not "loopbacks" in yaml:
+        return ret
+    for ifname, iface in yaml["loopbacks"].items():
+        if "unnumbered" in iface:
+            ret.append(ifname)
+
+    return ret
+
+
+def is_unnumbered(yaml, ifname):
+    """Returns True if the loopback exists and is unnumbered"""
+    return ifname in get_unnumbered_loopbacks(yaml)
+
+
+def has_address(yaml, ifname):
+    """Returns True if this loopback has one or more addresses"""
+
+    ifname, iface = get_by_name(yaml, ifname)
+    if not iface:
+        return False
+    return "addresses" in iface
+
+
 def validate_loopbacks(yaml):
     """Validate the semantics of all YAML 'loopbacks' entries"""
     result = True
@@ -76,6 +103,31 @@ def validate_loopbacks(yaml):
                 f"loopback {ifname} does not have a unique LCP name {iface['lcp']}"
             )
             result = False
+        if "unnumbered" in iface:
+            target = iface["unnumbered"]
+            _, target_iface = get_by_name(yaml, target)
+            if not target_iface:
+                _, target_iface = interface.get_by_name(yaml, target)
+            if not target_iface:
+                msgs.append(
+                    f"loopback {ifname} unnumbered target {target} does not exist"
+                )
+                result = False
+            if is_unnumbered(yaml, target):
+                msgs.append(
+                    f"loopback {ifname} unnumbered target {target} cannot also be unnumbered"
+                )
+                result = False
+            if ifname == target:
+                msgs.append(
+                    f"loopback {ifname} unnumbered target cannot point to itself"
+                )
+                result = False
+            if has_address(yaml, ifname):
+                msgs.append(
+                    f"loopback {ifname} cannot also have addresses when it is unnumbered"
+                )
+                result = False
         if "addresses" in iface:
             for addr in iface["addresses"]:
                 if not address.is_allowed(yaml, ifname, iface["addresses"], addr):

@@ -2,21 +2,27 @@ test:
   description: "Nonexistent unnumbered target"
   errors:
     expected:
-     - "^sub-interface .* unnumbered target .* does not exist"
-     - "^interface .* unnumbered target .* does not exist"
-    count: 4
+     - "(sub-)?interface .* unnumbered target .* does not exist"
+     - "loopback .* unnumbered target .* does not exist"
+    count: 6
 ---
 loopbacks:
   loop0:
     mtu: 9216
     addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+  loop1:
+    mtu: 9216
+    unnumbered: loop2
+  loop3:
+    mtu: 9216
+    unnumbered: GigabitEthernet0/0/0
 
 interfaces:
   GigabitEthernet1/0/0:
     sub-interfaces:
       101:
         description: "Error: non existent loopback device"
-        unnumbered: loop1
+        unnumbered: loop2
 
   GigabitEthernet2/0/0:
     addresses: [ 192.0.2.5/30, 2001:db8:2::1/64 ]

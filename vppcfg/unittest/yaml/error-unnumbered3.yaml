@@ -3,12 +3,17 @@ test:
   errors:
     expected:
       - "(sub-)?interface .* cannot also have addresses when it is unnumbered"
-    count: 3
+      - "loopback .* cannot also have addresses when it is unnumbered"
+    count: 4
 ---
 loopbacks:
   loop0:
     mtu: 9216
     addresses: [ 192.0.2.1/32, 2001:db8:1::1/128 ]
+  loop1:
+    mtu: 9216
+    unnumbered: loop0
+    addresses: [ 192.0.2.13/32, 2001:db8:4::1/128 ]
 
 interfaces:
   GigabitEthernet1/0/0:
