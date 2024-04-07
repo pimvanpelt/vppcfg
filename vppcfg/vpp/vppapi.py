@@ -359,7 +359,7 @@ class VPPApi:
                 self.cache["interface_mpls"][iface.sw_if_index] = True
         except AttributeError:
             self.logger.warning(
-                f"MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
+                "MPLS state retrieval requires https://gerrit.fd.io/r/c/vpp/+/39022"
             )
 
         try:
