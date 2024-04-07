@@ -76,7 +76,7 @@ def get_icmp_low_high(icmpstring):
         icmp = int(icmpstring)
         if icmp > 0:
             return icmp, icmp
-    except:
+    except ValueError:
         pass
 
     if icmpstring.startswith("-"):
@@ -90,7 +90,7 @@ def get_icmp_low_high(icmpstring):
     try:
         icmps = icmpstring.split("-")
         return int(icmps[0]), int(icmps[1])
-    except:
+    except ValueError:
         pass
 
     return None, None
@@ -110,13 +110,13 @@ def get_port_low_high(portstring):
         port = int(portstring)
         if port > 0:
             return port, port
-    except:
+    except ValueError:
         pass
 
     try:
         port = socket.getservbyname(portstring)
         return port, port
-    except:
+    except OSError:
         pass
 
     if portstring.startswith("-"):
@@ -130,7 +130,7 @@ def get_port_low_high(portstring):
     try:
         ports = portstring.split("-")
         return int(ports[0]), int(ports[1])
-    except:
+    except ValueError:
         pass
 
     return None, None
@@ -144,7 +144,7 @@ def is_ip(ip_string):
     try:
         _ = ipaddress.ip_network(ip_string, strict=False)
         return True
-    except:
+    except ValueError:
         pass
     return False
 
@@ -190,13 +190,13 @@ def get_protocol(protostring):
         proto = int(protostring)
         if proto > 0:
             return proto
-    except:
+    except ValueError:
         pass
 
     try:
         proto = socket.getprotobyname(protostring)
         return proto
-    except:
+    except OSError:
         pass
 
     return None

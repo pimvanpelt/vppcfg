@@ -152,10 +152,7 @@ def validate_loopbacks(yaml):
 
 def is_mpls(yaml, ifname):
     """Returns True if the loopback exists and has mpls enabled. Returns false otherwise."""
-    ifname, iface = get_by_name(yaml, ifname)
-    try:
-        if iface["mpls"]:
-            return True
-    except:
-        pass
+    _, iface = get_by_name(yaml, ifname)
+    if iface and "mpls" in iface and iface["mpls"]:
+        return True
     return False
