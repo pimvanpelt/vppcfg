@@ -94,6 +94,9 @@ loopbacks:
     mtu: 9000
     addresses: [ 10.0.1.1/24, 10.0.1.2/24, 2001:db8:1::1/64 ]
     mpls: true
+  loop2:
+    description: "Loopback with the same addresses as loop0"
+    unnumbered: loop0
 ```
 
 ### Bridge Domains
