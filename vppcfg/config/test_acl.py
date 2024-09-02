@@ -130,28 +130,28 @@ class TestACLMethods(unittest.TestCase):
         for s in ["192.0.2.1", "192.0.2.1/24", "2001:db8::1", "2001:db8::1/64"]:
             l = acl.get_network_list(self.cfg, s)
             self.assertIsInstance(l, list)
-            self.assertEquals(1, len(l))
+            self.assertEqual(1, len(l))
             n = l[0]
 
         l = acl.get_network_list(self.cfg, "trusted")
         self.assertIsInstance(l, list)
-        self.assertEquals(5, len(l))
+        self.assertEqual(5, len(l))
 
         l = acl.get_network_list(self.cfg, "trusted", want_ipv6=False)
         self.assertIsInstance(l, list)
-        self.assertEquals(2, len(l))
+        self.assertEqual(2, len(l))
 
         l = acl.get_network_list(self.cfg, "trusted", want_ipv4=False)
         self.assertIsInstance(l, list)
-        self.assertEquals(3, len(l))
+        self.assertEqual(3, len(l))
 
         l = acl.get_network_list(self.cfg, "trusted", want_ipv4=False, want_ipv6=False)
         self.assertIsInstance(l, list)
-        self.assertEquals(0, len(l))
+        self.assertEqual(0, len(l))
 
         l = acl.get_network_list(self.cfg, "pl-notexist")
         self.assertIsInstance(l, list)
-        self.assertEquals(0, len(l))
+        self.assertEqual(0, len(l))
 
     def test_network_list_has_family(self):
         l = acl.get_network_list(self.cfg, "trusted")
