@@ -79,22 +79,22 @@ class TestACLMethods(unittest.TestCase):
     def test_get_network_list(self):
         l = prefixlist.get_network_list(self.cfg, "trusted")
         self.assertIsInstance(l, list)
-        self.assertEquals(5, len(l))
+        self.assertEqual(5, len(l))
 
         l = prefixlist.get_network_list(self.cfg, "trusted", want_ipv6=False)
         self.assertIsInstance(l, list)
-        self.assertEquals(2, len(l))
+        self.assertEqual(2, len(l))
 
         l = prefixlist.get_network_list(self.cfg, "trusted", want_ipv4=False)
         self.assertIsInstance(l, list)
-        self.assertEquals(3, len(l))
+        self.assertEqual(3, len(l))
 
         l = prefixlist.get_network_list(
             self.cfg, "trusted", want_ipv4=False, want_ipv6=False
         )
         self.assertIsInstance(l, list)
-        self.assertEquals(0, len(l))
+        self.assertEqual(0, len(l))
 
         l = prefixlist.get_network_list(self.cfg, "pl-notexist")
         self.assertIsInstance(l, list)
-        self.assertEquals(0, len(l))
+        self.assertEqual(0, len(l))
