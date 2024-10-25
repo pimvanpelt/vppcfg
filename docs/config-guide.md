@@ -314,14 +314,15 @@ exist as a PHY in VPP (ie. `HundredGigabitEthernet12/0/0`) or as a specified `Bo
     target interface.
 *   ***state***: An optional string that configures the link admin state, either `up` or `down`.
     If it is not specified, the link is considered admin 'up'.
-*   ***device-type***: An optional interface type in VPP. Currently the only supported vlaue is
+*   ***device-type***: An optional interface type in VPP. Currently the only supported value is
     `dpdk`, and it is used to generate correct mock interfaces if the `--novpp` flag is used.
 *   ***mpls***: An optional boolean that configures MPLS on the interface or sub-interface. The
     default value is `false`, if the field is not specified, which means MPLS will not be enabled.
 *   ***unnumbered***: An interface name from which this (sub-)interface will borrow IPv4 and
     IPv6 addresses. The interface can be either a loopback, an interface or a sub-interface. if
     the interface is unnumbered, it can't be L2 and it can't have addresses.
-
+*   ***sflow***: An optional boolean value, when true will enable sFlow collection on this
+    interface. sFlow collection is only supported on PHY (physical) interfaces.
 
 Further, top-level interfaces, that is to say those that do not have an encapsulation, are permitted
 to have any number of sub-interfaces specified by `subid`, an integer between [0,2G), which further
@@ -510,3 +511,28 @@ interfaces:
 The configuration here is tolerant of either a singleton (a literal string referring to the one
 ACL that must be applied), or a _list_ of strings to more than one ACL, in which case they will
 be tested in order (with a first-match return value).
+
+### sFlow collection
+
+VPP supports sFlow collection using the `sFlow` plugin. The collection of samples occurs only on
+physical interfaces (and will include samples for any sub-interfaces or tunnels created), and is
+meant to be enabled on all interfaces (using the `sflow: true` key, see the Interfaces definition
+above) that are passing traffic. The defaults in the plugin are sensible and should not need to
+be changed.
+
+The following configuration elements are provided for the plugin:
+
+*   **sample-rate**: Capture 1-in-N packets. Defaults to 10000. A good value is the interface
+    bitrate divided by 1000, so for GigabitEthernet choose 1000, for TenGigabitEthernet choose
+    10000 (the default).
+*   **polling-interval**: Determines the period of interface byte and packet counter reads. This
+    information will be added to the sFlow collector data automatically.
+*   **header-bytes**: The number of bytes taken from the IP packet in the sample. By default,
+    128 bytes are taken. This value should not be changed in normal operation.
+
+```
+sflow:
+  sample-rate: 10000
+  polling-interval: 20
+  header-bytes: 128
+```
