@@ -522,7 +522,7 @@ be changed.
 
 The following configuration elements are provided for the plugin:
 
-*   **sample-rate**: Capture 1-in-N packets. Defaults to 10000. A good value is the interface
+*   **sampling-rate**: Capture 1-in-N packets. Defaults to 10000. A good value is the interface
     bitrate divided by 1000, so for GigabitEthernet choose 1000, for TenGigabitEthernet choose
     10000 (the default).
 *   **polling-interval**: Determines the period of interface byte and packet counter reads. This
@@ -532,7 +532,7 @@ The following configuration elements are provided for the plugin:
 
 ```
 sflow:
-  sample-rate: 10000
+  sampling-rate: 10000
   polling-interval: 20
   header-bytes: 128
 ```
