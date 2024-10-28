@@ -10,10 +10,12 @@ interfaces:
     device-type: dpdk
     mtu: 9000
     description: "LAG #1"
+    sflow: true
   GigabitEthernet3/0/1:
     device-type: dpdk
     mtu: 9000
     description: "LAG #2"
+    sflow: false
 
   HundredGigabitEthernet12/0/0:
     device-type: dpdk
@@ -163,3 +165,8 @@ acls:
          icmp-code: any
        - description: "Deny any IPv4 or IPv6"
          action: deny
+
+sflow:
+  header-bytes: 128
+  polling-interval: 30
+  sample-rate: 1000
