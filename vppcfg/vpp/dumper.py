@@ -304,9 +304,9 @@ class Dumper(VPPApi):
                             acl_rule.srcport_or_icmptype_first
                         )
                     else:
-                        config_term[
-                            "icmp-type"
-                        ] = f"{acl_rule.srcport_or_icmptype_first}-{maxval}"
+                        config_term["icmp-type"] = (
+                            f"{acl_rule.srcport_or_icmptype_first}-{maxval}"
+                        )
 
                     maxval = acl_rule.dstport_or_icmpcode_last
                     if maxval > 255:
@@ -319,9 +319,9 @@ class Dumper(VPPApi):
                             acl_rule.dstport_or_icmpcode_first
                         )
                     else:
-                        config_term[
-                            "icmp-code"
-                        ] = f"{acl_rule.dstport_or_icmpcode_first}-{maxval}"
+                        config_term["icmp-code"] = (
+                            f"{acl_rule.dstport_or_icmpcode_first}-{maxval}"
+                        )
                 elif acl_rule.proto in [6, 17]:
                     if acl_rule.proto == 6:
                         config_term["protocol"] = "tcp"
@@ -335,9 +335,9 @@ class Dumper(VPPApi):
                             acl_rule.srcport_or_icmptype_first
                         )
                     else:
-                        config_term[
-                            "source-port"
-                        ] = f"{acl_rule.srcport_or_icmptype_first}-{acl_rule.srcport_or_icmptype_last}"
+                        config_term["source-port"] = (
+                            f"{acl_rule.srcport_or_icmptype_first}-{acl_rule.srcport_or_icmptype_last}"
+                        )
                     if (
                         acl_rule.dstport_or_icmpcode_first
                         == acl_rule.dstport_or_icmpcode_last
@@ -346,9 +346,9 @@ class Dumper(VPPApi):
                             acl_rule.dstport_or_icmpcode_first
                         )
                     else:
-                        config_term[
-                            "destination-port"
-                        ] = f"{acl_rule.dstport_or_icmpcode_first}-{acl_rule.dstport_or_icmpcode_last}"
+                        config_term["destination-port"] = (
+                            f"{acl_rule.dstport_or_icmpcode_first}-{acl_rule.dstport_or_icmpcode_last}"
+                        )
                 else:
                     config_term["protocol"] = int(acl_rule.proto)
 
