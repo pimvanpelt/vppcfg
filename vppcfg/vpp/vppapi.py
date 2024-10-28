@@ -130,6 +130,8 @@ class VPPApi:
             "taps": {},
             "acls": {},
             "acl_tags": {},
+            "interface_sflow": {},
+            "sflow": {},
         }
         return True
 
@@ -414,6 +416,33 @@ class VPPApi:
         api_response = self.vpp.api.sw_interface_tap_v2_dump()
         for tap in api_response:
             self.cache["taps"][tap.sw_if_index] = tap
+
+        try:
+            self.logger.debug("Retrieving sFlow")
+
+            api_response = self.vpp.api.sflow_sampling_rate_get()
+            if api_response:
+                self.cache["sflow"]["sampling-rate"] = api_response.sampling_N
+            api_response = self.vpp.api.sflow_polling_interval_get()
+            if api_response:
+                self.cache["sflow"]["polling-interval"] = api_response.polling_S
+            api_response = self.vpp.api.sflow_header_bytes_get()
+            if api_response:
+                self.cache["sflow"]["header-bytes"] = api_response.header_B
+
+            api_response = self.vpp.api.sflow_interface_dump()
+            for iface in api_response:
+                self.cache["interface_sflow"][iface.hw_if_index] = True
+        except AttributeError as err:
+            self.logger.warning(f"sFlow API not found - missing plugin: {err}")
+
+        self.logger.debug("Retrieving interface Unnumbered state")
+        api_response = self.vpp.api.ip_unnumbered_dump()
+        for iface in api_response:
+            self.cache["interface_unnumbered"][iface.sw_if_index] = iface.ip_sw_if_index
+
+        self.logger.debug("Retrieving bondethernets")
+        api_response = self.vpp.api.sw_bond_interface_dump()
 
         self.cache_read = True
         return self.cache_read

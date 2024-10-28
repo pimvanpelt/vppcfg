@@ -6,6 +6,7 @@ vxlan_tunnels: map(include('vxlan'),key=str(matches='vxlan_tunnel[0-9]+'),requir
 taps: map(include('tap'),key=str(matches='tap[0-9]+'),required=False)
 prefixlists: map(include('prefixlist'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=64),required=False)
 acls: map(include('acl'),key=str(matches='[a-z][a-z0-9\-]+',min=1,max=56),required=False)
+sflow: include('sflow',required=False)
 ---
 vxlan:
   description: str(exclude='\'"',len=64,required=False)
@@ -57,6 +58,7 @@ interface:
   state: enum('up', 'down', required=False)
   mpls: bool(required=False)
   device-type: enum('dpdk', required=False)
+  sflow: bool(required=False)
 ---
 sub-interface:
   description: str(exclude='\'"',len=64,required=False)
@@ -113,3 +115,8 @@ acl-term:
 acl:
   description: str(exclude='\'"',len=64,required=False)
   terms: list(include('acl-term'), min=1, max=100, required=True)
+---
+sflow:
+  header-bytes: int(min=1,max=256,required=False)
+  polling-interval: int(min=5,max=600,required=False)
+  sampling-rate: int(min=100,max=1000000,required=False)

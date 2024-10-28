@@ -40,6 +40,7 @@ from .vxlan_tunnel import validate_vxlan_tunnels
 from .tap import validate_taps
 from .prefixlist import validate_prefixlists
 from .acl import validate_acls
+from .sflow import validate_sflow
 
 
 class IPInterfaceWithPrefixLength(validators.Validator):
@@ -94,6 +95,7 @@ class Validator:
             validate_taps,
             validate_prefixlists,
             validate_acls,
+            validate_sflow,
         ]
 
     def validate(self, yaml):

@@ -67,6 +67,7 @@ class Dumper(VPPApi):
             "taps": {},
             "prefixlists": {},
             "acls": {},
+            "sflow": {},
         }
         for idx, bond_iface in self.cache["bondethernets"].items():
             bond = {"description": ""}
@@ -141,6 +142,8 @@ class Dumper(VPPApi):
                             i["addresses"] = self.cache["interface_addresses"][
                                 iface.sw_if_index
                             ]
+                    if iface.sw_if_index in self.cache["interface_mpls"]:
+                        i["mpls"] = self.cache["interface_mpls"][iface.sw_if_index]
                     if iface.sw_if_index in self.cache["l2xcs"]:
                         l2xc = self.cache["l2xcs"][iface.sw_if_index]
                         i["l2xc"] = self.cache["interfaces"][
@@ -352,5 +355,10 @@ class Dumper(VPPApi):
                 config_acl["terms"].append(config_term)
 
             config["acls"][aclname] = config_acl
+
+        config["sflow"] = self.cache["sflow"]
+        for hw_if_index in self.cache["interface_sflow"]:
+            vpp_iface = self.cache["interfaces"][hw_if_index]
+            config["interfaces"][vpp_iface.interface_name]["sflow"] = True
 
         return config
