@@ -967,6 +967,9 @@ class Reconciler:
         if not self.__sync_mpls_state():
             self.logger.warning("Could not sync interface MPLS state in VPP")
             ret = False
+        if not self.__sync_sflow_state():
+            self.logger.warning("Could not sync interface sFlow state in VPP")
+            ret = False
         if not self.__sync_admin_state():
             self.logger.warning("Could not sync interface adminstate in VPP")
             ret = False
@@ -1310,6 +1313,55 @@ class Reconciler:
             self.logger.warning("Could not sync growing interface MTU in VPP")
             ret = False
         return ret
+
+    def __sync_sflow_state(self):
+        """Synchronize the VPP Dataplane configuration and phy sFlow state"""
+
+        if "sflow" in self.cfg and self.vpp.cache["sflow"]:
+            if "header-bytes" in self.cfg["sflow"]:
+                if (
+                    self.vpp.cache["sflow"]["header-bytes"]
+                    != self.cfg["sflow"]["header-bytes"]
+                ):
+                    cli = f"sflow header-bytes {self.cfg['sflow']['header-bytes']}"
+                    self.cli["sync"].append(cli)
+            if "polling-interval" in self.cfg["sflow"]:
+                if (
+                    self.vpp.cache["sflow"]["polling-interval"]
+                    != self.cfg["sflow"]["polling-interval"]
+                ):
+                    cli = f"sflow polling-interval {self.cfg['sflow']['polling-interval']}"
+                    self.cli["sync"].append(cli)
+            if "sampling-rate" in self.cfg["sflow"]:
+                if (
+                    self.vpp.cache["sflow"]["sampling-rate"]
+                    != self.cfg["sflow"]["sampling-rate"]
+                ):
+                    cli = f"sflow sampling-rate {self.cfg['sflow']['sampling-rate']}"
+                    self.cli["sync"].append(cli)
+
+        for ifname in interface.get_interfaces(self.cfg):
+            vpp_ifname, config_iface = interface.get_by_name(self.cfg, ifname)
+
+            try:
+                config_sflow = config_iface["sflow"]
+            except KeyError:
+                config_sflow = False
+
+            vpp_sflow = False
+            if vpp_ifname in self.vpp.cache["interface_names"]:
+                hw_if_index = self.vpp.cache["interface_names"][vpp_ifname]
+                try:
+                    vpp_sflow = self.vpp.cache["interface_sflow"][hw_if_index]
+                except KeyError:
+                    pass
+            if vpp_sflow != config_sflow:
+                if config_sflow:
+                    cli = f"sflow enable {vpp_ifname}"
+                else:
+                    cli = f"sflow enable-disable {vpp_ifname} disable"
+                self.cli["sync"].append(cli)
+        return True
 
     def __sync_mpls_state(self):
         """Synchronize the VPP Dataplane configuration for interface and loopback MPLS state"""
