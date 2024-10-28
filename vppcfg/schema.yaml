@@ -119,4 +119,4 @@ acl:
 sflow:
   header-bytes: int(min=1,max=256,required=False)
   polling-interval: int(min=5,max=600,required=False)
-  sample-rate: int(min=100,max=1000000,required=False)
+  sampling-rate: int(min=100,max=1000000,required=False)

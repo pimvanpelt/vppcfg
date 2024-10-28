@@ -169,4 +169,4 @@ acls:
 sflow:
   header-bytes: 128
   polling-interval: 30
-  sample-rate: 1000
+  sampling-rate: 1000
